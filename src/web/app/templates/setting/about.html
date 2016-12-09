@@ -1,0 +1,432 @@
+{% extends 'layout.html' %}
+{% block title %}系统配置{% endblock %}
+{% block inline_styles %}
+    {{ super() }}
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <link ref="stylesheet" href="{{ url_for('static', filename='css/chosen.css') }}" />
+
+    <style type="text/css">
+        .text-editable{}
+        .number-editable{}
+        .date-editable{}
+        a.alert-warning{
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius:15px;
+        }
+    </style>
+
+{% endblock %}
+{% block page_content %}
+    <div class="page-header"><h1>许可证</h1></div>
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-book pink"></i>
+                产品许可信息
+            </h4>
+            <div class="widget-toolbar no-border" >
+{#                <a class="alert alert-warning "  id="error-info_license" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>#}
+                <a id="btn_save_license" class="green" title="保存更改"
+                   href="javascript:void(0)" style="visibility: hidden" ><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body">
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped" >
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            系统序列号
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_system_serial_number" >{{ license_info.system_serial_number }}</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            许可服务器URL
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_server_url" >{{ license_info.server_url }}</span>
+                        </div>
+                    </div>
+                     <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            许可到期时间
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license"
+                                  id="license_expired_time" >{{
+                                license_info.expired_time }}{%if now >
+                                license_info.expired_time and
+                                license_info.max_desktops != 0
+                                %}<label
+                                        style="color:red">(许可已到期)
+                                </label>
+                                {% elif now > license_info.expired_time and
+                                license_info.max_desktops == 0%}
+                                <label
+                                        style="color:red">(未激活)
+                                </label>
+                                {%else%}
+                                    <label style="color:red">(已激活)</label>
+                                {% endif %}</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            服务器MAC地址
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_mac_address" >{{ license_info.mac_address }}</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            服务器SN号
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_server_serial_number" >{{ license_info.server_serial_number }}</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大并发桌面数
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_max_desktops" >{{ license_info.max_desktops }}</span>
+                        </div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大镜像数量
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_max_images" >{{ license_info.max_images }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大用户数量
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license"
+                                  id="license_user" >{{ license_info.max_user
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大VCPU个数
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_max_vcpu" >{{ license_info.max_vcpu }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大虚拟内存容量
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_max_vmem" >{{
+                                license_info.max_vmem }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center">
+                            最大虚拟硬盘容量
+                        </div>
+                        <div class="profile-info-value">
+                            <span class="editable text-editable license" id="license_max_vdisk" >{{
+                                license_info.max_vdisk }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget-toolbox padding-8 clearfix pull-right">
+                <a class="btn btn-xs btn-success"
+                        id="download_host_info" href="{{ url_for('setting.host_info_file') }}">
+                    <i class="ace-icon fa fa-cloud-download"></i>
+                    <span class="bigger-110">下载主机信息</span>
+                </a>
+                &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                <button id="upload_file_button" class="btn btn-xs
+                btn-info">
+                    <i class="ace-icon fa fa-cloud-upload"></i>
+                    <span class="bigger-110">上传许可文件</span>
+                </button>
+                &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                <button id="invoke_management_system"
+                        class="btn btn-xs btn-danger">
+                    <i class="ace-icon fa fa-key"></i>
+                    <span class="bigger-110">激活管理系统</span>
+                </button>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div id="upload_file_dialog" class="modal fade">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">上传许可文件</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="upload_form" enctype="multipart/form-data">
+                        <input type="file" name="file" id="licensefile"/>
+                    </form>
+                </div>
+                <div class="modal-footer" style="text-align: right">
+                    <button id="upload_file" type="button" class="btn
+                    btn-success" > 导入 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+
+        active_sidebar("#setting", null);
+
+        $(function(){
+
+            $.fn.editable.defaults.mode = 'inline';
+
+            //text editable
+            $('#license_server_url')
+				.editable({
+					type: 'text',
+					name: 'license_server_url'
+			});
+
+			 $('#license_server_url').editable('option', 'validate', function(v) {
+                if(!v) {
+                    return '不能为空！';
+                }
+                else if (!isURL(v)){
+                    return '请输入正确的URL！'
+                }
+
+            });
+
+            //text editable
+            $('#license_system_serial_number')
+				.editable({
+					type: 'text',
+					name: 'license_system_serial_number'
+			});
+
+            // valiable to store change word
+            var license_info = {};
+            $('.text-editable, .number-editable , .list-editable').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                var newValue;
+                if ($(target).hasClass('date-editable')) {
+                    newValue = editable.newValue.toString().split(" ")[4].split(":")[0] + ":" + editable.newValue.toString().split(" ")[4].split(":")[2];
+                } else if ($(target).hasClass('number-editable')) {
+                    newValue = parseInt(editable.newValue);
+                } else {
+                    newValue = editable.newValue;
+                }
+
+                if ($(target).hasClass('license')) {
+                    license_info[target.id] = newValue;
+                    $("#btn_save_license").css({visibility: "visible"});
+                }
+            });
+
+            $("#btn_save_license").click(function () {
+                var json = $.toJSON(license_info);
+                var options = {
+                    url: "{{ url_for('setting.batch_update_license') }}",
+                    type: "post",
+                    contentType: "application/json",
+                    data: json,
+                    dataType: "json",
+                    success: callback
+                };
+
+                function callback(responseJson, statusText) {
+                    if(responseJson['status'] == "success"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '保存成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()}, 500);
+                    }else{
+                        content = "保存失败"
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+                $.ajax(options);
+            });
+
+
+            $("#upload_file_button").click(function () {
+                $("#licensefile").ace_file_input("reset_input");
+                $("#upload_file_dialog").modal("show");
+            })
+
+            $("#upload_file").click(function () {
+                $("#upload_file_dialog").modal("hide");
+                uploadFile();
+            })
+            
+            function uploadFile() {
+                if(!uploadCheck()){
+                    return;
+                }
+
+                var options = {
+                    beforeSubmit: beforeSubmit,
+                    success: callback,
+                    url: "{{ url_for('setting.upload_license_file') }}",
+                    type: "post",
+                    dataType: "json"
+                }
+
+                function beforeSubmit() {
+                    return true;
+                }
+
+                function callback(responseJson, statusText) {
+                    if(responseJson['status'] == "success"){
+                        location.reload();
+                    }else{
+                        var content = responseJson['error_msg'];
+                            // 显示提示信息
+                        $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                        });
+                    }
+                }
+
+                $("#upload_form").ajaxSubmit(options);
+            }
+
+
+            function uploadCheck() {
+                return checkUploadFile("#licensefile");
+            }
+
+
+            function checkUploadFile(fileId){
+                try {
+                    var file = $(fileId)[0].files[0];
+                    var content = "";
+                    if (file == undefined || file == null) {
+                        content = "请选择许可文件后再点击上传";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                        return false;
+                    }
+                    var size = file.size; // *** B
+
+                    if (size > 1 * 1024 * 1024) {
+                        content = "您上传的许可文件大小不能超过1MB";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }
+                catch (e) {
+                    // 老版本的浏览器在不借助Flash的情况下无法获取文件大小
+                    return true;
+                }
+                return true;
+            }
+
+            function isURL(url){
+                var strRegex = '^((https|http|ftp|rtsp|mms)?://)'
+                    + '?(([0-9a-z_!~*\'().&=+$%-]+: )?[0-9a-z_!~*\'().&=+$%-]+@)?' //ftp的user@
+                    + '(([0-9]{1,3}.){3}[0-9]{1,3}' // IP形式的URL- 199.194.52.184
+                    + '|' // 允许IP和DOMAIN（域名）
+                    + '([0-9a-z_!~*\'()-]+.)*' // 域名- www.
+                    + '([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].' // 二级域名
+                    + '[a-z]{2,6})' // first level domain- .com or .museum
+                    + '(:[0-9]{1,4})?' // 端口- :80
+                    + '((/?)|' // a slash isn't required if there is no file name
+                    + '(/[0-9a-z_!~*\'().;?:@&=+$,%#-]+)+/?)$';
+                var re = new RegExp(strRegex);
+
+                if (re.test(url))
+                    return true;
+                else
+                    return false;
+            }
+
+
+            $("#invoke_management_system").click(function () {
+                var options = {
+                    beforeSubmit: beforeSubmit,
+                    success: callback,
+                    url: "{{ url_for("setting.invoke_system") }}",
+                    async: false
+                };
+
+                function beforeSubmit() {
+                    return true;
+                };
+
+                function callback(responseJson, statusText) {
+                    if(responseJson['status'] == "success"){
+                        location.reload();
+                    }else{
+                        var content = responseJson['error_msg'];
+                            // 显示提示信息
+                        $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                $.ajax(options);
+            });
+
+
+
+        });
+
+    </script>
+{% endblock %}
+

@@ -1,0 +1,21 @@
+
+mysql:
+  image: mysql
+  restart: always
+  environment:
+    - MYSQL_ROOT_PASSWORD=admin123
+  ports:
+    - "3306:3306"
+  command: "--skip-name-resolve --default-storage-engine=innodb --innodb_file_per_table=1 --character-set-server=utf8 --collation-server=utf8_general_ci --init-connect='SET NAMES utf8'"
+
+rabbit:
+  image: rabbitmq:management
+  restart: always
+  environment:
+    - RABBITMQ_DEFAULT_USER=root
+    - RABBITMQ_DEFAULT_PASS=admin123
+  ports:
+    - "5672:5672"
+    - "4369:4369"
+    - "25672:25672"
+    - "15672:15672"   # management port

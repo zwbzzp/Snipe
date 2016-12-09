@@ -1,0 +1,112 @@
+.dialog_line{
+  height: auto;
+  position: relative;
+  left: 12px;
+  margin-bottom: 10px;
+
+}
+
+.dialog_line p{
+  height: 26px;
+  margin-bottom: 0px;
+}
+
+.dialog_line > span{
+  height: 0px;
+  position: relative;
+  bottom: 29px;
+  left: 30px;
+  float: left;
+}
+
+.dialog_line .chzn-container{
+  margin-bottom: 20px;
+}
+
+.dialog_line_big{
+  height: 160px; 
+  width: 220px;
+  position: relative;
+  left: 12px; 
+}
+
+.dialog_line_v2{
+  height: 90px; 
+  width: 600px;
+  position: relative;
+  /*left: 12px;*/ 
+}
+
+.dialog_button_line{
+  bottom: 20px;
+  height: 20px;
+  left: 165px;
+  position: relative;
+  width: 220px;
+}
+
+.dialog_line .btn-success{
+  float: right;
+}
+
+.dialog_line_v2 .btn-success{
+  float: right;
+}
+
+.dialog_line label.error, span.error{
+  color: #f86a77;
+  margin: 0 0 0 10px;
+  padding: 2px 4px 2px 4px;
+  font-size:80%;
+  height: 20px;
+  text-align: left;
+  border: 1px solid #eed3d7;
+  background-color: #feefed;
+  border-radius: 5px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.dialog_top{
+  width: 90%;
+  margin-top: 15px;
+  position: relative;
+  left: 5%;   
+}
+
+.dialog_bottom{
+  height: 35px; 
+  width: 90%;
+  margin-bottom: 10px;
+  position: relative; 
+  left: 5%;
+}
+
+p{
+  color: grey;
+}
+
+.result_top{
+  height:
+  40px;
+}
+
+.result_top p{
+  position: relative;
+  top: 30%;
+}
+
+.result_top .ui-icon{
+  position: relative;
+  top: 2px;
+}
+
+.result_bottom{
+  height: 50px;
+}
+
+.result_bottom button{ 
+  position: relative;
+  top: 20%;
+  left: 70%; 
+}

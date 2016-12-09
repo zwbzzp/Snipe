@@ -1,0 +1,14 @@
+[Unit]
+Description=Vinzor uWSGI Serivce
+
+[Service]
+Type=simple
+Environment=LC_ALL=en_US.UTF-8
+Environment=LANG=en_US.UTF-8
+Environment=PYTHONIOENCODING=utf-8
+Environment=UWSGI=/srv/www/vinzor/venv/bin/uwsgi
+Environment=LOGTO=/var/log/uwsgi/emperor.log
+ExecStart=$UWSGI --master --emperor /etc/uwsgi/vassals --die-on-term --uid root --gid root --logto $LOGTO
+
+[Install]
+WantedBy=multi-user.target

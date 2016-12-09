@@ -1,0 +1,492 @@
+{% extends 'students/layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}桌面管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+    <style type="text/css">
+        th {
+            text-align: left;
+        }
+
+        #id_free_desktop_switch {
+            position: relative;
+            opacity: 1;
+        }
+
+        select {
+            height: 32px;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>自由上机</h1></div>
+	 <div class="widget-box">
+
+	 <div class="row-fluid">
+
+    <div class="widget-header ">
+       <h4 class="widget-title">自由上机配置管理</h4>
+	   <!--<div class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+					<a href="#" data-action="fullscreen">
+                        <i class="ace-icon fa fa-expand"></i>
+                    </a>
+       </div>-->
+    </div>
+
+    <div class="widget-body no-padding">
+        <div class="widget-toolbox padding-10 ">
+            <div class="action-buttons">
+                <a id="edit_free_desktop_param" href="javascript:void(0)">
+                    <i class='ace-icon fa fa-plus-circle bigger-160'></i>编辑
+                </a>
+
+                <a id="save_free_desktop_param" class="red" href="javascript:void(0)" style="display:none">
+                    <i class="ace-icon fa fa-floppy-o bigger-160"></i>保存
+                </a>
+            </div>
+            <br>
+
+            <div id='form_div' disabled="disabled">
+                <form id="param_form" action="{{ url_for( 'admin_setting.free_desktop_params') }}" method="post" class="row">
+                    <div class="action-buttons col-md-3">
+                        <label for="free_desktop_switch">{{form.free_desktop_switch.label}}</label> : <select id="free_desktop_switch" name="free_desktop_switch" data-rule-required='true' data-msg-required='请选择是否开启'>
+                        {% for choice in form.free_desktop_switch.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                    <div class="action-buttons col-md-4">
+                        <label for="free_desktop_flavor">{{form.free_desktop_flavor.label}}</label> : <select id="free_desktop_flavor" name="free_desktop_flavor" data-rule-required='true' data-msg-required='请选择桌面配置'>
+                        {% for choice in form.free_desktop_flavor.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                    <div class="action-buttons col-md-5">
+                        <table>
+                            <td>
+                                <tr>
+                                    <th>
+                                        <label for="free_desktop_start_time">{{ form.free_desktop_start_time.label }}</label> :</th>
+                                    <td style="padding-left: 10px;">
+										<input id="free_desktop_start_time" name="free_desktop_start_time" type="text" value="00:00" data-rule-required='true' data-msg-required='请输入开始时间' data-rule-timeLimit="true">
+										<span class="add-on"><i class="glyphicon glyphicon-time"></i></span>
+                                    </td>
+                                </tr>
+                            </td>
+                        </table>
+                    </div>
+                    <br><br>
+                    <div class="action-buttons col-md-3">
+                        <label for="free_desktop_capacity">{{ form.free_desktop_capacity.label }}</label> : <input id="free_desktop_capacity" name="free_desktop_capacity" type="text" value="20" data-rule-required='true' data-msg-required='请输入桌面数量'>
+                    </div>
+                    <div class="action-buttons col-md-4">
+                        <label for="free_desktop_image">{{ form.free_desktop_image.label }}</label> : <select id="free_desktop_image" name="free_desktop_image" data-rule-required='true' data-msg-required='请选择桌面镜像'>
+                        {% for choice in form.free_desktop_image.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                    <div class="action-buttons col-md-5">
+                        <table>
+                            <td>
+                                <tr>
+                                    <th><label for="free_desktop_stop_time">{{ form.free_desktop_stop_time.label }}</label> :</th>
+                                    <td style="padding-left: 10px;">
+                                            <input id="free_desktop_stop_time" name="free_desktop_stop_time" type="text" value="23:59" data-rule-required='true' data-msg-required='请输入结束时间'>
+											<span class="add-on"><i class="glyphicon glyphicon-time"></i></span>
+                                    </td>
+                                </tr>
+                            </td>
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <select id="store" style="display: none">
+
+            </select>
+        </div>
+    </div>
+	</div>
+
+    <div class="widget-header ">
+       <h4 class="widget-title">自由上机桌面列表</h4>
+    </div>
+
+    <table id="table_desktop_list" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th class="center">
+                    <label><input type="checkbox" /><span class="lbl"></span></label>
+                </th>
+                <th>桌面名称</th>
+                <th>使用者</th>
+                <th>云桌面配置</th>
+                <th>镜像</th>
+                <th>IP地址</th>
+                <th>状态</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for desktop in free_desktop_list%}
+                <tr>
+                    <td class='center'>
+                        {%if not desktop.can_reboot_or_del %}
+                            <label><input type='checkbox' id="{{desktop.vmid}}" class="desktop-checkbox" disabled="disabled" /><span class="lbl"></span></label>
+                        {% else %}
+                            <label><input type='checkbox' id="{{desktop.vmid}}" class="desktop-checkbox" /><span class="lbl"></span></label>
+                        {% endif%}
+                    </td>
+                    <td id="name_{{desktop.vmid}}"><a href="{{ url_for('students_desktop.desktop_console') }}?id={{desktop.vmid}}">{{desktop.name}}</a></td>
+                    <td id="user_{{desktop.vmid}}">{{desktop.owner.userid}}</td>
+                    <td id="size_{{desktop.vmid}}">{{desktop.size}}</td>
+                    <td id="template_{{desktop.vmid}}">{{desktop.templateid}}</td>
+                    <td id="ipAddress_{{desktop.vmid}}">{{desktop.ip}}</td>
+                    <td id="status_{{desktop.vmid}}">{{desktop.get_status_chs}}</td>
+                    <td>
+                        <div>
+                            {%if desktop.can_reboot_or_del %}
+                                <button class='btn btn-mini btn-success'  title="重启桌面" onclick="rebootDesktopById('{{desktop.name}}', '{{desktop.vmid}}')">
+                                    <i class='icon-retweet'></i>
+                                </button>
+                            {%else%}
+                                <button class='btn btn-mini btn-success'  title="该状态的桌面无法重启" disabled >
+                                    <i class='icon-retweet'></i>
+                                </button>
+                            {%endif%}
+                            {%if desktop.can_reboot_or_del %}
+                                <button class='btn btn-mini btn-danger' onclick="deleteDesktopById('{{desktop.name}}', '{{desktop.vmid}}')" title="删除桌面">
+                                    <i class='icon-trash'></i>
+                                </button>
+                            {%else%}
+                                <button class='btn btn-mini btn-danger' disabled title="该状态下的桌面无法删除">
+                                    <i class='icon-trash'></i>
+                                </button>
+                            {%endif%}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+	</div>
+    <div id="delete_confirm" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                            <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 20px 0;"></span>
+                            <div id="delete_content" class="dialog_tips"></div>
+                            <!-- this input is used to store the pool id -->
+                            <input type="hidden" id="delete_desktop_id" name="delete_desktop_id" value=""/>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-success">> 删除</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reboot_confirm" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">重启</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 20px 0;"></span>
+                        <div id="reboot_content" class="dialog_tips"></div>
+                        <!-- this input is used to store the pool id -->
+                        <input type="hidden" id="reboot_desktop_id" name="reboot_desktop_id" value=""/>
+                    </p>
+                </div>
+                <!-- <div class="modal-footer">
+                    <button id="confirm_reboot" type="button" class="btn btn-success">> 删除</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <div id="fail_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">操作结果</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7 px 20px 0;"></span>
+                        <span id="fail_content">操作失败</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_fail" type="button" class="btn btn-success">> 确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script>
+        active_sidebar("#desktops");
+
+        $(function(){
+            //init JQuery's data table
+            var dTable = $('#table_desktop_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,null,null,null,
+                     null,{"bSortable": false, "bSearchable": false}],
+				"aaSorting": []
+            });
+
+			jQuery.validator.addMethod("timeLimit", function(value, element){
+
+				var startTime = $("#free_desktop_start_time").val();
+				var stopTime = $("#free_desktop_stop_time").val();
+				var start_time = parseInt(startTime.toString().replace(":",""));
+				var stop_time = parseInt(stopTime.toString().replace(":",""));
+
+                if(start_time < stop_time){
+                    return true;
+                } else {
+					return false;
+				}
+            }, "开始时间必须在结束时间之前");
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click' , function(){
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function(){
+                    if($(this).prop("disabled")==false)
+                    {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+            $("#edit_free_desktop_param").click(function(){
+                enable_form();
+            });
+
+            $("#save_free_desktop_param").click(function(){
+                save_all();
+            });
+
+            disable_form();
+
+            $("#store").html($("#id_free_desktop_flavor").html());
+            $("#free_desktop_image").change(function () {
+                var image_id = $("#free_desktop_image").val();
+
+                $.ajax({
+                    url: "{{ url_for('students_setting.get_flavor') }}",
+                    type: "post",
+                    data: {'image_id': image_id},
+                    dataType: "json",
+                    async: false,
+                    global: false,
+                    success: function (data, status) {
+
+                        if (data["status"] == "success") {
+                            reset_flavor_list();
+                            //$("#store").html($("#free_desktop_flavor").html());
+                            min_ram = Number(data['min_ram']);
+                            min_disk = Number(data['min_disk']);
+                            flavors = $("#free_desktop_flavor").children();
+                            for (i = 0; i < flavors.length; i++) {
+                                description = ($(flavors[i])).html().split('|');
+                                if (description.length != 3)
+                                    continue;
+                                ram = Number(description[1].substr(0, description[1].length - 6));
+                                disk = Number(description[2].substr(0, description[2].length - 6));
+                                if (ram < min_ram || disk < min_disk)
+                                    $(flavors[i]).remove();
+                            }
+                            $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '操作成功',
+                            class_name: 'gritter-success'
+                            });
+                        } else {
+                            $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '操作失败',
+                            class_name: 'gritter-error'
+                            });
+                            alert(data["reason"]);
+                        }
+                    }
+                });
+            });
+            $('#free_desktop_stop_time').timepicker({
+                maxHours: 23,
+                minuteStep: 5,
+                showSeconds: false,
+                showMeridian: false
+            });
+            $('#free_desktop_start_time').timepicker({
+                maxHours: 23,
+                minuteStep: 5,
+                showSeconds: false,
+                showMeridian: false
+            });
+			$("#store").html($("#free_desktop_flavor").html());
+            //$("#free_desktop_image").change();
+        });// end initial
+
+        function deleteDesktopById(desktopName, desktopId){
+            $("#delete_content").text("确定要删除桌面“"+desktopName+"”吗？");
+            $("#delete_desktop_id").val(desktopId); //设置删除desktop
+            $("#delete_confirm").modal("show");
+        }
+
+        function deleteDesktop(id){
+            fudp_desktopids = new Array()
+            fudp_desktopids.push(id)
+            $.ajax({
+                url:"{{ url_for('students_desktop.delete_free_desktops') }}",
+                type:"post",
+                async:false,
+                data:{fudp_desktopids:fudp_desktopids},
+                success:function(data,status){
+                    if (data == "success"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '删除成功',
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }else{
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '删除失败',
+                            class_name: 'gritter-error'
+                            });
+                        // $("#fail_content").text("删除失败");
+                        // $("#fail_dialog").modal("show");
+                    }
+                }
+            });
+        }
+
+        function enable_form() {
+			$("#save_free_desktop_param").show();
+			$("#edit_free_desktop_param").hide();
+
+			$("#free_desktop_switch").removeAttr("disabled");
+			$("#free_desktop_flavor").removeAttr("disabled");
+			$("#free_desktop_start_time").removeAttr("disabled");
+			$("#free_desktop_capacity").removeAttr("disabled");
+			$("#free_desktop_image").removeAttr("disabled");
+			$("#free_desktop_stop_time").removeAttr("disabled");
+        }
+
+		function disable_form(){
+			$("#free_desktop_switch").attr("disabled", "disabled");
+			$("#free_desktop_flavor").attr("disabled", "disabled");
+			$("#free_desktop_start_time").attr("disabled", "disabled");
+			$("#free_desktop_capacity").attr("disabled", "disabled");
+			$("#free_desktop_image").attr("disabled", "disabled");
+			$("#free_desktop_stop_time").attr("disabled", "disabled");
+		}
+
+		function on_update_params_success(request, msg, e){
+			var json_ret = $.parseJSON(e.responseText);
+			if (json_ret){
+				var result = json_ret.status;
+				if (result == "success"){
+                                                                    $.gritter.add({
+                                                                    // (string | mandatory) the text inside the notification
+                                                                    text: '操作成功',
+                                                                    class_name: 'gritter-success'
+                                                                    });
+					location.reload();
+				}
+				else {
+					var reason = json_ret.reason;
+                                                                    $.gritter.add({
+                                                                    // (string | mandatory) the text inside the notification
+                                                                    text: '操作失败',
+                                                                    class_name: 'gritter-error'
+                                                                    });
+					alert(reason);
+				}
+			}
+		}
+
+		function on_update_params_error(request, msg, e){
+                                        $.gritter.add({
+                                            // (string | mandatory) the text inside the notification
+                                            text: '服务器异常',
+                                            class_name: 'gritter-error'
+                                        });
+		}
+
+		function save_free_desktop_params() {
+			$.ajax({
+				url: "{{ url_for('students_setting.free_desktop_params') }}",
+				type: "POST",
+				data: $("#param_form").serialize(),
+				success: on_update_params_success,
+				error: on_update_params_error
+			});
+		}
+
+        function save_all() {
+			var valid = $("#param_form").valid();
+			if (!valid)
+				return;
+
+			save_free_desktop_params();
+        }
+
+        function reset_flavor_list() {
+            $("#free_desktop_flavor").html($("#store").html());
+        }
+
+        $("#confirm_delete").click(function () {
+            var id = $("#delete_desktop_id").val();
+            $("#delete_confirm").modal("hide");
+            deleteDesktop(id);
+        });
+
+        $("#confirm_fail").click(function () {
+            $("#fail_dialog").modal("hide");
+            clearInterval(refresh);
+        });
+
+    </script>
+{% endblock %}

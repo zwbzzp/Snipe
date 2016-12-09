@@ -1,0 +1,690 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}浮动IP{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-allocate {
+            width: 600px;
+        }
+        body .modal-associate {
+            width: 400px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>浮动IP</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">浮动IP列表</h4>
+        </div>
+        
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <span class="btn btn-info btn-sm">上次同步于:{{
+                                moment(last_sync_time).fromNow() if last_sync_time else '暂无记录'}}</span>
+                            <a id="floatingip_sync" href="javascript:void(0)"
+                               title="同步浮动IP"><i
+                                    class="ace-icon fa fa-refresh"></i>
+                                同步浮动IP </a>
+                            <a id="floatingip_allocate" href="javascript:void(0)"
+                               title="分配浮动IP"><i
+                                    class="ace-icon fa fa-plus-square"></i>
+                                分配浮动IP </a>
+                            <a id="floatingip_release" class="red" href="javascript:void(0)"
+                               title="释放浮动IP"><i
+                                    class="ace-icon fa fa-minus-square"></i>
+                                释放浮动IP </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="widget-main no-padding">
+            <table id="floatingip_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>IP地址</th>
+                    <th>云桌面</th>
+                    <th>浮动IP池</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="floatingip_sync_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">同步浮动IP</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="router_delete_dialog_reminder">
+                            确定对浮动IP进行同步吗？
+                        </span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="floatingip_sync_confirm" type="button"
+                            class="btn btn-danger btn-sm">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="fip_disassociate_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">解除绑定</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="fip_disassociate_dialog_reminder"> 确定解除绑定吗？该动作可能会导致云桌面无法访问！</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="fip_disassociate_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="fip_associate_dialog" class="modal fade">
+        <div class="modal-dialog modal-associate">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">关联</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="associate_ip_form" action="#" method="post">
+                        {{ associate_ip_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">IP地址</label>
+                                <div class="">
+                                    <input type="text" id="associate_ip_form_fip_address" value="" class="form-control" disabled/>
+                                    {{ associate_ip_form.fip_ref_id(id="associate_ip_form_fip_ref_id", class_='form-control', type='hidden') }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-field-8">待关联的云桌面</label>
+                            <div class="">
+                                {{ associate_ip_form.desktop_id(id="associate_ip_form_desktop_id", class_='select2', placeholder='请选择', style="width:100%") }}
+                            </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="fip_associate_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="fip_release_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">释放浮动IP</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="fip_release_dialog_reminder"> 确定释放浮动IP吗？该动作可能会导致云桌面无法访问！</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="fip_release_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="fip_allocate_dialog" class="modal fade">
+        <div class="modal-dialog modal-allocate">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">分配浮动IP</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="allocate_ip_form" action="#" method="post">
+                        {{ allocate_ip_form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="form-field-8">资源池</label>
+                                    <div class="">
+                                        {{ allocate_ip_form.fip_pool(id="allocate_ip_form_fip_pool", class_='select2', placeholder='请选择', style="width:100%") }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group-sm">
+                                     <p></p><p><b>说明:</b><br />从指定的浮动IP池中分配一个浮动IP</p>
+                                </div>
+                            </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="fip_allocate_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
+    {{ moment.lang("zh-CN") }}
+
+    <script>
+
+        active_sidebar("#networks", "#floatingips");
+        var selected_floatingips = [];
+        
+        $(function() {
+            //init JQuery's data table
+            floatingip_table = $('#floatingip_list').dataTable({
+                "bServerSide": true,
+                "bProcessing": true,
+                "sAjaxSource": "{{ url_for('network.floatingip_table') }}",
+                "iDisplayLength": 10,//每页显示10条数据
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "oLanguage":{
+                    "sSearch": "" +
+                        "<label>搜索：&nbsp;</label>" +
+                        "<span class='add-on'> _INPUT_ </span>" +
+                        "<button id='floatingip_filter_button'>查询</button>",
+                    "sLengthMenu": "每页显示 _MENU_ 条记录",
+                    "sZeroRecords": "没有检索到数据",
+                    "sInfo": "显示 _START_ 至 _END_ 条, 共 _TOTAL_ 条",
+                    "sInfoFiltered": "(筛选自 _MAX_ 条数据)",
+                    "sInfoEmpty": "显示第0至0项结果，共0项",
+                    "sProcessing": "正在加载数据...",
+                    "sInfoPostFix": "",
+                    "sEmptyTable": "表中数据为空",
+                    "sLoadingRecords": "载入中...",
+                    "sInfoThousands": ",",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "上页",
+                        "sNext": "下页",
+                        "sLast": "末页"
+                    },
+                    "oAria": {
+                        "sSortAscending": ":以升序排列此列",
+                        "sSortDescending": ":以降序排列此列"
+                    }
+                },
+                "fnDrawCallback": function (oSettings) {
+                    //$('table th input:checkbox').prop('checked', false);
+                },
+                "aoColumns": [
+                        {"mData": "ref_id", "sWidth": "10%", "sClass": "center", "bSearchable": false, "bSortable": false, "mRender": function ( data, type, row ){
+                            return '<label class="pos-rel"><input type="checkbox" id="' + data + '" class="ace"/><span class="lbl"></span></label>';
+                        }},
+                        {"mData": "ip", "sWidth": "20%", "bSearchable": true, "bSortable": true, "mRender": function ( data, type, row ){
+                            return '<label id="fip_ip_' + row.ref_id + '">' + data + '</label>';
+                        }},
+                        {"mData": "desktop", "sWidth": "30%", "bSearchable": false, "bSortable": false, "mRender": function(data, type, row){
+                            return '<label id="fip_desktop_' + row.ref_id + '" val="' + (data || '') + '">' + (data || '-') + '</label>';
+                        }},
+                        {"mData": "pool", "sWidth": "25%", "bSearchable": false, "bSortable": false,},
+                        {"mData": "operation", "sWidth": "15%", "bSearchable": false, "bSortable": false, "mRender": function ( data, type, row ){
+                            // the ip has two status: active and down, active means being used, down means unused
+                            var rendered = '<div class="action-buttons">', consistent = true;
+                            if ((data=='active' && !row.desktop) || (data=='down' && row.desktop)) {
+                                consistent = false;
+                                rendered = '<label class="red">数据不一致,需要进行同步</label>';
+                                return rendered;
+                            }
+                            if (data == 'active') {
+                                rendered += '<a href="javascript:void(0)" title="解除绑定" class="red" onclick="on_disassociate_click(' + "'" + row.ref_id + "')" + '"><i class="ace-icon fa fa-unlink bigger-130"></i></a>';
+                            } else {
+                                rendered += '<a href="javascript:void(0)" title="关联" onclick="on_associate_click(' + "'" + row.ref_id + "')" + '"><i class="ace-icon fa fa-link bigger-130"></i></a>';
+                            }
+                            rendered += '<a href="javascript:void(0)" title="释放浮动IP" class="red" onclick="on_release_click(' + "'" + row.ref_id + "')" + '"><i class="ace-icon fa fa-trash bigger-130"></i></a>';
+                            rendered += "</div>";
+                            return rendered;
+                        }},
+                    ],
+                "aaSorting": []
+            });
+            
+            $("input[type='search']").attr("placeholder", "输入IP进行搜索");
+            
+            $('#floatingip_list').on('page.dt', function() {
+                $('table th input:checkbox').removeAttr('checked');
+            });
+            
+            $('#floating_list').on('column-sizing.dt', function(e, settings) {
+                console.log(123);
+                floatingip_table.columns.adjust().draw();
+            });
+            
+            $('div#floatingip_list_filter input').unbind();
+            $('#floatingip_filter_button').click(function () {
+                var filter_str = $('div#floatingip_list_filter input').val();
+                if (!filter_str)
+                    return;
+                $.ajax({
+                    url: '{{ url_for('log.test_session') }}',
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        location.reload();
+                    }
+                });
+
+                floatingip_table.fnFilter(filter_str);
+            });
+
+            $('div#floatingip_list_filter input').change(function(){
+                var filter_str = $('div#floatingip_list_filter input').val();
+                if(filter_str==null || filter_str=="")
+                    floatingip_table.fnFilter(filter_str);
+            });
+            
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+            
+            $('[data-rel=tooltip]').tooltip();
+            
+            $(".select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+            
+            associate_ip_form_validator = $("#associate_ip_form").validate({
+                ignore:[],
+                rules: {
+                    desktop_id: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    desktop_id: {
+                        required: '请选择待关联云桌面',
+                    }
+                }
+            });
+            
+            allocate_ip_form_validator = $("#allocate_ip_form").validate({
+                ignore:[],
+                rules: {
+                    fip_pool: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    fip_pool: {
+                        required: '请选择资源池',
+                    }
+                }
+            });
+
+            $('#floatingip_sync').click(function() {
+                $("#floatingip_sync_dialog").modal("show");
+            });
+
+            $('#floatingip_sync_confirm').click(function() {
+                $("#floatingip_sync_dialog").modal("hide");
+                sync_floatingip();
+            });
+            
+            $('#fip_disassociate_confirm').click(function() {
+                $("#fip_disassociate_dialog").modal("hide");
+                disassociate_fips();
+            });
+            
+            $('#fip_associate_confirm').click(function() {
+                associate_fip();
+            });
+            
+            $('#fip_release_confirm').click(function() {
+                $("#fip_release_dialog").modal("hide");
+                release_fips();
+            });
+            
+            $('#floatingip_release').click(function() {
+                selected_floatingips = [];
+                $("#floatingip_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_floatingips.push(this.id);
+                });
+                
+                if (selected_floatingips.length > 0) {
+                    $("#fip_release_dialog_reminder").text("确定释放所选择的浮动IP吗?如果所选浮动IP关联了云桌面,可能会导致云桌面无法访问!");
+                    $("#fip_release_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个浮动IP";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+            
+            $('#floatingip_allocate').click(function() {
+                allocate_ip_form_validator.resetForm();
+                $("#allocate_ip_form_fip_pool").select2("val","");
+                $('#fip_allocate_dialog').modal('show');
+            });
+            
+            $('#fip_allocate_confirm').click(function(){
+                allocate_fip();
+            });
+            
+            
+        });
+        
+        
+        function on_disassociate_click(fip_ref_id) {
+            selected_floatingips = [];
+            selected_floatingips.push(fip_ref_id);
+            
+            var reminder = '确认解除浮动IP<' + $('#fip_ip_' + fip_ref_id).text() + '>的绑定吗?该动作可能会导致云桌面无法访问!';
+            $("#fip_disassociate_dialog_reminder").text(reminder);
+            $("#fip_disassociate_dialog").modal("show");
+        }
+        
+        
+        function on_associate_click(fip_ref_id) {
+            associate_ip_form_validator.resetForm();
+            $("#associate_ip_form_desktop_id").select2("val","");
+            var ip = $("#fip_ip_" + fip_ref_id).text();
+            $("#associate_ip_form_fip_address").val(ip);
+            $("#associate_ip_form_fip_ref_id").val(fip_ref_id);
+            $("#fip_associate_dialog").modal("show");
+        }
+        
+        
+        function on_release_click(fip_ref_id) {
+            selected_floatingips = [];
+            selected_floatingips.push(fip_ref_id);
+            
+            var reminder = '确认释放浮动IP<' + $('#fip_ip_' + fip_ref_id).text() + '>吗?';
+            var desktop = $('#fip_desktop_' + fip_ref_id).attr('val');
+            if (desktop)
+                reminder += '该动作可能会导致云桌面无法访问!';
+            
+            $("#fip_release_dialog_reminder").text(reminder);
+            $("#fip_release_dialog").modal("show");
+        }
+        
+        
+        function sync_floatingip() {
+            $.ajax({
+                url: "{{ url_for('network.floatingip_sync') }}",
+                type: "PUT",
+                contentType: "application/json",
+                success: function(responseJson) {
+                    var success = true, prompt = "";
+                    if (responseJson.status == "success") {
+                        prompt = "同步成功,请于2分钟后刷新页面";
+                    } else {
+                        success = false;
+                        prompt = responseJson.data || responseJson.message;
+                    }
+                    $.gritter.add({
+                        text: prompt,
+                        class_name: (success? 'gritter-success':
+                        'gritter-error')
+                    });
+                },
+                error: function(request, msg, e) {
+                    $.gritter.add({
+                        text: '同步浮动IP过程中出现未知错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        
+        
+        function disassociate_fips() {
+            if (selected_floatingips.length == 0)
+                return;
+            
+            $.ajax({
+                url: "{{ url_for('network.floatingips_disassociate') }}",
+                type: "PUT",
+                contentType: "application/json",
+                data: $.toJSON(selected_floatingips),
+                success: function(responseJson) {
+                    var success_text = '', fail_text = '';
+                    if (responseJson.status == 'success') {
+                        var success_list = responseJson.data.success_list;
+                        var fail_list = responseJson.data.fail_list;
+                        for (var i in success_list) {
+                            success_text += "浮动IP&nbsp;" + success_list[i].ip + "&nbsp;解除绑定成功</br>";
+                        }
+                        for (var i in fail_list) {
+                            var reason = fail_list[i].reason;
+                            var ip = fail_list[i].ip || $('#fip_ip_' + fail_list[i].ref_id).text();
+                            fail_text += "浮动IP&nbsp;" + ip + "&nbsp;解除绑定失败:&nbsp;" + reason + "</br>";
+                        }
+                        if (success_text) {
+                            $.gritter.add({
+                                text: success_text,
+                                class_name: 'gritter-success'
+                            });
+                        }
+                        if (fail_text) {
+                            $.gritter.add({
+                                text: fail_text,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                        
+                        if (success_list.length)
+                            setTimeout(function(){
+                                location.reload();
+                            }, 2000);
+                    }
+                },
+                error: function(request, msg, e) {
+                    $.gritter.add({
+                        text: '解除绑定过程中出现未知错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        
+        
+        function associate_fip() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.floatingip_associate') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#associate_ip_form").valid()) {
+                    $("#fip_associate_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "浮动IP关联成功";
+                    setTimeout(function(){
+                        location.reload();
+                    }, 2000);
+                } else {
+                    success = false;
+                    content = "浮动IP关联失败: ";
+                    content += result_json['data'] || result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#associate_ip_form").ajaxSubmit(options);
+        }
+        
+        
+        function release_fips() {
+            if (selected_floatingips.length == 0)
+                return;
+            
+            $.ajax({
+                url: "{{ url_for('network.floatingips_release') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_floatingips),
+                success: function(responseJson) {
+                    var success_text = '', fail_text = '';
+                    if (responseJson.status == 'success') {
+                        var success_list = responseJson.data.success_list;
+                        var fail_list = responseJson.data.fail_list;
+                        for (var i in success_list) {
+                            var ip = $('#fip_ip_' + success_list[i]).text();
+                            success_text += "浮动IP&nbsp;" + ip + "&nbsp;释放成功</br>";
+                        }
+                        for (var i in fail_list) {
+                            var reason = fail_list[i].reason;
+                            var ip = $('#fip_ip_' + fail_list[i].ref_id).text();
+                            fail_text += "浮动IP&nbsp;" + ip + "&nbsp;释放失败:&nbsp;" + reason + "</br>";
+                        }
+                        if (success_text) {
+                            $.gritter.add({
+                                text: success_text,
+                                class_name: 'gritter-success'
+                            });
+                        }
+                        if (fail_text) {
+                            $.gritter.add({
+                                text: fail_text,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                        
+                        if (success_list.length)
+                            setTimeout(function(){
+                                location.reload();
+                            }, 2000);
+                    }
+                },
+                error: function(request, msg, e) {
+                    $.gritter.add({
+                        text: '释放浮动IP过程中出现未知错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+        
+        
+        function allocate_fip() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.floatingip_allocate') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#allocate_ip_form").valid()) {
+                    $("#fip_allocate_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json.status == "success") {
+                    content = "浮动IP分配成功: " + result_json.data;
+                    setTimeout(function(){
+                        location.reload();
+                    }, 2000);
+                } else {
+                    success = false;
+                    content = "浮动IP分配失败: ";
+                    content += result_jso.data || result_json.message;
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#allocate_ip_form").ajaxSubmit(options);
+        }
+    </script>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+云课室 - 系统报警
+
+尊敬的管理员:
+
+以下节点出现事故,请您及时处理,如有误报,还望海涵
+
+节点名称     访问网络     管理网络     计算服务
+{% for node in nodes %}
+{{ node.host_name }}     {{ node.external_network_state }}     {{ node.management_network_state }}     {{ node.service_state }}
+{% endfor %}

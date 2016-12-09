@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}云晫云课室{% endblock %}
+{% block template_styles %}
+    {{ super() }}
+    <!-- vinzor style -->
+    <link href="{{ url_for('static', filename='css/vinzor.css') }}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <body id="login_body">
+        <div id="header">
+        </div>
+        <div id="content">
+            <div id="download_box">
+                <ul id="products_list">
+                    <li>
+                        <img src="{{ url_for('static', filename='img/windows_client_100.png') }}"/>
+                        <div>
+                            <p><b>Windows</b></p>
+                            <p><br>适用于：WIN XP/7/8/10</p>
+                            <p>发布版本：Vinzor-Win-1.6.6</p>
+                            <p>更新时间：2016-4-15</p>
+                            <p><br></p>
+                            <a id="link_download_windows" name="download_windows" href="#">点击下载</a>
+                        </div>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='img/android_client_100.png') }}"/>
+                        <div>
+                            <p><b>Android</b></p>
+                            <p><br>适用于：Android4.4以上 手机和平板</p>
+                            <p>发布版本：Vinzor-Android-1.6.3</p>
+                            <p>更新时间：2016-4-15</p>
+                            <p><br></p>
+                            <a id="link_download_android" name="download_android" href="#">点击下载</a>
+                        </div>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='img/ios_client_100.png') }}"/>
+                        <div>
+                            <p><b>IOS</b></p>
+                            <p><br>适用于：IOS8.1 手机和平板</p>
+                            <p>发布版本：Vinzor-IOS-1.6.2</p>
+                            <p>更新时间：2016-4-15</p>
+                            <p><br></p>
+                            <a id="link_download_ios" name="download_ios" href="#">点击下载</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="footer">
+              <p>&copy; 云晫信息科技 2013-{{ year }} | 帮助中心 | 问题反馈 </p>
+        </div>
+    </body>
+{% endblock %}

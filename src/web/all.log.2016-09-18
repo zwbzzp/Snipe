@@ -1,0 +1,275 @@
+2016-09-18 00:22:48,520 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:22:48,523 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:22:48,523 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:22:48,539 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:22:48,540 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 21, 48, 510484), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:22:48,548 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:24:49,033 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:24:49,034 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:24:49,035 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:24:49,038 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:24:49,039 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 23, 49, 32731), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:24:49,041 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:26:49,560 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:26:49,568 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:26:49,571 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:26:49,590 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:26:49,591 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 25, 49, 545848), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:26:49,595 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:28:49,732 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:28:49,737 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:28:49,738 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:28:49,748 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:28:49,749 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 27, 49, 731889), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:28:49,751 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:30:59,748 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:30:59,752 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:30:59,753 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:30:59,759 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:30:59,761 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 29, 59, 745693), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:30:59,770 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:32:59,436 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:32:59,437 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:32:59,438 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:32:59,441 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:32:59,442 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 31, 59, 435496)}
+2016-09-18 00:32:59,444 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:34:59,274 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:34:59,275 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:34:59,275 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:34:59,279 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:34:59,279 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 33, 59, 273709), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:34:59,282 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:36:59,544 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:36:59,545 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:36:59,545 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:36:59,549 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:36:59,550 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 35, 59, 543811), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:36:59,552 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:39:00,185 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:39:00,186 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:39:00,186 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:39:00,189 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:39:00,190 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 38, 0, 184376)}
+2016-09-18 00:39:00,192 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:40:59,826 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:40:59,828 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:40:59,828 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:40:59,832 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:40:59,832 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 39, 59, 825366)}
+2016-09-18 00:40:59,835 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:43:00,731 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:43:00,733 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:43:00,734 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:43:00,739 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:43:00,742 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 42, 0, 730007), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:43:00,747 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:45:10,733 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:45:10,734 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:45:10,735 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:45:10,738 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:45:10,739 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 44, 10, 732633)}
+2016-09-18 00:45:10,741 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:47:16,504 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:47:16,505 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:47:16,505 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:47:16,511 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:47:16,512 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 46, 16, 503457), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:47:16,514 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:49:15,611 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:49:15,612 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:49:15,612 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:49:15,616 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:49:15,616 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 48, 15, 610541), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:49:15,618 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:51:16,435 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:51:16,440 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:51:16,441 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:51:16,449 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:51:16,450 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 50, 16, 434682)}
+2016-09-18 00:51:16,452 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:53:16,703 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:53:16,704 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:53:16,704 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:53:16,708 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:53:16,709 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 52, 16, 702494), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:53:16,711 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:55:26,121 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:55:26,123 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:55:26,123 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:55:26,127 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:55:26,128 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 54, 26, 119434)}
+2016-09-18 00:55:26,130 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:57:35,943 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:57:35,945 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:57:35,945 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 00:57:35,950 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:57:35,952 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 56, 35, 942936), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:57:35,955 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 00:59:46,430 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 00:59:46,431 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 00:59:46,431 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 00:59:46,434 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 00:59:46,435 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 0, 58, 46, 429517), 'desktop_state_2': 'DELETED'}
+2016-09-18 00:59:46,438 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:01:56,017 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:01:56,017 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:01:56,018 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 01:01:56,021 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:01:56,022 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 0, 56, 16391), 'desktop_state_2': 'DELETED'}
+2016-09-18 01:01:56,024 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:04:06,281 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:04:06,282 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:04:06,282 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 01:04:06,285 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:04:06,286 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 3, 6, 280490), 'desktop_state_2': 'DELETED'}
+2016-09-18 01:04:06,288 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:06:10,012 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:06:10,013 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:06:10,014 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-09-18 01:06:10,017 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:06:10,017 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 5, 10, 11712), 'desktop_state_2': 'DELETED'}
+2016-09-18 01:06:10,020 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:08:10,583 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:08:10,584 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:08:10,584 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 01:08:10,588 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:08:10,589 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 7, 10, 582426)}
+2016-09-18 01:08:10,591 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:10:15,168 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:10:15,172 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:10:15,173 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 01:10:15,177 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:10:15,178 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 9, 15, 167977)}
+2016-09-18 01:10:15,180 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-09-18 01:12:24,780 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-09-18 01:12:24,781 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-09-18 01:12:24,782 INFO sqlalchemy.engine.base.Engine {'name_1': 'course_schedule_latency', 'param_1': 1}
+2016-09-18 01:12:24,785 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-09-18 01:12:24,786 INFO sqlalchemy.engine.base.Engine {'desktop_state_1': 'DELETING', 'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 9, 18, 1, 11, 24, 779368)}
+2016-09-18 01:12:24,788 INFO sqlalchemy.engine.base.Engine COMMIT

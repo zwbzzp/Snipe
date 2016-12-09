@@ -1,0 +1,918 @@
+{% extends 'teachers/layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block title %}课程管理{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}">
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>课程管理</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header">
+            <h4 class="widget-title">课程列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="create_course" href="{{ url_for('teachers_edu.create_course') }}"><i
+                            class="ace-icon fa fa-plus-circle"></i> 创建课程 </a>
+                    <a id="delete_course" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 删除所选课程 </a>
+                </div>
+            </div>
+            <div class="widget-main no-padding">
+                <table id="courses_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="center"><label class="pos-rel"><input id="select_all" type="checkbox" class="ace"><span
+                                class="lbl"></span></label></th>
+                        <th>课程名称</th>
+                        <th>开始日期/结束日期</th>
+                        <th>容量/桌面数</th>
+                        <th>回收时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for course in courses %}
+                        <tr id="course_tr_{{ course.id }}">
+                            <td class="center"><label class="pos-rel"><input type="checkbox" id="course_{{ course.id }}"
+                                                                             class="ace"
+                                                                             {%- if course.desktops.count() > 0 or course.lesson_now -%}
+                                                                             disabled
+                                                                             {%- endif -%}><span
+                                    class="lbl"></span></label></td>
+                            <td><a href="{{ url_for('teachers_edu.course_detail', id=course.id) }}"
+                                   title="查看或编辑课程信息">{{ course.name }}</a></td>
+                            <td>{{ course.start_date }}/{{ course.end_date }}</td>
+                            <td id="count-{{ course.id }}">{{ course.capacity }}/{{ course.desktops.count() }}</td>
+                            <td>{%- if course.lesson_now -%}
+                              {{ course.lesson_now.end_datetime | datetime_format }}
+                              {%- else -%}未上课{%- endif -%}
+                            </td>
+                            <td id="status-{{ course.id }}">
+                                {% if course.lesson_now and course.desktops.count() >= course.capacity %}正在上课
+                                {% elif course.lesson_now is none and course.desktops.count() == 0 %}课程已关闭
+                                {% else %}
+                                    <i class="ace-icon fa fa-spinner fa-spin blue bigger-100" title="处理中..."></i>
+                                    <small>处理中...</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div id="operation-buttons-{{ course.id }}" class="action-buttons operation_buttons">
+                                    {%- if course.lesson_now and course.desktops.count() >= course.capacity -%}
+                                        <a id="delay-{{ course.id }}" class="delay-course" href="javascript:void(0)" title="延长时间">
+                                            <i id="delay-{{ course.id }}" class="ace-icon fa fa-clock-o bigger-130"></i></a>
+                                    {%- endif -%}
+                                    {%- if course.lesson_now and course.desktops.count() > 0 -%}
+                                        <a id="stop-{{ course.id }}" class="red stop-course" href="javascript:void(0)" title="终止课程">
+                                            <i id="stop-{{ course.id }}" class="ace-icon fa fa-stop bigger-130"></i></a>
+                                    {%- endif -%}
+                                    {%- if course.lesson_now is none and course.desktops.count() == 0 -%}
+                                        <a id="start-{{ course.id }}" class="green start-course" href="javascript:void(0)" title="启动课程">
+                                            <i id="start-{{ course.id }}" class="ace-icon fa fa-play bigger-130"></i></a>
+                                    {%- endif -%}
+                                    {%- if course.lesson_now is none and course.desktops.count() == 0 -%}
+                                        <a id="delete-{{ course.id }}" class="red delete-course" href="javascript:void(0)" title="删除课程">
+                                            <i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                    {%- endif -%}
+
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- delete course confirmation dialog -->
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除课程</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i
+                            class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的课程?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- delay course dialog -->
+    <div id="delay_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">延长课程时间</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="">
+                        <input class="form-control" type="text" id="course_latency" placeholder="请输入延长时间（分钟）">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delay" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- start course dialog -->
+    <div id="start_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-user">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">启动课程</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="padding: 10px">
+                        <form id="lesson-form" role="form"  action="#">
+                            <div class="row">
+                                <label class="control-label" for="end_date">结束日期</label>
+                                <div class="input-group" style="z-index: 9000">
+                                    <input id="end_date" name="end_date" type="text" class="form-control date-picker" required>
+                                    <span class="input-group-addon"><i class="fa fa-calendar bigger-110"></i></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <label class="control-label">结束时间</label>
+                                <div class="btn-group" data-toggle="buttons">
+                                    <label class="btn btn-info btn-minier">
+                                        <input type="radio" name="end_time_type" value="period_id" checked>按节数
+                                    </label>
+                                    <label class="btn btn-info btn-minier">
+                                        <input type="radio" name="end_time_type" value="time">按时间点
+                                    </label>
+                                </div>
+                                <select name="end_period_id" class="form-control" required>
+                                    {%- for opt in temp_lesson_form.end_period_id.choices -%}
+                                        <option value="{{ opt[0] }}">{{ opt[1] }}</option>
+                                    {%- endfor %}
+                                </select>
+                                <div class="input-group" style="display: none;">
+                                    <input type="text" name="end_time" class="form-control time-picker" placeholder="结束时间">
+                                    <span class="input-group-addon"><i class="fa fa-clock-o bigger-110"></i></span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_start" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- conflict lesson list dialog -->
+    <div id="conflict_lesson_list_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">启动课程</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i
+                            class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 启动课程的时间与下面这些课时冲突, 要删除它们吗?</span>
+                    <div class="widget-box">
+                        <div class="widget-body">
+                            <div class="widget-main no-padding">
+                                <table id="lessons_table" class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>开始时间</th>
+                                            <th>结束时间</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete_conflict_lessons" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- stop course dialog -->
+    <div id="stop_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">结束课程</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i
+                            class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认结束所选择的课程?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_stop" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--delete null dialog-->
+    <div id="delete_null_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除所选课程</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning
+                    icon-animated-bell bigger-130"></i> 请选择一门或多门课程!</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#courses");
+
+        var selected_course = [];
+
+        $(document).ready(function () {
+
+            $(".date-picker").datepicker({
+                language: "zh-CN",
+                format: "yyyy-mm-dd",
+                autoclose: true,
+                todayHighlight: true
+            }).next().on(ace.click_event, function(){
+                $(this).prev().focus();
+            });
+
+            $('.time-picker').timepicker({
+                minuteStep: 1,
+                showSeconds: false,
+                showMeridian: false
+            }).on(ace.click_event, function(){
+                $(".bootstrap-timepicker-widget").css("z-index", "9999");
+            }).next().on(ace.click_event, function(){
+                $(this).prev().focus();
+            });
+
+            // 页面新加载时, 为每个课程创建一个定时器存在map中, 定时向后台发送查询请求, 以确定按钮状态
+            // 另外设定了一个总的定时器, 3分钟后清除所有课程的定时器
+            var courseID_to_interval_map = {};
+            window.setTimeout(function() {
+                for (var key in courseID_to_interval_map) {
+                    window.clearInterval(courseID_to_interval_map['key']);
+                }
+            }, 180000);
+
+            function check_course_state() {
+                $(".operation_buttons").each(function(){
+                    var td = this;
+                    var course_id = $(td).attr('id').split('-')[2];
+                    var interval = window.setInterval(function () {
+                        var url_template = "{{ url_for('teachers_edu.check_course_state', id=0) }}";
+                        url = url_template.replace('0', course_id);
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            success: on_check_course_state_success
+                        });
+                    }, 3000);
+                    courseID_to_interval_map[course_id] = interval;
+                })
+            }
+
+            check_course_state();
+
+            function on_check_course_state_success(responseJson) {
+                var status = responseJson.status;
+                var course_id = responseJson.data.course_id;
+                var desktop_count = responseJson.data.desktop_count;
+                var capacity = responseJson.data.capacity;
+
+                var capacity_desktopCount = $("#course_tr_"+course_id).children()[3];
+                $(capacity_desktopCount).html(capacity+'/'+desktop_count);
+
+                switch (status) {
+                    case "start":
+                        $("#status-"+course_id).html('正在上课');
+
+                        $("#operation-buttons-"+course_id).replaceWith(
+                                '<div id="operation-buttons-'+course_id+'" class="action-buttons operation_buttons">'+
+                                    '<a id="delay-'+course_id+'" class="delay-course" href="javascript:void(0)" title="延长时间"><i class="ace-icon fa fa-clock-o bigger-130"></i></a>'+
+                                    '<a id="stop-'+course_id+'" class="red stop-course" href="javascript:void(0)" title="终止课程"><i class="ace-icon fa fa-stop bigger-130"></i></a>');
+                        // 行前的checkbox如果使能的话, 就禁用掉, 因为该课程处于不可删除状态
+                        if ($("#course_" + course_id).attr('disabled') != 'disabled') {
+                            $("#course_" + course_id).attr('disabled', 'disabled');
+                        }
+                        $("#stop-"+course_id).click(function() {
+                            stop_course(course_id);
+                        });
+                        $("#delay-"+course_id).click(function() {
+                            delay_course(course_id);
+                        });
+                        window.clearInterval(courseID_to_interval_map[''+course_id]);
+                        break;
+                    case "stop":
+                        $("#status-"+course_id).html('课程已关闭');
+
+                        $("#operation-buttons-"+course_id).replaceWith(
+                                '<div id="operation-buttons-'+course_id+'" class="action-buttons operation_buttons">'+
+                                    '<a id="start-'+course_id+'" class="green start-course" href="javascript:void(0)" title="启动课程"><i class="ace-icon fa fa-play bigger-130"></i></a>'+
+                                    '<a id="delete-'+course_id+'" class="red delete-course" href="javascript:void(0)" title="删除课程"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>');
+                        // 行前的checkbox如果被禁用掉, 就使能, 因为该课程处于可删除状态
+                        if ($("#course_" + course_id).attr('disabled') == 'disabled') {
+                            $("#course_" + course_id).removeAttr('disabled');
+                        }
+                        $("#start-"+course_id).click(function () {
+                            start_course(course_id);
+                        });
+                        $("#delete-"+course_id).click(function () {
+                            selected_course = [];
+                            selected_course.push(this.id.split("-")[1]);
+                            $("#delete_confirm_dialog").modal("show");
+                        });
+                        window.clearInterval(courseID_to_interval_map[''+course_id]);
+                        break;
+                    case "error":
+                        location.reload();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // 课程延时
+            $(".delay-course").click(function () {
+                var course_id = this.id.split("-")[1];
+                delay_course(course_id);
+            });
+
+            // 停止课程
+            $(".stop-course").click(function () {
+                var course_id = this.id.split("-")[1];
+                stop_course(course_id);
+            });
+
+            // 启动课程
+            $(".start-course").click(function () {
+                var course_id = this.id.split("-")[1];
+                start_course(course_id);
+            });
+
+            // convert table to jquery dataTable
+            var courses_table = $("#courses_table").DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    {"bSortable": false},
+                    null, null, null, null, null,
+                    {"bSortable": false}
+                ],
+                "aaSorting": []
+            });
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+            // select all
+            $("#courses_table thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find('tbody td input[type=checkbox]').each(function () {
+                    if (!this.disabled)
+                        this.checked = checked;
+                })
+            });
+
+            // delete courses
+            $("#delete_course").click(function () {
+                selected_course = [];
+                $("#courses_table td input[type=checkbox]").each(function () {
+                    if (this.checked) {
+                        var course_id = this.id.split("_")[1];
+                        selected_course.push(course_id);
+                    }
+                });
+                if (selected_course.length > 0) {
+                    $("#delete_confirm_dialog").modal("show");
+                } else {
+                    $("#delete_null_dialog").modal("show");
+                }
+            });
+
+            $(".delete-course").click(function () {
+                selected_course = [];
+                selected_course.push(this.id.split("-")[1]);
+                $("#delete_confirm_dialog").modal("show");
+            });
+
+            function on_delete_courses_success(responseJson) {
+                var select_all_button = document.getElementById("select_all");
+                if (select_all_button.checked) select_all_button.checked = false;
+
+                var success_text = "";
+                var fail_text = "";
+                var success_list = responseJson.success_list;
+                var fail_list = responseJson.fail_list;
+
+                 for (var i in success_list) {
+                    courses_table.row($("#course_tr_"+success_list[i].id)).remove();
+                }
+                courses_table.draw(false);
+
+                for (var i in success_list) {
+                    success_text += "课程《"+success_list[i].name+"》删除成功</br>";
+                }
+                for (var i in fail_list) {
+                    fail_text += "课程《"+fail_list[i].name+"》删除失败</br>";
+                }
+                if (success_list.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: success_text,
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (fail_list.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: fail_text,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            function on_delete_courses_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '删除过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            // confirm delete
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                $.ajax({
+                    url: "{{ url_for('teachers_edu.delete_courses') }}",
+                    type: "DELETE",
+                    contentType: "application/json",
+                    data: $.toJSON(selected_course),
+                    success: on_delete_courses_success,
+                    error: on_delete_courses_error
+                });
+            });
+
+
+            // delay course
+            function delay_course(course_id) {
+                selected_course = [];
+                selected_course.push(course_id);
+                $("#delay_confirm_dialog").modal("show");
+            }
+
+            // confirm delay
+            $("#confirm_delay").click(function () {
+                $("#delay_confirm_dialog").modal("hide");
+                var url_template = "{{ url_for('teachers_edu.delay_course', id=0) }}";
+                url = url_template.replace('0', selected_course[0]);
+                var latency_text = $('#course_latency').val();
+                var latency = Number(latency_text) * 60;
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    contentType: "application/json",
+                    data: $.toJSON(latency),
+                    success: on_delay_courses_success,
+                    error: on_delay_courses_error
+                });
+            });
+
+            // callback of delay complete and reload
+            function on_delay_courses_success(request, msg, e) {
+                var json_result = $.parseJSON(e.responseText);
+                if (json_result) {
+                    var data = json_result.data;
+                    var status = json_result.status;
+                    switch (status) {
+                        case "success":
+                            // 显示提示信息
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '课程延长时间成功',
+                                class_name: 'gritter-success'
+                            });
+                            break;
+                        case "fail":
+                            if (data == "resource exceed system limit") {
+                                $.gritter.add({
+                                    text: '资源使用超出系统上限',
+                                    class_name: 'gritter-error'
+                                });
+                            } else {
+                                $.gritter.add({
+                                    text: '延长时间失败:&nbsp;',
+                                    class_name: 'gritter-error'
+                                });
+                            }
+                            break;
+                        default:
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '服务器异常',
+                                class_name: 'gritter-error'
+                            });
+                    }
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                }
+            }
+
+            function on_delay_courses_error(response) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '延长时间出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            // 临时启动课程
+            /* 先创建一个临时课时
+                临时课时创建成功: 启动按钮置灰, 在3分钟内每秒向后台发送请求,查询是否创建好课程桌面
+                    桌面创建成功: 停止定时器, 终止课程的按钮激活, 提示启动课程成功
+                    超时: 提示启动课程失败
+                临时课程创建失败: 提示启动课程失败
+             */
+
+            function start_course(course_id) {
+                selected_course = [];
+                selected_course.push(course_id);
+                $("#start_confirm_dialog").modal("show");
+            }
+
+            $("#lesson-form input[name='end_time_type']").change(function () {
+                if ($("input[name='end_time_type']:checked").val() == "time") {
+                    $("#lesson-form select[name=end_period_id]").removeAttr("required").hide();
+                    $("#lesson-form input[name=end_time]").attr("required", true).parent().show();
+                } else {
+                    $("#lesson-form select[name=end_period_id]").attr("required", true).show();
+                    $("#lesson-form input[name=end_time]").removeAttr("required").parent().hide();
+                }
+            });
+
+            $("#confirm_start").click(function () {
+                var url_template = "{{ url_for('teachers_edu.start_course', id=0) }}";
+                url = url_template.replace('0', selected_course[0]);
+                $("#lesson-form").validate({
+                    errorPlacement: function (error, element) {
+                        if ($(element).hasClass('date-picker') || $(element).hasClass('time-picker')) {
+                            error.insertAfter($(element).parent());
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    }}
+                );
+                if ($("#lesson-form").valid()) {
+                    $("#lesson-form").ajaxSubmit({
+                        url: url,
+                        type: "PUT",
+                        success: on_create_temp_lesson_success,
+                        error: on_create_temp_lesson_error
+                    });
+                    $("#start_confirm_dialog").modal("hide");
+                }
+            });
+
+            var courseID_to_interval_map2 = {};
+            var courseID_to_timeout_map = {};
+            var tobe_create_and_conflict_lessons = {};
+            function on_create_temp_lesson_success(responseJson) {
+                var course_id = responseJson.data.id;
+                var capacity = responseJson.data.capacity;
+                var status = responseJson.status;
+                switch (status) {
+                    case "success":
+                        courseID_to_interval_map2[course_id] = window.setInterval(function () {
+                            check_start_course(course_id);
+                        }, 5000);
+                        courseID_to_timeout_map[course_id] = window.setTimeout(function () {
+                            start_course_timeout(course_id);
+                        }, 60000*capacity);
+                        $("#start-"+course_id).replaceWith(
+                            '<i id="start-'+course_id+'" style="color: #7C8395" class="ace-icon fa fa-play bigger-130"></i>'
+                        );
+                        break;
+                    case "fail":
+                        if (responseJson.data.msg == 'resource exceed system limit') {
+                            $.gritter.add({
+                                text: '资源使用超出系统上限',
+                                class_name: 'gritter-error'
+                            });
+                        } else if (responseJson.data.msg != '') {
+                            location.reload();
+                        } else {
+                            var conflict_lessons = responseJson.data.conflict_lessons;
+                            tobe_create_and_conflict_lessons.conflict_lessons = conflict_lessons;
+                            tobe_create_and_conflict_lessons.lesson = {};
+                            tobe_create_and_conflict_lessons.lesson.course_id = course_id;
+                            var tobe_create_lesson = responseJson.data.lesson;
+                            tobe_create_and_conflict_lessons.lesson.start_datetime = tobe_create_lesson.start_datetime;
+                            tobe_create_and_conflict_lessons.lesson.end_datetime = tobe_create_lesson.end_datetime;
+
+                            var tbody_html = '';
+                            for (var lessonIndex in conflict_lessons) {
+                                var lesson = conflict_lessons[lessonIndex];
+                                tbody_html +=
+                                        '<tr>\
+                                            <td>' + lesson.start_datetime  + '</td>\
+                                            <td>' + lesson.end_datetime + '</td>\
+                                        </tr>'
+                            }
+                            $('#lessons_table tbody').html(tbody_html);
+                            $('#conflict_lesson_list_dialog').modal('show');
+                        }
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                }
+                setTimeout(function () {
+                    location.reload();
+                }, 1000);
+            }
+
+            $('#confirm_delete_conflict_lessons').click(function(e) {
+                $('#conflict_lesson_list_dialog').modal('hide');
+                $.ajax({
+                    url:"{{ url_for('teachers_edu.delete_conflict_lessons_for_start') }}",
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: $.toJSON(tobe_create_and_conflict_lessons),
+                    success: on_delete_conflict_and_start_success,
+                    error: on_delete_conflict_and_start_error
+                })
+            });
+
+            function on_delete_conflict_and_start_success(responseJson) {
+                var course_id = responseJson.data.course_id;
+                var capacity = responseJson.data.capacity;
+                courseID_to_interval_map2[course_id] = window.setInterval(function () {
+                    check_start_course(course_id);
+                }, 5000);
+                courseID_to_timeout_map[course_id] = window.setTimeout(function () {
+                    start_course_timeout(course_id);
+                }, 60000*capacity);
+                $("#start-"+course_id).replaceWith(
+                    '<i id="start-'+course_id+'" style="color: #7C8395" class="ace-icon fa fa-play bigger-130"></i>'
+                );
+            }
+
+            function on_delete_conflict_and_start_error() {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '服务器异常',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function check_start_course(course_id) {
+                var url_template = "{{ url_for('teachers_edu.check_course_state', id=0) }}";
+                url = url_template.replace('0', course_id);
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    success: on_check_start_course_success
+                });
+            }
+
+            function on_check_start_course_success(responseJson) {
+                var status = responseJson.status;
+                var course_id = responseJson.data.course_id;
+                var desktop_count = responseJson.data.desktop_count;
+                var capacity = responseJson.data.capacity;
+
+                var capacity_desktopCount = $("#course_tr_"+course_id).children()[3];
+                $(capacity_desktopCount).html(capacity+'/'+desktop_count);
+                switch (status) {
+                    case "start":
+                        window.clearInterval(courseID_to_interval_map2[course_id]);
+                        window.clearTimeout(courseID_to_timeout_map[course_id]);
+                        $("#stop-"+course_id).replaceWith(
+                                '<a id="stop-'+course_id+'" class="red stop-course" href="javascript:void(0)" title="终止课程">'+
+                                    '<i class="ace-icon fa fa-stop bigger-130"></i></a>');
+                        $("#stop-"+course_id).click(function () {
+                            stop_course(course_id);
+                        });
+                        $("delay-"+course_id).replaceWith(
+                                '<a id="delay-'+course_id+'" class="delay-course" href="javascript:void(0)" title="延长时间">\
+                                     <i class="ace-icon fa fa-clock-o bigger-130"></i></a>');
+                        $("#delay-"+course_id).click(function() {
+                            delay_course(course_id);
+                        });
+
+                        var count_text = $("#count-"+course_id).html();
+                        count_text = count_text.substr(0, count_text.search("/"));
+                        count_text = count_text + "/" + count_text;
+                        $("#count-"+course_id).replaceWith(
+                                '<td id="count-'+course_id+'">'+count_text+'</td>'
+                        );
+                        // 显示提示信息
+                        $.gritter.add({
+                            text: '课程启动成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "error":
+                        location.reload();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            function start_course_timeout(course_id) {
+                window.clearInterval(courseID_to_interval_map2[course_id]);
+                $.gritter.add({
+                    text: '创建课程桌面出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+
+            function on_create_temp_lesson_error(response) {
+                $.gritter.add({
+                    text: '启动课程过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+
+            // stop course
+
+            function stop_course(course_id) {
+                selected_course = [];
+                selected_course.push(course_id);
+                $("#stop_confirm_dialog").modal("show");
+            }
+
+            $("#confirm_stop").click(function () {
+                $("#stop_confirm_dialog").modal("hide");
+                var url_template = "{{ url_for('teachers_edu.stop_course', id=0) }}";
+                url = url_template.replace('0', selected_course[0]);
+                $.ajax({
+                    url: url,
+                    type: "PUT",
+                    contentType: "application/json",
+                    success: on_create_deleteDesktopTask_success,
+                    error: on_create_deleteDesktopTask_error
+                });
+            });
+
+            var courseID_to_interval_map3 = {};
+            var courseID_to_timeout_map2 = {};
+            function on_create_deleteDesktopTask_success(responseJson) {
+                var course_id = responseJson.data.id;
+                var status = responseJson.status;
+                switch (status) {
+                    case "success":
+                        courseID_to_interval_map3[course_id] = window.setInterval(function () {
+                            check_stop_course(course_id);
+                        }, 5000);
+                        var capacity = responseJson.data.capacity;
+                        courseID_to_timeout_map2[course_id] = window.setTimeout(function () {
+                            stop_course_timeout(course_id);
+                        }, 60000*capacity);
+                        $("#stop-"+course_id).replaceWith(
+                            '<i id="stop-'+course_id+'" style="color: #7C8395" class="ace-icon fa fa-stop bigger-130"></i>'
+                        );
+                        $("#delay-"+course_id).replaceWith(
+                            '<i id="delay-'+course_id+'" style="color: #7C8395" class="ace-icon fa fa-clock-o bigger-130"></i>'
+                        );
+                        break;
+                    case "fail":
+                        location.reload();
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                }
+                setTimeout(function () {
+                    location.reload();
+                }, 1000);
+            }
+
+            function check_stop_course(course_id) {
+                var url_template = "{{ url_for('teachers_edu.check_course_state', id=0) }}";
+                url = url_template.replace('0', course_id);
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    success: on_check_stop_course_success
+                });
+            }
+
+            function on_check_stop_course_success(responseJson) {
+                var status = responseJson.status;
+                var course_id = responseJson.data.course_id;
+                var desktop_count = responseJson.data.desktop_count;
+                var capacity = responseJson.data.capacity;
+
+                var capacity_desktopCount = $("#course_tr_"+course_id).children()[3];
+                $(capacity_desktopCount).html(capacity+'/'+desktop_count);
+                switch (status) {
+                    case "stop":
+                        window.clearInterval(courseID_to_interval_map3[course_id]);
+                        window.clearTimeout(courseID_to_timeout_map2[course_id]);
+                        $("#start-"+course_id).replaceWith(
+                                '<a id="start-'+course_id+'" class="green start-course" href="javascript:void(0)" title="启动课程">'+
+                                    '<i class="ace-icon fa fa-play bigger-130"></i></a>');
+                        $("#start-"+course_id).click(function () {
+                            start_course(course_id);
+                        });
+                        var count_text = $("#count-"+course_id).html();
+                        count_text = count_text.substr(0, count_text.search("/") + 1) + "0";
+                        $("#count-"+course_id).replaceWith(
+                                '<td id="count-'+course_id+'">'+count_text+'</td>'
+                        );
+                        // 显示提示信息
+                        $.gritter.add({
+                            text: '结束课程成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "error":
+                        location.reload();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            function stop_course_timeout(course_id) {
+                window.clearInterval(courseID_to_interval_map3[course_id]);
+                $.gritter.add({
+                    text: '删除课程桌面出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+
+            function on_create_deleteDesktopTask_error(response) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '结束课程过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+
+        });
+
+    </script>
+{% endblock %}

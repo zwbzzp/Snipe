@@ -1,0 +1,716 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}主机信息{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <link ref="stylesheet" href="{{ url_for('static', filename='css/chosen.css') }}" />
+    <style type="text/css">
+        .chzn-select-div p{
+            display: inline-block;
+        }
+
+        .chzn-select-div .error{
+            left: 10px !important;
+            bottom: 0 !important;
+        }
+
+        #delete_content, #edit_template_select{
+            word-wrap: break-word;
+            word-break: break-all;
+            color: gray;
+        }
+
+        body .modal-user {
+            width: 500px;
+        }
+
+        input[type=checkbox].ace.ace-switch.ace-switch-4 + .lbl::before {
+            text-indent: -4px !important;
+        }
+        input[type=checkbox].ace.ace-switch.ace-switch-4:checked + .lbl::before {
+            text-indent: 7px !important;
+        }
+
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>主机信息</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">主机列表</h4>
+        </div>
+
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="sync_host" href="javascript:void(0)"><i class="ace-icon fa fa-refresh"></i> 同步主机信息 </a>
+                </div>
+            </div>
+
+            <div class="widget-main no-padding">
+                <table id="host_info_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>主机名</th>
+                            <th>主机</th>
+                            <th>服务区域</th>
+                            <th>处理器信息</th>
+                            <th>内存占用比</th>
+                            <th>硬盘占用比</th>
+                            <th>运行/总桌面</th>
+                            <th>主机状态</th>
+                            <th>主机详情</th>
+                            <th>
+                                <span>主机功能
+                                    <a href="javascript:void(0)">
+                                        <i class="ace-icon fa fa-question-circle icon-animated-vertical fa-lg" id='host_function_help'></i>
+                                    </a>
+                                </span>
+                            </th>
+                            {% if auto_evacuation_enabled %}
+                            <th>宕机迁移</th>
+                            {% endif %}
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for host_info in host_info_list %}
+                         <tr>
+                             <td id="host_name_{{ host_info.host_name }}"
+                                 class="host-name"><a
+                                     id="{{ host_info.host_name }}"
+                                     href="{{ url_for('vmotion.host_desktop_migration', host_name=host_info.host_name) }}">{{ host_info.host_name }}</a></td>
+                             <td id="host_ip_{{ host_info.host_name }}">{{ host_info.host_ip }}</td>
+                             <td id="host_zone_{{ host_info.host_name }}">{{ host_info.zone }}</td>
+                             <td id="host_cpu_info_{{ host_info.host_name }}">架构:{{ host_info.cpu_arch }};核心数:{{ host_info.cpu_cores }}</td>
+                             <td id="host_mem_progress_{{ host_info.host_name }}">
+                                 <div class="progress progress-striped pos-rel" data-percent="{{ (host_info.mem_used|int / host_info.mem|int * 100)|round}}%" >
+                                     {% if host_info.mem_used|int / host_info.mem|int * 100 < 70 %}
+                                         <div class="progress-bar progress-bar-success" style="width:{{ host_info.mem_used|int / host_info.mem|int * 100}}%;"></div>
+                                     {% else %}
+                                        <div class="progress-bar progress-bar-warning" style="width:{{ host_info.mem_used|int / host_info.mem|int * 100}}%;"></div>
+                                     {% endif %}
+                                </div>
+                                 <input id="host_mem_used_{{ host_info.host_name }}" type="hidden" value="{{ host_info.mem_used}}"/>
+                                 <input id="host_mem_free_{{ host_info.host_name }}" type="hidden" value="{{ host_info.mem|int - host_info.mem_used|int}}"/>
+                             </td>
+                             <td id="host_disk_progress_{{ host_info.host_name }}">
+                                  <div class="progress progress-striped pos-rel" data-percent="{{ (host_info.disk_used|int / host_info.disk|int * 100)|round}}%" >
+                                     {% if host_info.disk_used|int / host_info.disk|int * 100 < 70 %}
+                                         <div class="progress-bar progress-bar-success" style="width:{{ host_info.disk_used|int / host_info.disk|int * 100}}%;"></div>
+                                     {% else %}
+                                        <div class="progress-bar progress-bar-warning" style="width:{{ host_info.disk_used|int / host_info.disk|int * 100}}%;"></div>
+                                     {% endif %}
+                                </div>
+                             </td>
+                             <td id="host_vms_{{ host_info.host_name }}">{{ host_info.running_vms }}/{{ host_info.vms }}</td>
+                             <td id="host_host_status_{{ host_info.host_name }}" value="{{ host_info.host_status }}">
+                                 {% if host_info.host_status == 'up'%}
+                                    <i class="ace-icon green glyphicon glyphicon-ok"></i>
+                                 {% elif host_info.host_status == 'warning'%}
+                                    <i class="ace-icon orange fa fa-exclamation-triangle"></i>
+                                 {% else %}
+                                    <i class="ace-icon red glyphicon glyphicon-remove"></i>
+                                 {% endif %}
+                             </td>
+                             <td>
+                                 <a id="host_detail_{{ host_info.host_name }}" href="javascript:void(0)" class="show_detail_btn"> 详情 </a>
+                                 <input id="host_context_{{ host_info.host_name }}" type="hidden" value="{{ host_info.external_network_state }}|{{ host_info.management_network_state }}|{{ host_info.service_state }}"/>
+                             </td>
+                             <td id="host_service_status_{{ host_info.host_name }}">
+                                 {% if host_info.service_status == "enabled" %}
+                                    <label>
+                                        <input id="host_service_status_btn" checked type="checkbox" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="常规 备用" onclick="on_status_change_click('{{ host_info.host_name }}', 'disabled')"/>
+                                    </label>
+                                 {% else %}
+                                    <label>
+                                        <input id="host_service_status_btn" type="checkbox" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="常规 备用" onclick="on_status_change_click('{{ host_info.host_name }}', 'enabled')"/>
+                                    </label>
+                                 {% endif %}
+                             </td>
+                             {% if auto_evacuation_enabled %}
+                             <td id="host_auto_evacuation_{{ host_info.host_name }}">
+                                 {% if host_info.auto_evacuation %}
+                                    <label>
+                                        <input id="host_auto_evacuation_btn"
+                                               checked type="checkbox"
+                                               class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="自动 手动" onclick="on_auto_evacuation_change_click('{{ host_info.host_name }}', 'disabled')"/>
+                                    </label>
+                                 {% else %}
+                                    <label>
+                                        <input id="host_auto_evacuation_btn"
+                                               type="checkbox"
+                                               class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="自动 手动" onclick="on_auto_evacuation_change_click('{{ host_info.host_name }}', 'enabled')"/>
+                                    </label>
+                                 {% endif %}
+                             </td>
+                             {% endif %}
+                             <td>
+                                 <div class="action-buttons">
+                                     <a id="migrate_host_{{ host_info.host_name }}" href="javascript:void(0)" onclick="on_migrate_click('{{ host_info.host_name }}','{{ host_info.host_status }}')" title="云桌面迁移" ><i class="ace-icon fa fa-exchange"></i></a>
+                                 </div>
+                             </td>
+
+                         </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="sync_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">同步主机信息</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认同步主机信息?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_sync" type="button" class="btn btn-danger btn-sm">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>关闭 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="host_function_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">主机功能说明</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="blue">1. 什么是常规主机？</span><br>
+                    <span>常规主机是指参与系统整体运作的主机。</span><br>
+                    <span class="blue">2. 什么是备用主机？</span><br>
+                    <span>备用主机是用来应对资源不足和常规主机发生宕机等情况的，正常情况下不对外提供服务;当您选择对主机上的云桌面进行一键迁移时，系统会将云桌面优先迁移到备用主机上。</span><br>
+                    <span class="blue">3. 备用主机资源不足会发生什么？</span><br>
+                    <span>此时系统会自动为您调用其他主机资源，您可以在<a href="{{ url_for('vmotion.migrate_task') }}">迁移任务调度</a>中查看迁移情况。我们建议您在主机维护完成后迁走备用主机中的桌面，保证备用主机有足够空间。</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="host_detail_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">主机状态详情</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <th>服务名称</th>
+                            <th>服务状态</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>访问网络</td>
+                                <td id="external_network_state"></td>
+                            </tr>
+                            <tr>
+                                <td>管理网络</td>
+                                <td id="management_network_state"></td>
+                            </tr>
+                            <tr>
+                                <td>计算服务</td>
+                                <td id="service_state"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="migrate_select_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">云桌面迁移</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="migrate_select_tips"></div>
+                    <br>
+                    <div id="migrate_select_warning"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="custom_migrate" type="button" class="btn btn-default"> 自定义 </button>
+                    <button id="quick_migrate" type="button" class="btn btn-info" data-dismiss="modal"> 一键迁移 </button>
+                    <img id='quick_migrate_help' src="/static/images/help.png"/>
+                    <input id="selected_host_name" type="hidden" />
+                    <input id="selected_host_status" type="hidden" />
+                    <div>
+                        <label id="quick_migrate_tips" style="display:none">一键迁移：迁移桌面到您的备用主机，如果备用主机资源不足，迁移剩余桌面到其他主机。</label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="custom_migrate_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">请选择迁移目的主机</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="memory_needed"></div>
+                    <div id="memory_selected"></div>
+                    <div>
+                        <table id="host_brief_info_table" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <!--<th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>-->
+                                    <th></th>
+                                    <th>主机名</th>
+                                    <th>当前可用内存(MB)</th>
+                                    <th>运行/总桌面</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <label id="selected_tips"
+                               class="red"
+                               style="display:none"></label>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button id="go_back" type="button" class="btn btn-default"> 上一步 </button>
+                    <button id="start_migrate" type="button" class="btn btn-info" > 迁  移 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="migrate_success_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">迁移任务创建结果</h4>
+                </div>
+                <div class="modal-body">
+                    <span id="success_tips"></span>
+                </div>
+                <div class="modal-footer">
+                    <button id="check_migrate_tasks" type="button" class="btn btn-info" data-dismiss="modal"> 查看任务 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#vmotion", "#host_info");
+
+        $(document).ready(function() {
+
+            $(document).ajaxStart(function(){
+                $.blockUI({
+                    message: "<h3>请等待...</h3>",
+                    css: {
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+            });
+            $(document).ajaxStop($.unblockUI);
+
+            // convert table to jquery dataTable
+            // dataTable will return a jQuery object, while DataTable returns a DataTables API instance.
+            var host_info_table = $("#host_info_table").DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    null,
+                    null, null, null, null, null, null, null,null, {"bSortable": false }, {% if auto_evacuation_enabled %}{ "bSortable": false },{% endif%}
+                    { "bSortable": false }
+                ],
+                "aaSorting": []
+            });
+
+            //sync host info
+            $("#sync_host").click(function(){
+                $("#sync_confirm_dialog").modal("show");
+            });
+
+            $("#confirm_sync").click(function(){
+                $("#sync_confirm_dialog").modal("hide");
+                $.ajax({
+                    url:"{{ url_for('vmotion.sync_hostinfo')}}",
+                    type: "GET",
+                    success: on_sync_hosts_success,
+                    error:on_sync_hosts_error
+                });
+
+                function on_sync_hosts_success(responseJson){
+                    if (responseJson.status == "success") {
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "同步主机信息成功",
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    else {
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "同步主机信息失败",
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    location.reload()
+                }
+
+                function on_sync_hosts_error(request, msg, e) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: '同步主机信息过程中出现错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            //host function help
+            $("#host_function_help").click(function(){
+                $("#host_function_dialog").modal("show");
+            });
+
+            $('.show_detail_btn').click(function(e){
+                 var host_name = $(e.target).attr('id').split('_')[2];
+                 var host_detail = $('#host_context_' + host_name).attr('value')
+                 var state_list = host_detail.split('|')
+                 var external_network_state = state_list[0]
+                 var management_network_state = state_list[1]
+                 var service_state = state_list[2]
+                 if (external_network_state == "up")
+                 {
+                    $('#external_network_state').html('<i class="ace-icon green glyphicon glyphicon-ok"></i>')
+                 }
+                 else
+                 {
+                    $('#external_network_state').html('<i class="ace-icon red glyphicon glyphicon-remove"></i>')
+                 }
+                 if (management_network_state == "up")
+                 {
+                    $('#management_network_state').html('<i class="ace-icon green glyphicon glyphicon-ok"></i>')
+                 }
+                 else
+                 {
+                    $('#management_network_state').html('<i class="ace-icon red glyphicon glyphicon-remove"></i>')
+                 }
+                 if (service_state == "up")
+                 {
+                    $('#service_state').html('<i class="ace-icon green glyphicon glyphicon-ok"></i>')
+                 }
+                 else
+                 {
+                    $('#service_state').html('<i class="ace-icon red glyphicon glyphicon-remove"></i>')
+                 }
+                 $('#host_detail_dialog').modal('show');
+            });
+
+            $('#quick_migrate_help').mousemove(function(){
+                $('#quick_migrate_tips').css('display','block');
+            });
+
+            $('#quick_migrate_help').mouseout(function(){
+                $('#quick_migrate_tips').css('display','none');
+            });
+
+            $('#quick_migrate').click(function(){
+                host_name = $('#selected_host_name').val();
+                $('#migrate_select_dialog').modal('hide');
+                $.ajax({
+                    url:"{{ url_for('vmotion.quick_migration') }}",
+                    type: "POST",
+                    data:{"src_host_name":host_name,},
+                    success: on_quick_migrate_success,
+                    error:on_quick_migrate_error
+                });
+
+                function on_quick_migrate_success(responseJson){
+                    if (responseJson.status == "success") {
+                        $('#success_tips').html('<h4>您已经成功创建主机'+ host_name +'的迁移任务，可以到任务调度查看迁移进度。</h4>')
+                        $('#migrate_success_dialog').modal('show');
+                    }
+                    else {
+                        var content = "创建一键迁移任务失败: "
+                        if (responseJson.error_info == "")
+                            content = "创建一键迁移任务失败"
+                        else
+                            content += responseJson.error_info
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                }
+
+                function on_quick_migrate_error(request, msg, e) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: '创建一键迁移任务过程中出现错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+
+            $('#custom_migrate').click(function(){
+                host_name = $('#selected_host_name').val();
+                mem_used = $('#host_mem_used_' + host_name).val()
+                host_name_list = []
+                $("body").find(".host-name").each(function(){ host_name_list.push($(this).text())})
+                host_name_list.length
+                $('#host_brief_info_table tbody').empty()
+                for(var i = 0; i < host_name_list.length;i++)
+                {
+                    if(host_name_list[i] != host_name)
+                    {
+                        var tr='<tr>'
+                        +'<td class="center"><label class="pos-rel"><input type="checkbox" onclick= "select_host(' +"'" + host_name_list[i] +"'"+')" id="host_'+ host_name_list[i] +'" class="ace"><span class="lbl"></span></label></td>'
+                        +'<td>' + host_name_list[i] + '</td>'
+                        +'<td>' + $('#host_mem_free_'+host_name_list[i]).val() +'</td>'
+                        +'<td>' + $('#host_vms_'+host_name_list[i]).text() +'</td>'
+                        +'</tr>';
+
+                        $('#host_brief_info_table tbody').append(tr);
+                    }
+                }
+                $('#memory_needed').html('<h4>需要内存(MB):' + mem_used + '</h4>');
+                $('#memory_selected').html('<h4>当前可用(MB):0</h4>');
+                $('#selected_tips').css("display","none");
+                $('#migrate_select_dialog').modal("hide");
+                $('#custom_migrate_dialog').modal('show');
+            });
+
+            $('#go_back').click(function(){
+                $('#custom_migrate_dialog').modal('hide');
+                $('#migrate_select_dialog').modal("show");
+            });
+
+            $('#start_migrate').click(function() {
+                host_name = $('#selected_host_name').val();
+                var need_memory = $('#memory_needed').text().split(':')[1];
+                var current_memory = $('#memory_selected').text().split(':')[1];
+                if (parseInt(current_memory) < parseInt(need_memory))
+                {
+                    $('#selected_tips').html("<h5>所选择的主机内存总量少于需迁移的所需内存总量</h5>");
+                    $('#selected_tips').css("display","block");
+                    return
+                }
+                else
+                {
+                    $('#selected_tips').css("display","none");
+                }
+
+                var all_hosts=$('#host_brief_info_table tbody tr input').toArray();
+                var dest_hosts = [];
+                for(var i = 0; i < all_hosts.length; ++i) {
+                    if(all_hosts[i].checked) {
+                        // get hostname from input.id
+                        id_str = all_hosts[i].id;
+                        dest_hosts.push(id_str.substr(5, id_str.length));
+                    }
+                }
+                $('#custom_migrate_dialog').modal('hide');
+                $.ajax({
+                    url: "{{ url_for('vmotion.custom_migrate') }}",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: $.toJSON({src_host:host_name, dest_hosts:dest_hosts}),
+                    success: on_migrate_success,
+                    error: on_migrate_error
+                });
+            });
+
+            function on_migrate_success(responseJson) {
+                host_name = $('#selected_host_name').val();
+                if (responseJson.status == "success") {
+                    var data = responseJson.data;
+                    console.log(responseJson);
+                    $('#success_tips').html('<h4>您已经成功创建主机'+ host_name +'的迁移任务，可以到任务调度查看迁移进度。</h4>')
+                    $('#migrate_success_dialog').modal('show');
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: "创建主机"+host_name+"迁移失败",
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            function on_migrate_error(request, msg, e) {
+                 $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: "创建主机"+host_name+"迁移失败",
+                    class_name: 'gritter-error'
+                 });
+            }
+
+            $('#check_migrate_tasks').click(function(){
+                window.location.href = "{{ url_for('vmotion.migrate_task') }}"
+            });
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox][id!='host_service_status_btn'][id!='host_auto_evacuation_btn']").prop('checked', false);
+
+            // select all
+            $("#host_brief_info_table thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find("tbody td input[type=checkbox][id!='host_service_status_btn'][id!='host_auto_evacuation_btn']").each(function () {
+                    this.checked = checked;
+                })
+            });
+
+        });
+
+        function on_status_change_click(host_name, service_status) {
+            $.ajax({
+                url: "{{ url_for('vmotion.update_host_service_status') }}",
+                type: "PUT",
+                contentType: "application/json",
+                data: $.toJSON({host_name:host_name,service_status:service_status}),
+                success: on_change_host_service_status_success,
+                error: on_change_host_service_status_error
+            });
+
+            function on_change_host_service_status_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '修改主机的常规/备用状态过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function on_change_host_service_status_success(responseJson) {
+                var data = responseJson.data;
+                if (data.service_status == 'enabled') {
+                    $("#host_service_status_"+data.host_name)
+                            .html('<label><input id="host_service_status_btn" checked type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="常规 备用" onclick="on_status_change_click(' +"'"+data.host_name+"'"+','+"'"+"disabled"+"'"+')"/></label>')
+                    text = "主机&nbsp;"+data.host_name+"&nbsp;成为常规主机"
+                } else {
+                    $("#host_service_status_"+data.host_name)
+                            .html('<label><input id="host_service_status_btn" type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="常规 备用" onclick="on_status_change_click(' +"'"+data.host_name+"'"+','+"'"+"enabled"+"'"+')"/></label>')
+                    text = "主机&nbsp;"+data.host_name+"&nbsp;成为备用主机"
+                }
+
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: text,
+                    class_name: 'gritter-success'
+                });
+            }
+        }
+
+        function on_migrate_click(host_name, host_status){
+            $('#migrate_select_tips').html('<h5>您正在对主机' + host_name +'进行迁移操作，请选择迁移方案。</h5>');
+            if(host_status != 'up')
+                $('#migrate_select_warning').html('<span class="red"><h4>警示：由于' + host_name +'主机状态异常，迁移可能会导致内存数据丢失。</h4></span>');
+            else
+                $('#migrate_select_warning').html("");
+            $('#selected_host_name').val(host_name);
+            $('#selected_host_status').val(host_status);
+            $('#migrate_select_dialog').modal("show");
+        }
+
+        function select_host(host_name)
+        {
+            $('#selected_tips').css("display","none");
+            if ($('#host_' + host_name).get(0).checked)
+            {
+                var current_memory = $('#memory_selected').text().split(':')[1];
+                var select_memory = $('#host_mem_free_'+ host_name).val();
+                var total_memory = parseInt(current_memory) + parseInt(select_memory);
+                $('#memory_selected').html('<h4>当前可用(MB):' + total_memory.toString()+'</h4>')
+            }
+            else
+            {
+                var current_memory = $('#memory_selected').text().split(':')[1];
+                var select_memory = $('#host_mem_free_'+ host_name).val();
+                var total_memory = parseInt(current_memory) - parseInt(select_memory);
+                $('#memory_selected').html('<h4>当前可用(MB):' + total_memory.toString()+'</h4>')
+            }
+        }
+
+        function on_auto_evacuation_change_click(host_name, auto_evacuate) {
+            $.ajax({
+                url: "{{ url_for('vmotion.update_auto_evacuation_status') }}",
+                type: "PUT",
+                contentType: "application/json",
+                data: $.toJSON({host_name:host_name,auto_evacuate:auto_evacuate}),
+                success: on_change_host_auto_evacuate_success,
+                error: on_change_host_auto_evacuate_error
+            });
+
+            function on_change_host_auto_evacuate_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '修改主机的宕机迁移策略过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function on_change_host_auto_evacuate_success(responseJson) {
+                var data = responseJson.data;
+                if (data.auto_evacuate == 'enabled') {
+                    $("#host_auto_evacuation_"+data.host_name)
+                            .html('<label><input id="host_auto_evacuation_btn" checked type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="自动 手动" onclick="on_auto_evacuation_change_click(' +"'"+data.host_name+"'"+','+"'"+"disabled"+"'"+')"/></label>')
+                    text = "主机&nbsp;"+data.host_name+"&nbsp;被设置为自动迁移"
+                } else {
+                    $("#host_auto_evacuation_"+data.host_name)
+                            .html('<label><input id="host_auto_evacuation_btn" type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="自动 手动" onclick="on_auto_evacuation_change_click(' +"'"+data.host_name+"'"+','+"'"+"enabled"+"'"+')"/></label>')
+                    text = "主机&nbsp;"+data.host_name+"&nbsp;被设置为手动迁移"
+                }
+
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: text,
+                    class_name: 'gritter-success'
+                });
+            }
+        }
+
+
+    </script>
+{% endblock %}

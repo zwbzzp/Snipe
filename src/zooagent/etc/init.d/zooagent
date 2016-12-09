@@ -1,0 +1,71 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          zooagent
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: zooagent
+# Description:       zooagent init-script in /etc/init.d.
+### END INIT INFO
+
+# Author: qjh <qjh@vinzor.com>
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+WORK_DIR=/usr/share/zooagent
+cd "$WORK_DIR" # make sure working dir
+
+PYTHON=/usr/bin/python2
+PY_MODULE="ZooAgent.py"
+
+check_running()
+{
+    ps -ef | grep "$PY_MODULE" | grep -v 'grep' > /dev/null
+}
+
+do_start()
+{
+    if check_running ; then
+        echo zooagent is running
+        exit 1
+    fi
+    bash -c "start-stop-daemon --start --quiet -b --oknodo --pidfile /var/run/zooagent.pid -m -d $WORK_DIR --startas $PYTHON -- $PY_MODULE"
+    if [ $? -eq 0 ]; then
+        echo "started"
+    else
+        echo "failed"
+    fi
+}
+
+do_stop()
+{
+    if check_running ; then
+        ps -ef | grep "$PY_MODULE" | grep -v 'grep' | awk '{print $2}' | xargs kill
+    fi
+    echo 'zooagent killed'
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    status)
+        if check_running ; then
+            echo 'zooagent is running'
+        else
+            echo 'zooagent is NOT running'
+        fi
+        ;;
+    restart|force-reload)
+        do_stop
+        do_start
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+        exit 3
+        ;;
+esac
+:

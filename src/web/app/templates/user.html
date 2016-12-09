@@ -1,0 +1,445 @@
+{% extends 'layout.html' %}
+
+{% block title %}个人主页{% endblock %}
+
+{% block inline_styles %}
+    <style type="text/css">
+
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>个人主页</h1></div>
+    <div style="display: none" id="user_id">{{ current_user.id }}</div>
+
+    <div class="page-content" style="overflow: hidden">
+        <div id="userinfo" style="overflow: hidden">
+                <div class="user_img" style="width: 15%;float: left;text-align: center">
+                    <div class="space-30"></div>
+                    <div class="space-30"></div>
+                    <div><i class="menu-icon fa fa-users fa-5x" ></i></div>
+                </div>
+
+                <div class="widget-box transparent" style="width: 85%;float: right">
+                <div class="widget-body" >
+                    <div id="user_id" style="display:none">{{ current_user.id }}</div>
+                    <form id="resetinfo_form">
+                    <div class="widget-main padding-6 no-padding-left no-padding-right">
+                        <div class="profile-user-info profile-user-info-striped" style="border-color: white">
+                             <div class="profile-info-row">
+                                <div class="profile-info-name" style="border:1px dotted  #DCEBF7;width: 25%;text-align: center"> 用户组 </div>
+                                <div class="profile-info-value info-read" id="role-group" style="border:1px dotted  #DCEBF7;">
+                                    {{ user_role }}
+                                </div>
+                                <div class="profile-info-value info-edit" id="role-group"  style="border:1px dotted  #DCEBF7;display: none">
+                                    <input  style="width: 60%" type="text" readonly="readonly" name="role-group" value="{{ user_role }}">
+                                </div>
+                            </div>
+                            <div class="space-8"></div>
+                            <div class="profile-info-row" >
+                                <div class="profile-info-name" style="border:1px dotted  #DCEBF7;width: 25%;text-align: center;"> 用户名 </div>
+                                <div class="profile-info-value info-read" style="border:1px dotted  #DCEBF7 ">
+                                        {{ current_user.username }}
+                                </div>
+                                <div class="profile-info-value info-edit" id="username"  style="border:1px dotted  #DCEBF7;display: none" >
+                                    <input style="width: 60%" readonly="readonly"  name="username" type="text" value="{{ current_user.username }}">
+                                </div>
+                            </div>
+                            <div class="space-8"></div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="border:1px dotted  #DCEBF7;width: 25%;text-align: center"> 姓名 </div>
+                                <div class="profile-info-value info-read" id="fullname-read" style="border:1px dotted  #DCEBF7;">
+                                    <a class="editable text-editable" id="fullname"> {{ current_user.fullname }} </a>
+                                </div>
+                                <div class="profile-info-value info-edit" id="fullname"  style="border:1px dotted  #DCEBF7;display: none">
+                                    <input  style="width: 60%" type="text" id="fullname"  name="fullname" value="{{ current_user.fullname }}">
+                                </div>
+                            </div>
+                            <div class="space-8"></div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="border:1px dotted  #DCEBF7;width: 25%;text-align: center"> 邮箱 </div>
+                                <div class="profile-info-value info-read" id="email-read" style="border:1px dotted  #DCEBF7;">
+                                    <a class="editable text-editable" id="email" > {{ current_user.email }} </a>
+                                </div>
+                                <div class="profile-info-value info-edit" id="email"  style="border:1px dotted  #DCEBF7; display: none">
+                                    <input  style="width: 60%" name="email" id="email" type="text" value="{{ current_user.email }}">
+                                </div>
+                            </div>
+                            <div class="space-8"></div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="border:1px dotted  #DCEBF7;width: 25%;text-align: center"> 密码 </div>
+                                <div class="profile-info-value" id="密码" style="border:1px dotted  #DCEBF7;">
+                                    <a href="#" id="reset-passwd"  onclick="reset_password()">
+                                        修改密码&nbsp;&nbsp;<i class="fa fa-pencil blue" aria-hidden="true" ></i>
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="resetpasswd_dialog" class="modal fade">
+        <<div class="modal-dialog" style="width: 380px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close_resetpasswddialog"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改用户密码</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="resetpasswd_form">
+                        <div class="profile-user-info profile-user-info-striped">
+                            <div class="profile-info-row" >
+                                <div class="profile-info-name" style="text-align: center;" > 旧密码 </div>
+                                <div class="profile-info-value" id="div-oldpasswd">
+                                    <input class="passwd" type="password"  name="oldpasswd" id="oldpasswd" value="">
+                                </div>
+                            </div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="text-align: center"> 新密码 </div>
+                                <div class="profile-info-value"  id="div-newpasswd" >
+                                    <input class="passwd" type="password" name="newpasswd" id="newpasswd" value="">
+                                </div>
+                            </div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="text-align: center"> 确认密码 </div>
+                                <div class="profile-info-value" id="div-confirmpasswd" >
+                                    <input class="passwd" type="password" name="confirmpasswd" id="confirmpasswd" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="close_resetpasswddialog1" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                    <button id="confirm_resetpasswd" type="button" class="btn btn-danger"> 确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+
+        active_sidebar("#userinfo", "#user_info");
+
+        var current_fullname = $("input#fullname").val();
+        var current_email = $("input#email").val();
+        var new_fullname = $("input#fullname").val();
+        var new_email = $("input#email").val();
+
+        $(function () {
+
+            $.fn.editable.defaults.mode = 'inline';
+            $('.text-editable#fullname').editable('option', 'validate', function(v) {
+                if(!v) return '请输入姓名！';
+                if(v.length > 64) return '长度不超过64个字'
+            });
+
+            $('.text-editable#email').editable('option', 'validate', function(v) {
+                if(!v) return '请输入邮箱地址！';
+                if(v.length > 64) return '长度不超过64个字'
+                var reg = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+                isok= reg.test(v);
+                if (!isok)  return '邮件格式不正确'
+            });
+
+            $('.text-editable#fullname').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                var newValue;
+                $('input#fullname').val("");
+                newValue = editable.newValue;
+                new_fullname = newValue;
+                $('input#fullname').val(newValue)
+                var url_template = "{{ url_for('account.update_user', id=0) }}";
+                url = url_template.replace('0', document.getElementById("user_id").innerHTML);
+
+                saveinfo(url);
+
+            })
+
+            $('.text-editable#email').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                $('input#email').val("");
+                var newValue;
+                newValue = editable.newValue;
+                new_email = newValue;
+                $('input#email').val(newValue)
+                var url_template = "{{ url_for('account.update_user', id=0) }}";
+                url = url_template.replace('0', document.getElementById("user_id").innerHTML);
+
+                saveinfo(url);
+
+            })
+
+            function reset_password() {
+                $("#resetpasswd_dialog").modal("show");
+            }
+
+        });
+
+        function initeditable() {
+            $.fn.editable.defaults.mode = 'inline';
+            $('.text-editable#fullname').editable('option', 'validate', function(v) {
+                if(!v) return '请输入姓名！';
+                if(v.length > 64) return '长度不超过64个字'
+            });
+
+            $('.text-editable#email').editable('option', 'validate', function(v) {
+                if(!v) return '请输入邮箱地址！';
+                if(v.length > 64) return '长度不超过64个字'
+                var reg = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+                isok= reg.test(v);
+                if (!isok)  return '邮件格式不正确'
+            });
+
+            $('.text-editable#fullname').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                var newValue;
+                $('input#fullname').val("");
+                newValue = editable.newValue;
+                new_fullname = newValue;
+                $('input#fullname').val(newValue)
+                var url_template = "{{ url_for('account.update_user', id=0) }}";
+                url = url_template.replace('0', document.getElementById("user_id").innerHTML);
+
+                saveinfo(url);
+
+            })
+
+            $('.text-editable#email').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                $('input#email').val("");
+                var newValue;
+                newValue = editable.newValue;
+                new_email = newValue;
+                $('input#email').val(newValue)
+                var url_template = "{{ url_for('account.update_user', id=0) }}";
+                url = url_template.replace('0', document.getElementById("user_id").innerHTML);
+
+                saveinfo(url);
+
+            })
+        }
+
+        function saveinfo(url) {
+            $.ajax({
+                url: url,
+                type: "PUT",
+                data: $("#resetinfo_form").serialize(),
+                success: on_update_user_success,
+                error: on_update_user_error
+            });
+        }
+
+        function on_update_user_success(request, msg, e) {
+            var json_result = $.parseJSON(e.responseText);
+            if (json_result) {
+                var status = json_result.status;
+                var data = json_result.data;
+                switch (status) {
+                    case "success":
+                        // 修改user_table
+                        // 显示提示信息
+                        current_email = new_email;
+                        current_fullname = new_fullname;
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '用户&nbsp;'+data.username+'&nbsp;信息修改成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        // display server side form error messages
+                        var form_errors = data['form_errors'];
+                        var errors = null;
+                        if (form_errors['email']
+                                && form_errors['email'][0] == '邮件地址已被使用') {
+                            errors = { email: "邮件地址已被使用" };
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '邮件地址已被使用',
+                                class_name: 'gritter-error'
+                            });
+                        }
+                        else{
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '邮件格式不正确',
+                                class_name: 'gritter-error',
+                            });
+                        }
+                        $(".info-read#email-read").html('<a class="editable text-editable" id="email" > ' + current_email + '</a>');
+                        $(".info-read#fullname-read").html('<a class="editable text-editable" id="fullname" > ' + current_fullname + '</a>');
+                        initeditable();
+                        new_email = current_email;
+                        new_fullname = current_fullname;
+                        $('input#fullname').val("");
+                        $('input#fullname').val(current_fullname);
+                        $('input#email').val("");
+                        $('input#email').val(current_email);
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                        $(".info-read#email-read").html('<a class="editable text-editable" id="email" > ' + current_email + '</a>');
+                        $(".info-read#fullname-read").html('<a class="editable text-editable" id="fullname" > ' + current_fullname + '</a>');
+                        initeditable();
+                        new_email = current_email;
+                        new_fullname = current_fullname;
+                        $('input#fullname').val("");
+                        $('input#fullname').val(current_fullname)
+                        $('input#email').val("");
+                        $('input#email').val(current_email)
+                    }
+                }
+            }
+
+        function on_update_user_error(response) {
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: '修改过程中出现错误',
+                class_name: 'gritter-error'
+            });
+            $("a#email").html(current_email);
+            $("a#fullname").html(current_fullname);
+            new_email = current_email;
+            new_fullname = current_email;
+            $('input#fullname').val("");
+            $('input#fullname').val(current_fullname)
+            $('input#email').val("");
+            $('input#email').val(current_email)
+        }
+
+        var $validator1 = $("#resetpasswd_form").validate({
+            rules:{
+                oldpasswd: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 64
+                },
+                newpasswd: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 64
+                },
+                confirmpasswd: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 64,
+                    equalTo : "#newpasswd"
+                }
+            },
+            messages: {
+                oldpasswd: {
+                    required: "请输入密码",
+                    minlength: "长度不少于5个字",
+                    maxlength: "长度不超过64个字"
+                },
+                newpasswd: {
+                    required: "请输入密码",
+                    minlength: "长度不少于5个字",
+                    maxlength: "长度不超过64个字"
+                },
+                confirmpasswd: {
+                    required: "请输入密码",
+                    minlength: "长度不少于5个字",
+                    maxlength: "长度不超过64个字",
+                    equalTo: "确认密码不一致"
+                }
+            }
+        });
+
+        function reset_password() {
+            $("#resetpasswd_dialog").modal("show");
+        }
+
+        $("#confirm_resetpasswd").click(function() {
+            var isvalid = $("#resetpasswd_form").valid();
+            if (!isvalid) {
+                return;
+            }
+            else {
+                $("#resetpasswd_dialog").modal("hide");
+            }
+            $.ajax({
+                url: "{{ url_for('account.reset_currentuserpassword') }}",
+                type: "PUT",
+                data: $("#resetpasswd_form").serialize(),
+                success: on_modify_password_success,
+                error: on_modify_password_error
+            });
+            reload_dialog();
+        });
+
+        function reload_dialog() {
+            $(".profile-info-value#div-oldpasswd").html('<input class="passwd" type="password"  name="oldpasswd" id="oldpasswd" value="">')
+            $(".profile-info-value#div-newpasswd").html('<input class="passwd" type="password"  name="newpasswd" id="newpasswd" value="">')
+            $(".profile-info-value#div-confirmpasswd").html('<input class="passwd" type="password"  name="confirmpasswd" id="confirmpasswd" value="">')
+        }
+
+        $("#close_resetpasswddialog").click(function () {
+            reload_dialog();
+        })
+
+        $("#close_resetpasswddialog1").click(function () {
+            reload_dialog();
+        })
+
+
+        function on_modify_password_success(request, msg, e) {
+            var json_result = $.parseJSON(e.responseText);
+            if (json_result) {
+                var status = json_result.status;
+                var errorinfo = json_result.errorinfo;
+                switch (status) {
+                    case "success":
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '重置密码成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        var text = "";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: errorinfo,
+                            class_name: 'gritter-error'
+                        });
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                }
+            }
+        }
+
+        function on_modify_password_error(response) {
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: '重置密码过程中出现错误',
+                class_name: 'gritter-error'
+            });
+        }
+
+
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,1448 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}桌面管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <link ref="stylesheet" href="{{ url_for('static', filename='css/chosen.css') }}" />
+    <style type="text/css">
+        .chzn-select-div p{
+            display: inline-block;
+        }
+
+        .chzn-select-div .error{
+            left: 10px !important;
+            bottom: 0 !important;
+        }
+
+        #delete_content, #edit_template_select{
+            word-wrap: break-word;
+            word-break: break-all;
+            color: gray;
+        }
+
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>固定桌面</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">固定桌面列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="create_static_vm" href="javascript:void(0)" title="创建固定桌面"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                创建 </a>
+                            <a id="delete_static_vm" class="red" href="javascript:void(0)"
+                               title="删除固定桌面"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="text-align: right;">
+                            <div class="btn-group">
+                                <button data-toggle="dropdown"
+                                        class="btn btn-info btn-xs dropdown-toggle"
+                                        aria-expanded="false">
+                                    导入/下载模板
+                                    <span class="ace-icon fa fa-caret-down icon-on-right"></span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-info dropdown-menu-right">
+                                    <li>
+                                        <a href="javascript:void(0)"
+                                           id="upload_desktops_dialog_pop">导入桌面</a>
+                                    </li>
+                                    <li>
+                                        <a id="download_template"
+                                           href="{{ url_for('static', filename='static_desktop.xls') }}" download='固定桌面导入模板.xls'
+                                           title="下载模板">下载桌面模板</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-main no-padding">
+            <table id="table_static_desktop_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>桌面名称</th>
+                    <th>使用者</th>
+                    <th>配置</th>
+                    <th>镜像</th>
+                    <th>IP地址</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div id="fail_list_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">导入失败名单</h4>
+                </div>
+                <div class="modal-body">
+                   <table id="fail_list_table"
+                           class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>使用者</th>
+                            <th>镜像</th>
+                            <th>配置</th>
+                            <th>出错信息</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default"
+                            data-dismiss="modal"> 确定
+                    </button>
+                    <button id="fail_list_button" type="button" class="btn btn-success"> 取消 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="userinfo_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">用户信息</h4>
+                </div>
+                <div class="modal-body">
+                   <table>
+                        <tr>
+                            <th>使用者:</th>
+                            <td id="info_userid"></td>
+                        </tr>
+                        <tr>
+                            <th>姓名:</th>
+                            <td id="info_name"></td>
+                        </tr>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">创建</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="newdesk_form" role="form"
+                          action="{{ url_for('desktop.create_static_desktop') }}"
+                          method="post">
+
+                        {{ form.csrf_token }}
+                        <div class="form-group">
+                            <label class="control-label" for="form-field-8 add_owner">使用者</label>
+                            <div class="">
+                                <select id="add_owner"  name="owner"
+                                        class="select2" style="width:100%"
+                                        data-placeholder="请选择" data-rule-required='true' data-msg-required='请选择使用者'>
+                                    <option value=""></option>
+                                    {% for user in user_list %}
+                                        <option value="{{user.userid}}">{{user.userid}}-{{user.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label"
+                                   for="form-field-8 add_desk_image">镜像</label>
+                            <div class="">
+                                <select id="add_desk_image"  name="template"
+                                        class="select2" style="width:100%"
+                                        data-placeholder="请选择" data-rule-required='true' data-msg-required='请选择镜像'>
+                                    <option value=""></option>
+                                    {% for image in image_list %}
+                                        <option value="{{image.id}}">{{image.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display:none;" id="newdesk-form-template-storage">
+                            {% for image in image_list %}
+                                <div id="newdesk-form-template-storage-{{image.id}}" style="display:none;">
+                                    <span id="newdesk-form-template-storage-{{image.id}}-ram">{{image.min_ram}}</span>
+                                    <span id="newdesk-form-template-storage-{{image.id}}-disk">{{image.min_disk}}</span>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label"
+                                   for="form-field-8
+                                   add_desk_flavor">桌面配置</label>
+                            <div class="">
+                                <select id="add_desk_flavor"  name="flavor"
+                                        class="select2" style="width:100%"
+                                        data-placeholder="请选择" data-rule-required='true' data-msg-required='请选择桌面配置'>
+                                    <option value=""></option>
+                                    {% for flavor in flavor_list %}
+                                        <option value="{{flavor.id}}">{{flavor.vcpus}}VCPU|{{flavor.ram}}MB|{{flavor.disk}}GB</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label"
+                                   for="form-field-8
+                                   add_network_ref">虚拟网络</label>
+                            <div class="">
+                                <select id="add_network_ref"  name="network"
+                                        class="select2" style="width:100%"
+                                        data-placeholder="请选择" data-rule-required='true' data-msg-required='请选择虚拟网络'>
+                                    <option value=""></option>
+                                    {% for network in form.network.choices %}
+                                        <option value="{{network[0]}}">
+                                            {{network[1]}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="add_desk_create" type="button" class="btn btn-success"> 确定 </button>
+                    <button type="button" class="btn btn-default"
+                            data-dismiss="modal"> 取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 20px 0;"></span>
+                        <div id="delete_content" class="dialog_tips"></div>
+                        <!-- this input is used to store the pool id -->
+                        <input type="hidden" id="delete_desktop_id" name="delete_desktop_id" value=""/>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-success"> 删除</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="poweronOrOff_confirm" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">启动或关闭所选桌面</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 20px 0;"></span>
+                        <div id="poweronOrOff_content" class="dialog_tips"></div>
+                        <!-- this input is used to store the pool id -->
+                        <input type="hidden" id="poweronOrOff_desktop_id" name="poweronOrOff_desktop_id" value=""/>
+                        <input type="hidden" id="poweronOrOff_action" name="poweronOrOff_action" value=""/>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_onORoff" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reboot_confirm" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">重启</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 20px 0;"></span>
+                        <div id="reboot_content" class="dialog_tips"></div>
+                        <!-- this input is used to store the pool id -->
+                        <input type="hidden" id="reboot_desktop_id" name="reboot_desktop_id" value=""/>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_reboot" type="button" class="btn btn-success"> 重启</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_select1" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除所选</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+                        <span>确定删除选择的固定桌面吗？</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_select1" type="button" class="btn btn-success"> 删除</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="create_template_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建快照</h4>
+                </div>
+                <div class="modal-body">
+                   <form id="create_template_form" method="post" action="{{ url_for('image.create_snapshot') }}">
+                        <input type="hidden" id="vmid" name="vmid" value="" />
+                        <div class="form-group snap_name">
+                            <label for="form-field-8">名称</label>
+                                <input type="hidden" value="" />
+                                <input type="text" id="name" name="name" value="" placeholder="名称" data-rule-required='true' data-msg-required='请填写快照名称' data-rule-maxlength="40" data-msg-maxlength="不能超过40个字符"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="create_template_save" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>创建
+                    </button>
+                    <button  class="btn btn-danger btn-small" type="button" data-dismiss="modal">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">身份认证</h4>
+                </div>
+                <div class="modal-body">
+                   <form id="auth_form" method="post" action="{{ url_for('account.auth_user')}}">
+                        <div class="form-group admin_ID">
+                            <label for="form-field-8">管理员ID</label>
+                                <input type="text" id="adminID"
+                                       name="adminID" value=""
+                                       placeholder="管理员ID" style="width:
+                                       100%" data-rule-required='true' data-msg-required='请输入管理员ID'/>
+                        </div>
+                        <div class="form-group admin_passwd">
+                            <label for="form-field-8">管理员密码</label>
+                                <input type="password" id="admin_password"
+                                       name="admin_password" value=""
+                                       placeholder="管理员密码" style="width:
+                                       100%" data-rule-required='true' data-msg-required='请输入管理员密码'/>
+                        </div>
+                        <div class="form-group user_passwd">
+                            <label for="form-field-8">用户密码</label>
+                                <input type="password" id="user_password"
+                                       name="user_password" value=""
+                                       placeholder="用户密码" style="width: 100%" data-rule-required='true' data-msg-required='请输入用户密码'/>
+                                <input type="hidden" id="user_id" name="user_id" value="" />
+                        </div>
+                    </form>
+                    <input type="hidden" id="console_url" name="console_url" value="" />
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_auth" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>确定
+                    </button>
+                    <button id="auth_close" class="btn btn-danger btn-small" type="button">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rebuild_confirm" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">还原桌面</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:10px 7px 35px 0;"></span>
+                        <div>桌面还原后原本桌面所有的个人信息将被删除！<span id="rebuild_content"></span></div>
+                        <!-- this input is used to store the delete id -->
+                        <input type="hidden" id="rebuild_id" value=""/>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_rebuild" type="button" class="btn btn-success"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rebuild_fail" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">操作结果</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+                        <span id="rebuild_fail_content">操作失败</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="upload_desktop_dialog" class="modal fade">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">导入桌面名单</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="upload_form" enctype="multipart/form-data">
+                        <input type="file" name="file" id="userfile"/>
+                    </form>
+                </div>
+                <div class="modal-footer" style="text-align: right">
+                    <button id="upload_desktops" type="button" class="btn btn-success" > 导入 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+    <script>
+        active_sidebar("#desktops", '#static_desktops');
+
+        $(function() {
+            $('#download_template').click(function() {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '模板下载成功',
+                    class_name: 'gritter-light'
+                });
+            });
+
+            $('#userfile').ace_file_input({
+                no_file: '选择文件...',
+                btn_choose: '浏览',
+                btn_change: '更改',
+                droppable: false,
+                onchange: null,
+                thumbnail: false
+            });
+
+            /************* initial userinfo_dialog *************/
+
+            /*每十秒更新一次各个VM的使用情况，可以实时监控到VM的使用情况的信息*/
+            //var refresh = setInterval(function(){refresh_state();}, 10*1000);
+            /******** end initial ***********/
+
+            //init JQuery's data table
+
+            var dTable = $('#table_static_desktop_list').dataTable({
+                "bServerSide": true,
+                "bProcessing": true,
+                "sAjaxSource": "{{ url_for('desktop.static_desktop_table') }}",
+                "iDisplayLength": 10,//每页显示10条数据
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "oLanguage":{
+                    //"sSearch": "搜索",
+                    "sSearch": "" +
+                        "<label>搜索：&nbsp;</label>" +
+                        "<span class='add-on'> _INPUT_ </span>" +
+                        "<button id='filter_button'>查询</button>",
+                    "sLengthMenu": "每页显示 _MENU_ 条记录",
+                    "sZeroRecords": "没有检索到数据",
+                    "sInfo": "显示 _START_ 至 _END_ 条 &nbsp;&nbsp;共 _TOTAL_ 条",
+                    "sInfoFiltered": "(筛选自 _MAX_ 条数据)",
+                    "sInfoEmpty": "显示第0至0项结果，共0项",
+                    "sProcessing": "正在加载数据...",
+                    "sInfoPostFix": "",
+                    "sEmptyTable": "表中数据为空",
+                    "sLoadingRecords": "载入中...",
+                    "sInfoThousands": ",",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "上页",
+                        "sNext": "下页",
+                        "sLast": "末页"
+                    },
+                    "oAria": {
+                        "sSortAscending": ":以升序排列此列",
+                        "sSortDescending": ":以降序排列此列"
+                    }
+                },
+                "fnDrawCallback": function (oSettings) {
+                    $('table th input:checkbox').prop('checked', false);
+                },
+                "aoColumns": [
+                    {"mData": "id", "sClass": "center", "bSearchable": false, "bSortable": false, "mRender": function ( data, type, full ){
+                        return '<label class="pos-rel"><input type="checkbox" id="'+data+'" class="desktop-checkbox"/><span class="lbl"></span></label>';
+                    }},
+                    {"mData": "name","mRender": function (data, type, full) {
+                            return '<a href="javascript:void(0)" onclick="authDialog(' +
+                             "'{{
+                            url_for('desktop.desktop_console') }}?id="+data
+                            .vmid  + "', '"+ data.owner_id +"'" + ')"'+">"+
+                            data.name+"</a>"
+                        }
+                    },
+                    {"mData": "owner_id"},
+                    {"mData": "size","bSearchable": false, "bSortable": false,},
+                    {"mData": "image_name","bSearchable": false, "bSortable": false,},
+                    {"mData": "ip"},
+                    {"mData": "status_chs","bSearchable": false, "bSortable": false,},
+                    {"mData": "operation","bSearchable": false, "bSortable":
+                    false, "mRender": function (data, type, full) {
+
+                            return '<div>'
+                            + (data.can_reboot_or_del?(
+                                "<button class='btn btn-mini btn-success'" +
+                                ' title="重启桌面"' + ' onclick="rebootDesktopById(' + "'" +data.name+"', "+ "'" + data.vmid + "')"+ '"' + ">"+
+                                 "<i class='ace-icon fa fa-refresh'></i>"+
+                                "</button>"
+                            ):(
+                                "<button class='btn btn-mini btn-success'" +
+                                ' title="该状态的桌面无法重启" disabled>' +
+                                     "<i class='ace-icon fa fa-refresh'></i></button>"
+                            ))
+                            + (data.can_poweroff?(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="关闭桌面"' + ' onclick="poweronOrOffDesktopById(' + "'"
+                                +data.name+"', "+ "'" + data.vmid + "'" + ", 'suspend')"+
+                                 '"' + ">"+
+                                 "<i class='ace-icon glyphicon glyphicon-off'></i>"+
+                                "</button>"
+                            ):(data.can_poweron?(
+                                "<button class='btn btn-mini btn-success'" +
+                                ' title="启动桌面"' + ' onclick="poweronOrOffDesktopById(' + "'"
+                                +data.name+"', "+ "'" + data.vmid + "'" + ", 'resume')"+
+                                 '"' + ">"+
+                                 "<i class='ace-icon glyphicon glyphicon-off'></i>"+
+                                "</button>"
+                            ):(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="该状态下的桌面无法启动、关闭桌面" disabled>' +
+                                     "<i class='ace-icon glyphicon glyphicon-off'></i></button>"
+                            )))
+                            + (data.can_rebuild?(
+                                "<button class='btn btn-mini btn-warning'" +
+                                ' title="还原桌面"' + ' onclick="rebuild_desktop(' + "'" +data.vmid+"', "+ "'" + data.name + "')"+ '"' + ">"+
+                                 "<i class='ace-icon fa fa-exchange'></i>"+
+                                "</button>"
+                            ):(
+                                "<button class='btn btn-mini btn-warning'" +
+                                ' title="该状态下无法还原桌面" disabled>' +
+                                     "<i class='ace-icon fa fa-exchange'></i></button>"
+                            ))
+                            + (data.can_reboot_or_del || data.state == "ERROR"?(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="删除桌面"' + ' onclick="deleteDesktopById(' + "'" +data.name+"', "+ "'" + data.vmid + "')"+ '"' + ">"+
+                                 "<i class='ace-icon fa fa-trash-o'></i>"+
+                                "</button>"
+                            ):(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="该状态的桌面无法删除" disabled>' +
+                                     "<i class='ace-icon fa fa-trash-o'></i></button>"
+                            ))
+                            + '</div>';
+                        }
+                    }
+                    ],
+                "aaSorting": []
+            });
+
+            $('div#table_static_desktop_list_filter input').unbind();
+            $('#filter_button').click(function () {
+                $.ajax({
+                    url: '{{ url_for('log.test_session') }}',
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        location.reload();
+                    }
+                })
+                var filter_str = $('div#table_static_desktop_list_filter input').val();
+                dTable.fnFilter(filter_str);
+            })
+
+            $('div#table_static_desktop_list_filter input').change(function(){
+                var filter_str = $('div#table_static_desktop_list_filter input').val();
+                if(filter_str==null || filter_str=="")
+                    dTable.fnFilter(filter_str);
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click' , function(){
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function(){
+                    if($(this).prop("disabled")==false)
+                    {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+            /************initial add desktop dialog***************/
+
+            // desk form validation
+            var $validator = $("#newdesk_form").validate({
+                ignore:''
+            });
+
+            $("#create_static_vm").click(function() {
+                $("#add_dialog, .form-group").show();
+                $("#add_dialog_title").text("创建桌面");
+                $("#newdesk_form").validate().resetForm();
+                $("#add_owner").select2("val","");
+                $("#add_desk_image").select2("val","");
+                $("#add_desk_flavor").select2("val","");
+                $("#add_network_ref").select2("val","");
+                $("#add_dialog").modal("show");
+            });
+
+            $("#add_dialog .select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+
+
+            $("#add_owner").change(function(){
+                $validator.showErrors({owner:""});
+            });
+
+            $("#add_desk_image").change(function(){
+                $validator.showErrors({template:""});
+            });
+
+            $("#add_desk_flavor").change(function(){
+                $validator.showErrors({flavor:""});
+            });
+
+            $("#add_network_ref").change(function(){
+                $validator.showErrors({network:""});
+            });
+
+            $("#add_desk_create").click(function(){
+                //$("#add_dialog").modal("hide");
+                var isvalid = $("#newdesk_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                create_static_desktop();
+            });
+
+            /************end initial***************/
+
+            /************initial upload dialog***************/
+
+            $("#upload_desktops_dialog_pop").click(function () {
+                $('#userfile').ace_file_input('reset_input');
+                $("#upload_desktop_dialog").modal("show");
+            });
+
+            /************end initial***************/
+
+            /************initial fail dialog***************/
+
+            $("#create_template_save").click(function(){
+                doCreateTemplate();
+            });
+
+            $("#create_template_form").validate({
+                wrapper: "span",
+            });
+
+
+            /************end initial***************/
+
+            /************initial fail dialog***************/
+
+
+            /************end initial***************/
+
+            function reset_flavor_list(id){
+                // 恢复隐藏的option
+                $("#" + id).children("span").each(function(){
+                    $(this).children().clone().replaceAll($(this));
+                });
+                // 清空select的选项
+                $("#" + id).val('').select2('val',"");
+
+                $("#" + id).trigger("liszt:updated");
+            }
+
+            $("#add_desk_image").change(function(evt, param){
+                reset_flavor_list('add_desk_flavor');
+                id = $("#add_desk_image").val();
+                min_ram = Number($("#newdesk-form-template-storage-" + id + "-ram").html());
+                min_disk = Number($("#newdesk-form-template-storage-" + id + "-disk").html());
+                flavors = $("#add_desk_flavor").children();
+                for (i=0; i<flavors.length; i++) {
+                    description = ($(flavors[i])).html().split('|')
+                    if(description.length != 3)
+                        continue;
+                    ram = Number(description[1].substr(0, description[1].length-2))
+                    disk = Number(description[2].substr(0, description[2].length-2))
+                    if (ram < min_ram || disk < min_disk)
+                        $(flavors[i]).wrap("<span style='display:none'></span>");
+                }
+                $("#add_desk_flavor").trigger("liszt:updated");
+            });
+
+            /********  delete desktop ***********/
+
+            $("#delete_static_vm").click(function() {
+                var flag = false;
+                $(".desktop-checkbox").each(function(){
+                    if(this.checked){
+                        flag = true;
+                    }
+                });
+                if (flag){
+                    $("#delete_select1").modal("show");
+                }else{
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: "请选择一个或多个固定桌面！",
+                    class_name: 'gritter-error'
+                    });
+                }
+             });
+             /******* end delete ****/
+
+            /******** initial fail list dialog ***********/
+            $('#fail_list_table').dataTable({
+                "aoColumns": [null, null, null, null],
+                "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+                "iDisplayLength": 5
+            });
+
+        function create_static_desktop(){
+            var options = {
+                beforeSubmit: beforeSubmit,  //提交前的回调函数
+                success: callback,      //提交后的回调函数
+                url: "{{ url_for('desktop.create_static_desktop') }}",
+                type: "post",
+                dataType: "json"        //html(默认), xml, script, json...接受服务端返回的类型
+            }
+
+            function beforeSubmit(formData, jqForm, options){
+                if($("#newdesk_form").validate()){
+                    $("#add_dialog").modal("hide");
+                }else{
+                    return false;
+                }
+            };
+
+            function callback(result_json, statusText){
+                if(result_json['status'] == "success"){
+                    //成功，刷新页面
+                    $("#add_dialog").modal("hide");
+                    location.reload();
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '创建成功',
+                    class_name: 'gritter-success'
+                    });
+                }else if(result_json['status'] == "existed"){
+                    //操作失败,恢复页面
+                    var content = "警告：您想要创建的部分桌面已存在"
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }else if(result_json['status'] == "noneuser"){
+                    //操作失败,恢复页面
+                    var content = "警告：请选择一个使用者"
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }else if(result_json['status'] == "nonetemplate"){
+                    //操作失败,恢复页面
+                    var content = "警告：请选择镜像"
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }else if(result_json['status'] == "noneflavor"){
+                    //操作失败,恢复页面
+                    var content = "警告：请选择桌面配置"
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }else if(result_json['status'] == "fail"){
+                    //操作失败,恢复页面
+                    var content = '';
+                    if (result_json['data'] == 'resource exceed system limit') {
+                        content = "资源使用超出系统上限";
+                    } else {
+                        content = "创建桌面失败";
+                    }
+                    $.gritter.add({
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                }else if(result_json['status'] == "system_resource_exceed"){
+                    var content = "警告：超出系统资源限制，启动失败！"
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            };
+            $("#newdesk_form").ajaxSubmit(options);
+        }
+
+        function showUserInfo(userid,vmid){
+            getUserInfo(userid);
+            $("#userinfo_dialog").modal("show");
+        }
+
+        function uploadDesk(){
+            if(!uploadCheck()){
+                return;
+            }
+            var options = {
+                beforeSubmit: beforeSubmit,  //提交前的回调函数
+                success: callback,      //提交后的回调函数
+                url: "{{ url_for('desktop.batch_add_static_desktops') }}",
+                type:'post',
+                dataType: "json"        //html(默认), xml, script, json...接受服务端返回的类型
+            };
+            function beforeSubmit(formData, jqForm, options){
+                return true;
+            };
+
+            function callback(responseJson, statusText){
+                if(responseJson["status"] == "success"){
+                    //成功，刷新页面
+                    fail_list = responseJson.fail_list;
+                    if (fail_list.length > 0) {
+                        var fail_list_table = $('#fail_list_table').dataTable();
+                        fail_list_table.fnClearTable();
+                        for (var i = 0; i < fail_list.length; i++) {
+                            item = fail_list[i];
+                            fail_list_table.fnAddData([item.userid, item.template, item.flavor, item.info]);
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '存在导入失败的项目',
+                            class_name: 'gritter-error'
+                        });
+                        $("#fail_list_dialog").modal("show");
+                    }else{
+                        location.reload()
+                        var content = "全部导入成功！";
+                            // 显示提示信息
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                }else{
+                    //操作失败
+                    var content = "导入失败！"
+                    if (responseJson["error_msg"] == "too large"){
+                        content += "文件大小不能超过5M！"
+                    }else if (responseJson["error_msg"] == "type error"){
+                        content += "文件类型不支持，必须为.xls或者.xlsx文件"
+                    }else if(responseJson["error_msg"]== "format error"){
+                        content += "文件格式不正确，注意用户的字段顺序！"
+                    }else if(responseJson["error_msg"] == "system_resource_exceed"){
+                        content += "超出系统资源限制！"
+                    }else{
+                        content += "导入过程中发生异常！"
+                    }
+                    $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                    });
+                }
+             };
+            $("#upload_form").ajaxSubmit(options);
+        }
+
+         $('#upload_desktops').click(function() {
+            $("#upload_desktop_dialog").modal("hide");
+            uploadDesk();
+         });
+
+        function createTemplate(vmid){
+            $("#create_template_form #vmid").val(vmid);
+            $("#create_template_form #name").val("");
+            $("#create_template_form").find("label.error").parent().remove();
+            $("#create_template_dialog").modal("show");
+        }
+
+        function doCreateTemplate(){
+            var options = {
+                beforeSubmit: beforeSubmit,  //提交前的回调函数
+                success: callback,      //提交后的回调函数
+                url: "{{ url_for('image.create_snapshot') }}",
+                type: "post",
+                dataType: "html"        //html(默认), xml, script, json...接受服务端返回的类型
+            }
+
+            function beforeSubmit(formData, jqForm, options){
+                if($("#create_template_form").validate()){
+                    $("#create_template_dialog").modal("hide");
+                    return true;
+                }else{
+                    return false;
+                }
+            };
+
+            function callback(responseText, statusText)
+            {
+                if(responseText == "success"){
+                    //成功，刷新页面
+                    $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "创建镜像成功",
+                            class_name: 'gritter-success'
+                    });
+                    location.reload();
+                }
+                else
+                {
+                    //操作失败,恢复页面
+                    $("#create_template_dialog").modal("show");
+                    var content = "创建失败"
+                    if (responseText == "existed"){
+                        content = "镜像名已存在";
+                    }else if (responseText == "NotActive"){
+                        content = "云桌面为分配或者必须是已启动状态"
+                    }else if (responseText == "DestroyFail"){
+                        content = "创建快照失败。请删除云桌面重新创建"
+                    }
+                    $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                    });
+                }
+            };
+            $("#create_template_form").ajaxSubmit(options);
+        }
+
+        function uploadCheck(){
+            return checkUploadFile("#userfile");
+        }
+
+        function checkUploadFile(fileId){
+            var filepath = $(fileId).val();
+            var extStart = filepath.lastIndexOf(".");
+            var ext = filepath.substring(extStart,filepath.length).toUpperCase();
+            if (ext != ".XLS" && ext != ".XLSX"){
+                var content = "文件类型不支持，必须为.xls或者.xlsx文件";
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                });
+                return false;
+            }else{
+                return true;
+            }
+        }
+
+        function deleteSelected(){
+            static_desktopids = new Array()
+            $(".desktop-checkbox").each(function(){
+                if(this.checked){
+                    static_desktopids.push(this.id);
+                }
+            });
+
+            if (static_desktopids.length > 0){
+                $.ajax({
+                    url:"{{ url_for('desktop.delete_static_desktop')}}",
+                    type:"post",
+                    async:false,
+                    data:{static_desktopids:static_desktopids},
+                    success:function(responseText,status){
+                        if (responseText['status'] == "success"){
+                            $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除成功",
+                            class_name: 'gritter-success'
+                            });
+                            location.reload()
+                        }else{
+                            $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除失败",
+                            class_name: 'gritter-error'
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        function rebootDesktop(id) {
+            var vm_id = id;
+            $.ajax({
+                url: "{{ url_for('desktop.reboot_vm') }}",
+                type: 'post',
+                async: true,
+                data: {
+                    vmid: vm_id
+                },
+                success: function(responseText, status) {
+                    if (responseText["status"] == "success") {
+                        //操作成功
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重启成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload();
+                    } else if(responseText["status"] == "Notexist"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重启失败",
+                            class_name: 'gritter-error'
+                        });
+                    }else if(responseText["status"] == "WrongStatus"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "桌面处在不允许重启的状态",
+                            class_name: 'gritter-error'
+                        });
+                    }else {
+                        //操作失败
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重启失败",
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, status, errorThrown) {
+                    //操作失败
+                    $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重启失败",
+                            class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        function deleteDesktopById(desktopName, desktopId){
+            $("#delete_content").text("确定要删除固定桌面“"+desktopName+"”吗？");
+            $("#delete_desktop_id").val(desktopId); //设置删除desktop
+            $("#delete_confirm").modal("show");
+        }
+
+        function deleteDesktop(id){
+            static_desktopids = new Array()
+            static_desktopids.push(id)
+            $.ajax({
+                url:"{{ url_for('desktop.delete_static_desktop')}}",
+                type:"post",
+                async:false,
+                data:{static_desktopids:static_desktopids},
+                success:function(responsetText,status){
+                    if (responsetText["status"] == "success"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }else{
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除失败",
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+
+
+	    function poweronOrOffDesktop(id,action){
+            $.ajax({
+	            url:"/desktop/" + action + "_vm/",
+                type:"post",
+                async:true,
+                data:{vmid:id},
+                success:function(responseText,status){
+                    if (responseText["status"] == "success"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "操作成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }else if (responseText["status"] == "Wrongstatus"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "桌面处于不可开机或关机状态",
+                            class_name: 'gritter-error'
+                        });
+                    }else if(responseText["status"] == "Notexist"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "桌面不存在",
+                            class_name: 'gritter-error'
+                        });
+                    }else if(responseText["status"] == "system_resource_exceed"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "当前系统资源不足，启动失败",
+                            class_name: 'gritter-error'
+                        });
+                    }else if(action == "poweron"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "启动失败",
+                            class_name: 'gritter-error'
+                        });
+                    }else{
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "关闭失败",
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+
+        function poweroffDesktop(id){
+            $.ajax({
+	            url:"{{ url_for('desktop.suspend_vm')}}", //"/desktop/" + action + "_vm/"
+                type:"post",
+                async:true,
+                data:{vmid:id},
+                success:function(responseText,status){
+                    if (responseText["status"] == "success"){
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "操作成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }
+                    else {
+                        var content;
+                        if (responseText["status"] == "Wrongstatus"){
+                            content = "桌面处于不可关机状态";
+                        }else if(responseText["status"] == "Notexist"){
+                            content = "桌面不存在";
+                        }else if(responseText["status"] == "system_resource_exceed"){
+                            content = "当前系统资源不足,启动失败!";
+                        }else if(action == "poweron"){
+                            content = "启动失败";
+                        }else{
+                            content = "关闭失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+
+        function poweronDesktop(id){
+            $.ajax({
+	            url:"{{ url_for('desktop.resume_vm')}}", //"/desktop/" + action + "_vm/"
+                type:"post",
+                async:true,
+                data:{vmid:id},
+                success:function(responseText,status){
+                    var content;
+                    if (responseText["status"] == "success"){
+                        location.reload()
+                    }else if (responseText["status"] == "Wrongstatus"){
+                        content = "桌面处于不可开机状态";
+                    }else if(responseText["status"] == "Notexist"){
+                        content = "桌面不存在";
+                    }else if(responseText["status"] == "system_resource_exceed"){
+                        content = "当前系统资源不足，启动失败!";
+                    }else if(action == "poweron"){
+                        content = "启动失败";
+                    }else{
+                        content = "关闭失败";
+                    }
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        function doAuth(){
+            var console_url = $("#console_url").val();
+            var options = {
+                success: callback,
+                //提交后的回调函数
+                url: "{{ url_for('account.auth_user')}}",
+                type: "post",
+                dataType: "json",
+                //html(默认), xml, script, json...接受服务端返回的类型
+                timeout: 10000 //限制请求的时间，当请求大于10秒后，跳出请求
+            }
+
+            function callback(responseText, statusText) {
+                if (responseText["status"] == "success") {
+                    //成功，刷新页面
+                    location.href=(console_url);
+                } else {
+                    //操作失败
+                    var content = "创建用户失败";
+                    if (responseText["status"]  == "user_fail"){
+                        content = "用户认证失败";
+                    } else {
+                        content = "管理员认证失败";
+                    }
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                }
+            };
+            $("#auth_form").ajaxSubmit(options);
+        }
+
+        function do_rebuild_desktop(vmid){
+            //还原桌面
+            $.ajax({
+                url: "{{ url_for('desktop.rebuild_desktop') }}",
+                type: 'post',
+                async: true,
+                data: {
+                    vmid: vmid
+                },
+                success: function(responseText, status) {
+                    var content;
+                    if (responseText["status"] == "success") {
+                        //操作成功
+                        location.reload();
+                    }else {
+                        //操作失败
+                        var content = "还原操作失败";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, status, errorThrown) {
+                    //操作失败
+                    var content = "还原操作失败";
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        $("#confirm_delete").click(function () {
+            var id = $("#delete_desktop_id").val();
+            $("#delete_confirm").modal("hide");
+            deleteDesktop(id);
+        });
+
+        $("#confirm_onORoff").click(function () {
+            $("#poweronOrOff_confirm").modal("hide");
+            var id = $("#poweronOrOff_desktop_id").val();
+            var action = $("#poweronOrOff_action").val();
+            //poweronOrOffDesktop(id, action);
+            if(action == 'resume'){
+                poweronDesktop(id);
+            }else{
+                poweroffDesktop(id);
+            }
+        });
+
+        $("#confirm_reboot").click(function () {
+            var id = $("#reboot_desktop_id").val();
+            $("#reboot_confirm").modal("hide");
+            rebootDesktop(id);
+        });
+
+        $("#confirm_select1").click(function () {
+            $("#delete_select1").modal("hide");
+            deleteSelected();
+        });
+
+        $("#confirm_auth").click(function () {
+            var isvalid = $("#auth_form").valid();
+            if(!isvalid){
+                return;
+            }
+            doAuth();
+        });
+
+        $("#auth_close").click(function () {
+            $("#auth_dialog").modal("hide");
+        });
+
+         $("#confirm_rebuild").click(function () {
+            var rebuild_id = $("#rebuild_id").val();
+            $("#rebuild_confirm").modal("hide");
+            do_rebuild_desktop(rebuild_id);
+        });
+
+         $("#fail_list_button").click(function () {
+            $("#fail_list_dialog").modal("hide");
+            location.reload();
+        });
+
+    });
+
+        function rebootDesktopById(desktopName, desktopId){
+            $("#reboot_content").text("确定要重启桌面“"+desktopName+"”吗？");
+            $("#reboot_desktop_id").val(desktopId); //设置重启desktop
+            $("#reboot_confirm").modal("show");
+        }
+
+        function deleteDesktopById(desktopName, desktopId){
+            $("#delete_content").text("确定要删除固定桌面“"+desktopName+"”吗？");
+            $("#delete_desktop_id").val(desktopId); //设置删除desktop
+            $("#delete_confirm").modal("show");
+        }
+
+        function authDialog(url, userid){
+            $("#auth_dialog").modal("show");
+            $("#console_url").val(url);
+            $("#user_id").val(userid);
+        }
+
+        function poweronOrOffDesktopById(desktopName, desktopId, action){
+	        if(action == 'resume'){
+	            action_tip = "启动";
+	        }else{
+	            action_tip = "关闭";
+	        }
+	        $("#poweronOrOff_content").text("确定要"+action_tip+"固定桌面"+desktopName+"吗？");
+	        $("#poweronOrOff_desktop_id").val(desktopId); //设置删除desktop
+	        $("#poweronOrOff_action").val(action); //设置删除desktop
+	        $("#poweronOrOff_confirm").modal("show");
+	    }
+
+        function rebuild_desktop(vmid, name){
+            //还原桌面
+            $("#rebuild_confirm #rebuild_id").val(vmid);
+            var content = "确定要还原桌面‘" + name + "’吗？";
+            $("#rebuild_confirm #rebuild_content").text(content);
+            $("#rebuild_confirm").modal("show");
+        }
+
+    </script>
+
+{% endblock %}

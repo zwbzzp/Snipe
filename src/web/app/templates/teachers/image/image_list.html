@@ -1,0 +1,597 @@
+{% extends 'teachers/layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}镜像管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <link ref="stylesheet" href="{{ url_for('static', filename='css/chosen.css') }}" />
+
+
+
+    <style type="text/css">
+        #edit_imagevisi{
+            position: relative;
+            left: 60px;
+            bottom: 30px;
+        }
+
+        input #edit_imageformat{
+            text-align: left;
+        }
+
+        .chzn-select-div p{
+            display: inline-block;
+        }
+
+        .chzn-select-div .error{
+            left: 10px !important;
+            bottom: 0 !important;
+        }
+
+        .bar {
+            background-image: linear-gradient(45deg,rgba(255,255,255,0.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.15) 75%,transparent 75%,transparent) !important;
+            padding-top: 3px;
+        }
+
+        .progress {
+            margin-bottom: 0px !important;
+            height: 25px !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>镜像管理</h1></div>
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">镜像列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="add_image"
+                       href="{{ url_for('teachers_image.image_generator') }}"><i
+                            class="ace-icon fa fa-plus-circle"></i> 制作镜像 </a>
+                    <a id="delete_images" class="red" href="javascript:void(0)"><i
+                            class="ace-icon fa fa-trash"></i> 删除镜像 </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-main no-padding">
+            <table id="table_image_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                    <th>镜像名称</th>
+                    <th>属主</th>
+                    <th>操作系统</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>大小</th>
+                    <th>状态</th>
+                    <th>公开性</th>
+                    <th>说明</th>
+                    <th style="width:120px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for image in image_list %}
+                    <tr>
+                        <td class='center'>
+                            <label class="pos-rel">
+                                <input type='checkbox' id="{{ image.id }}"
+                                       class="ace"
+                                       {% if image.id in using_image or (not current_user.is_administrator() and
+                                       image.owner_id != current_user.username and image['visibility']== 'public')
+                                               %}disabled{% endif %}/>
+                                <span class="lbl"></span>
+                            </label>
+                        </td>
+
+                        <td><span>{{ image.name }}</span></td>
+                        <td class='hidden-phone' id="f_{{ image.id }}">
+                            {{ image.owner_id }}
+                        </td>
+                        <!-- <td><span>{{ os_info[image.id] }}</span></td> -->
+                        <td>
+                            {% if image.os_type %}
+                              {% if image.os_type == "Windows" or image.os_type == "windows" %}
+                                <span class="label label-lg label-info arrowed-in arrowed-in-right">{{image.os_type}}</span>{% endif %}
+                              {% if image.os_type == "Linux" or image.os_type == "linux" %}
+                                <span class="label label-lg label-inverse arrowed-in arrowed-in-right">{{image.os_type}}</span>{% endif %}
+                            {% else %}
+                              <span>{{image.os_type}}</span>
+                            {% endif %}
+                        </td>
+                        <td><span>{{ image.created_at | datetime_format
+                            }}</span></td>
+                        <td><span>{{ image.updated_at | datetime_format }}</span></td>
+                        <td><span>{{ image.size|filesizeformat() }}</span></td>
+                        <td class='hidden-480'>
+                            {% if image.status == "active" %}已激活{% endif %}
+                            {% if image.status != "active" %}已禁用{% endif %}
+                        </td>
+                        <td class='hidden-480'>
+                            <input type="hidden" id="v_{{image.id}}" value="{{image['visibility']}}" />
+                            {% if image.visibility == "public" %}
+                                <span class='label label-success arrowed'>公开</span>
+                            {% endif %}
+                            {% if image.visibility != "public" %}
+                                <span class='label label-warning arrowed'>私有</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span
+                                    style="display:block; width:100%;word-wrap:break-word;word-break:break-all;">{{ image.description }}</span>
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+                                <a href="javascript:void(0)"
+                                   onclick="editImageByName('{{ image.disk_format }}', '{{ image.name }}', '{{ image.id }}', '{{image.description}}')"
+                                   {% if not current_user.is_administrator() and image.owner_id != current_user.username and image['visibility'] == 'public' %}
+                                   style="display: none"
+                                   title="禁止修改"
+                                   {% elif image.id in using_image %} style="display: none"
+                                   title="镜像使用中"
+                                   {% else %} title="修改"{% endif %}>
+                                    <i class="ace-icon glyphicon glyphicon-edit bigger-130"></i>
+                                </a>
+                                <a class="red"
+                                   onclick="deleteImageByName('{{ image.name }}', '{{ image.id }}')"
+                                   {% if not current_user.is_administrator() and image.owner_id != current_user.username and image['visibility'] == 'public' %}
+                                   style="display: none"
+                                   title="禁止删除"
+                                   {% elif image.id in using_image %} style="display: none"
+                                   title="镜像使用中"
+                                   {% else %}title="删除"{% endif %}>
+                                    <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div style="display: none;">
+                {% for image in image_list %}
+                    <div>
+                        <div id="{{ image.id }}_min_ram">{{ image.min_ram }}</div>
+                        <div id="{{ image.id }}_min_disk">{{ image.min_disk }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <span style="display:none;" id="console_href">{{ url_for('teachers_image.get_instance_console') }}</span>
+
+    <div id="operation_dialog" class="modal">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">操作结果</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+                        <span id="operation_content"></span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 确定 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_dialog" class="modal fade">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_dialog_title">修改</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="edit_form" action="{{ url_for('teachers_image.update_image') }}" method="post">
+                        {{ form.csrf_token }}
+                        <div class="form-group ID">
+                            <label for="form-field-8">ID</label>
+                            <div class="">
+                                <input class="form-control" id="edit_imageid" name="imageid" placeholder="ID" type="text">
+                            </div>
+                        </div>
+
+                        <div class="form-group name">
+                            <label for="form-field-8">镜像名称</label>
+                            <div class="">
+                                <input type="text" id="edit_imagename" name="imagename" value="" placeholder="镜像名称" style="width:100%" data-rule-required='true' data-msg-required='请设置镜像名称' data-rule-isname='true' data-msg-isname='只能使用英文字符、数字、下划线和点' data-rule-maxlength='64' data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+
+                        <div class="form-group format">
+                            <label for="form-field-8">镜像描述</label>
+                            <div class="">
+                                <textarea id="edit_imagedescription"
+                                          name="imagedescription"
+                                          class="autosize-transition form-control" style="width:100%; height:100px; overflow: hidden; word-wrap: break-word; resize: vertical;"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group format">
+                            <label for="form-field-8">公开性</label>
+                            <div class="">
+                                <input type="checkbox" id="edit_imagevisibility" name="imagevisibility" style="opacity:1"/>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+
+                <div class="modal-footer">
+                    <button id="edit_dialog_confirm" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>确认
+                    </button>
+                    <button id="edit_dialog_close" class="btn btn-danger btn-small" type="button">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm" class="modal">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除</h4>
+                </div>
+                <div class="modal-body">
+                   <!-- this input is used to store the user id -->
+                    <span class="ui-icon ui-icon-alert" style="float:left;"></span>
+                    <div id="delete_content" style="word-wrap: break-word; word-break: break-all; margin-left: 25px"></div>
+                    <input type="hidden" id="delete_image_name" name="delete_image_name" value="" />
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete_button" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>删除
+                    </button>
+                    <button  class="btn btn-danger btn-small" type="button" data-dismiss="modal">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_select" class="modal">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+                         <span>确定删除选择的镜像吗？删除有可能导致相关课程无法启动</span>
+                   </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete_select" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>删除
+                    </button>
+                    <button  class="btn btn-danger btn-small" type="button" data-dismiss="modal">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="fail_dialog" class="modal">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">操作结果</h4>
+                </div>
+                <div class="modal-body">
+                   <p>
+                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+                        <span id="fail_content">操作失败</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button  class="btn btn-danger btn-small" type="button" data-dismiss="modal">
+                        <i class="icon-ok"></i>确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sa_confirm_dialog" class="modal">
+        <div  class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">管理员确认</h4>
+                </div>
+                <div class="modal-body">
+                   <input id="sa_confirm_delete_image_name" style="display:none" />
+                    <input id="sa_confirm_delete_image_id" style="display:none" />
+                    <i class="ui-icon ui-icon-alert" style="display:inline-block;"></i><span id="sa_confirm_note" style="inline-block;">请输入管理员信息</span>
+                    <span id="sa_confirm_delete_image_confirm_note"></span>
+                    <div class="form-group user-information">
+                        <label for="form-field-8">用户名</label>
+                        <input type="text" id="sa_confirm_username" name="sa_confirm_username" value="" placeholder="用户名" style="width:100%"/>
+                    </div>
+                    <div class="form-group password">
+                        <label for="form-field-8">密码</label>
+                        <input type="password" id="sa_confirm_password" name="sa_confirm_password" value="" placeholder="密码" style="width:100%"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="delete_sa_confirm" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>删除
+                    </button>
+                    <button  class="btn btn-danger btn-small" type="button" data-dismiss="modal">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script>
+        active_sidebar("#images", "#image_list");
+        $(function() {
+            //Init JQUERY's data table
+            var table_image_list = $('#table_image_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{"bSortable": false},
+                    null, null, null, null, null, {"bSortable": false}, {"bSortable": false}, null, {"bSortable": false},
+                    {"bSortable": false}
+                ],
+                "aaSorting": []
+            });
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+            // select all
+            $("#table_image_list thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find('tbody td input[type=checkbox]').each(function () {
+                    if (!this.disabled)
+                        this.checked = checked;
+                })
+            });
+
+            $("#edit_dialog_close").click(function(){
+                $("#edit_dialog").modal("hide");
+            });
+
+            $("#edit_dialog_confirm").click(function(){
+                var isvalid = $("#edit_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                updateImage();
+            });
+
+            $("#delete_images").click(function() {
+               var flag = false;
+               $("#table_image_list tbody td input[type=checkbox]").each(function () {
+                   if (this.checked) {
+                       flag = true;
+                   }
+               });
+               if (flag) {
+                   $("#delete_select").modal("show");
+               } else {
+                   var content = "请选择一个或多个要删除的镜像";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+               }
+            });
+
+            function deleteSelected() {
+                imageIds = new Array();
+                $("#table_image_list tbody td input[type=checkbox]").each(function () {
+                    if (this.checked  && !this.disabled) {
+                        imageIds.push(this.id);
+                    }
+                });
+                deleteImages(imageIds);
+            }
+
+            function deleteImages(imageIds){
+                if (imageIds.length > 0) {
+                    $.ajax({
+                        url: "{{ url_for('teachers_image.delete_image') }}",
+                        type: 'post',
+                        async: false,
+                        data: {
+                            imageIds: imageIds
+                        },
+                        success: function(responseText, status) {
+                            var content;
+                            if (responseText["status"]  == "success") {
+                            //操作成功
+                            location.reload();
+                            } else if(responseText["status"]  == 'using'){
+                                //操作失败
+                                content = "镜像正在使用中";
+                            } else {
+                                //操作失败
+                                content = "删除失败";
+                            }
+                            $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                            });
+                        }
+                    });
+                }
+            }
+
+            function updateImage() {
+                var options = {
+                    beforeSubmit: beforeSubmit,
+                    //提交前的回调函数
+                    success: callback,
+                    //提交后的回调函数
+                    url: "{{ url_for('teachers_image.update_image') }}",
+                    type: "post",
+                    dataType: "json"  //html(默认), xml, script, json...接受服务端返回的类型
+                    //global:false
+                }
+
+                function beforeSubmit(formData, jqForm, options) {
+                    if ($("#edit_form").validate()) {
+                        $("#edit_dialog").modal("hide");
+                    } else {
+                        return false;
+                    }
+                    return true;
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText["status"]  == "success") {
+                        //成功，刷新页面
+                        location.reload();
+                    } else {
+                        //操作失败
+                        if (responseText["status"]  == "existed"){
+                            $("#fail_content").html("此名称已经存在");
+                        } else {
+                            $("#fail_content").html("保存失败");
+                        }
+                        $("#fail_dialog").modal("show");
+                    }
+                };
+                $("#edit_form").ajaxSubmit(options);
+            }
+
+            function on_delete_success(responseText, status) {
+                if (responseText["status"]  == "success")
+                {
+                    $("#sa_confirm_note").html("用户已认证,正在删除镜像");
+                    if($("#sa_confirm_delete_image_id").val() == "") {
+                        deleteSelected();
+                    } else {
+                        imageIds = new Array($("#sa_confirm_delete_image_id").val());
+                        deleteImages(imageIds);
+                    }
+                    $("#sa_confirm_dialog").modal("hide");
+                    location.reload();
+                    //操作成功
+                } else {
+                    $("#sa_confirm_note").html("管理员认证失败,请重新输入");
+                    //操作失败
+                    var content;
+                    if (responseText["status"]  == "existed"){
+                        content = "此名称已经存在";
+                    } else {
+                        content = "保存失败";
+                    }
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            $("#confirm_delete_button").click(function () {
+                $("#sa_confirm_delete_image_id").val($("#delete_image_name").val());
+                $("#delete_confirm").modal("hide");
+                $("#sa_confirm_username").val('');
+                $("#sa_confirm_password").val('');
+                $("#sa_confirm_note").html("请输入管理员信息");
+                $("#sa_confirm_dialog").modal("show");
+            });
+
+            $("#confirm_delete_select").click(function () {
+                $("#delete_select").modal("hide");
+                $("#sa_confirm_username").val('');
+                $("#sa_confirm_password").val('');
+                $("#sa_confirm_note").html("请输入管理员信息");
+                $("#sa_confirm_dialog").modal("show");
+            });
+
+            $("#delete_sa_confirm").click(function () {
+                $.ajax({
+                    url: "{{ url_for('auth.login') }}",
+                    type: 'post',
+                    async: false,
+                    data: {
+                        username_email: $("#sa_confirm_username").val(),
+                        password: $("#sa_confirm_password").val(),
+                    },
+                    success: on_delete_success
+                });
+            });
+         });
+
+        function editImageByName(format, name, id, description) {
+                //var format = $("#f_" + id).html();
+                $("#edit_form").resetForm();
+                $("#edit_form").find("label.error").parent().remove();
+                $("#edit_imagename").val(name);
+                $("#edit_imageid").val(id);
+                $("#edit_imageformat").val(format);
+                $("#edit_dialog, .ID").hide();
+                $("#edit_imagedescription").val(description);
+                var visibility = $("#v_" + id).val();
+{#                alert(visibility);#}
+                visibility = visibility.trim();
+                if (visibility == "public") {
+                    $("#edit_imagevisibility").attr("checked", "checked");
+                } else {
+                    $("#edit_imagevisibility").attr("checked", false);
+                }
+                $("#edit_dialog").modal("show");
+        }
+
+        function deleteImageByName(name, id) {
+                $("#delete_content").html("确定要删除镜像" + name + "吗？删除有可能导致相关课程无法启动");
+                $("#delete_image_name").val(id); //设置删除image
+                $("#delete_confirm").modal("show");
+        }
+
+    </script>
+{% endblock %}

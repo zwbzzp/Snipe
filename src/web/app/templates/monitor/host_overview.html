@@ -1,0 +1,203 @@
+<style type="text/css">
+  #table-host-div{
+    display: none;
+  }
+
+</style>
+
+<div id="host_overview" class="tab-pane in active">
+  <h3 class="row-fluid header smaller lighter blue">
+    <span class="span7">
+        <i class="fa fa-th" aria-hidden="true"></i> 集群信息
+    </span><!--/span-->
+  </h3>
+  <div class="row-fluid">
+     <div class="widget-box">
+       <div class="widget-header widget-header-flat">
+         <h4>集群名：{{cluster.NAME}}</h4>
+       </div>
+     <div class="widget-body">
+        <div class="widget-main">
+          <div class="row-fluid">
+            <div class="span6">
+              <ul>
+                <li><b>总CPU核数：{{cluster.CPUNUM}}</b></li>
+                <li><b>启动主机数：{{cluster.UPHOST}}</b></li>
+                <li><b>宕机主机数：{{cluster.DOWNHOST}}</b></li>
+                <li><b>CPU平均负载(1min, 5min, 15min)：{{cluster.AVGLOAD_1}} {{cluster.AVGLOAD_5}} {{cluster.AVGLOAD_15}}</b></li>
+                <li><b>上次更新时间：{{cluster.LOCALTIME}}</b></li>
+             </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h3 class="row-fluid header smaller lighter blue">
+    <span class="span7">
+      <i class="fa fa-tasks" aria-hidden="true"></i> 主机信息
+    </span>
+    <span class="span5">
+      <label class="pull-right inline">
+        <small class="muted">逻辑视图:</small>
+          <input id="gritter-light" type="checkbox" checked="checked" class="ace ace-switch ace-switch-5" onclick="changeView()" /><span class="lbl"></span>
+      </label>
+    </span>
+  </h3>
+
+
+  <div id="table-host-div">
+    <div class="table-header">服务器列表</div>
+    <table id="table_host_detail" class="table table-striped table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>服务器名</th>
+        <th>启动时间</th>
+        <th>位置</th>
+        <th>状态</th>
+        <th>系统</th>
+        <th>IP</th>
+        <th>CPUs</th>
+        <th>内存GB</th>
+        <th>硬盘GB</th>
+        <th>5min负载</th>
+        <th>CPU利用率</th>
+        <th>内存利用率</th>
+        <th>硬盘利用率</th>
+        <th>上行速度KB/s</th>
+        <th>下行KB/s</th>
+        <th>运行时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for host in host_detail%}
+      <tr>
+        <td id="host_name">{{host.NAME}}</td>
+        <td id="host_boottime">{{host.boottime}}</td>
+        <td id="host_location">{{host.LOCATION}}</td>
+        {% if host.state == True %}
+        <td id="host_state"><font color="green">健康</font></td>
+        {% else %}
+        <td id="host_state"><font color="red">失效</font></td>
+        {% endif %}
+        <td id="host_os">{{host.os_name}}</td>
+        <td id="host_ip">{{host.IP}}</td>
+        <td id="host_cpus">{{host.cpus}}</td>
+        <td id="host_ram">{{host.mem_total}}</td>
+        <td id="host_disk">{{host.disk_total}}</td>
+        <td id="host_load">{{host.load_five}}</td>
+        <td id="host_cpuusage">{{host.cpu_usage}}%</td>
+        <td id="host_ramusage">{{host.mem_usage}}%</td>
+        <td id="host_diskusage">{{host.disk_usage}}%</td>
+        <td id="net_input">{{host.net_in}}</td>
+        <td id="net_output">{{host.net_out}}</td>
+        <td id="host_uptime">{{host.uptime}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  <div id="view-host-div">
+  {% for host in host_detail%}
+  {% if host.state == True %}
+  <div class="row">
+    <div class="col-sm-4 pricing-box" style="margin-left:0px;margin-right:15px">
+      <div class="widget-box widget-color-green">
+        <div class="widget-header">
+          <h5 class="widget-title bigger lighter"># {{host.NAME}}</h5>
+        </div>
+        <div class="widget-body">
+          <div class="widget-main">
+            <ul class="list-unstyled spaced2">
+              <li><i class="ace-icon fa fa-circle-o green"></i>系统信息： {{host.os}} </li>
+              <li><i class="ace-icon fa fa-circle-o green"></i>系统IP： {{host.IP}} </li>
+              <li><i class="ace-icon fa fa-circle-o green"></i>启动时间： {{host.boottime}} </li>
+              <li><i class="ace-icon fa fa-check green"></i>正常运行： {{host.uptime}} </li>
+              <li><i class="ace-icon fa fa-check green"></i>CPU平均负载(1,5,15)min： {{host.load_one}} {{host.load_five}} {{host.load_fifteen}} </li>
+              <li><i class="ace-icon fa fa-check green"></i>网络传输：<i class="fa fa-upload green" aria-hidden="true"></i> {{host.net_out}} KB/s <i class="fa fa-download green" aria-hidden="true"></i></i>  {{host.net_in}} KB/s </li>
+              <li><i class="ace-icon fa fa-check green"></i>运行进程：{{host.proc_run}}个 </li>
+              <li><i class="ace-icon fa fa-check green"></i>CPU利用率：
+                <div class="progress progress-small pos-rel" style="color:black" data-percent="{{host.cpu_usage}}%">
+                  <div class="progress-bar" style="width:{{host.cpu_usage}}%;"></div>
+                </div>
+              </li>
+              <li><i class="ace-icon fa fa-check green"></i>内存利用率：
+                <div class="progress progress-small pos-rel" data-percent="{{host.mem_usage}}%">
+                  <div class="progress-bar progress-bar-info" style="width:{{host.mem_usage}}%;"></div>
+                </div>
+              </li>
+              <li><i class="ace-icon fa fa-check green"></i>硬盘利用率：
+                <div class="progress progress-small pos-rel" data-percent="{{host.disk_usage}}%">
+                  <div class="progress-bar progress-bar-info" style="width:{{host.disk_usage}}%;"></div>
+                </div>
+              </li>
+              <li><i class="ace-icon fa fa-check green"></i>上次更新：{{host.REPORTED}} </li>
+            </ul>
+            <hr />
+            <div class="price">
+              <font color="green"> <small>健康度：</small> <i class="ace-icon fa fa-check-circle green"></i> <B>良好</B>  </font>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-sm-3 col-md-3 col-lg-3  pricing-box" style="margin-left:0px;margin-right:15px">
+    <div class="widget-box">
+      <div class="widget-header header-color-red">
+        <h5 class="bigger lighter"># {{host.NAME}}</h5>
+      </div>
+      <div class="widget-body">
+        <div class="widget-main">
+          <ul class="unstyled spaced2">
+            <li><i class="icon-circle-blank green"></i>系统信息： {{host.os}} </li>
+            <li><i class="icon-circle-blank green"></i>系统IP： {{host.IP}} </li>
+            <li><i class="icon-circle-blank green"></i>启动时间： {{host.boottime}} </li>
+            <li><i class="icon-remove red"></i>正常运行： {{host.uptime}} </li>
+            <li><i class="icon-remove red"></i>1,5,15负载： {{host.load_one}} {{host.load_five}} {{host.load_fifteen}} </li>
+            <li><i class="icon-remove red"></i>网络传输：<i class="fa fa-upload" aria-hidden="true"></i> {{host.net_out}} KB/s <i class="fa fa-download" aria-hidden="true"></i>  {{host.net_in}} KB/s </li>
+            <li><i class="icon-remove red"></i>运行进程：{{host.proc_run}}个 </li>
+            <li><i class="icon-remove red"></i>CPU利用率：
+              <div class="progress progress-small progress-striped active" style="color:black" data-percent="{{host.cpu_usage}}%">
+                <div class="bar" style="width:{{host.cpu_usage}}%;"></div>
+              </div>
+            </li>
+            <li><i class="icon-remove red"></i>内存利用率：
+              <div class="progress progress-small progress-striped active" data-percent="{{host.mem_usage}}%">
+                <div class="bar" style="width:{{host.mem_usage}}%;"></div>
+              </div>
+            </li>
+            <li><i class="icon-remove red"></i>硬盘利用率：
+              <div class="progress progress-small progress-striped active" data-percent="{{host.disk_usage}}%">
+                <div class="bar" style="width:{{host.disk_usage}}%;"></div>
+              </div>
+            </li>
+            <li><i class="icon-remove red"></i>上次更新：{{host.REPORTED}} </li>
+          </ul>
+          <hr />
+          <div class="price">
+            <font color="red"> <small>健康度：</small>  <i class="icon-ban-circle red"></i> <B>失效</B>  </font>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+  </div>
+</div>
+
+<script>
+function changeView(){
+  if ($("#gritter-light").attr("checked")){
+      $("#gritter-light").removeAttr("checked")
+      $("#view-host-div").hide();
+      $("#table-host-div").show();
+  }else{
+      $("#view-host-div").show();
+      $("#table-host-div").hide();
+      $("#gritter-light").attr("checked", "checked")
+  }
+}
+</script>

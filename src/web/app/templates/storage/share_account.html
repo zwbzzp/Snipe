@@ -1,0 +1,513 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}存储管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>共享文件夹账号管理</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">共享文件夹账号列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a href="javascript:void(0)" id="add_share_account" title="关联"><i
+                            class='ace-icon fa fa-plus-circle'></i>关联</a>
+                    <a id="delete_share_account" class="red" href="javascript:void(0)"
+                           title="删除"><i
+                                class="ace-icon fa fa-trash"></i>
+                            删除
+                    </a>
+                </div>
+            </div>
+        </div>
+        <table id="table_list"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="center"><label class="pos-rel"><input id="select_all"
+                                                                 type="checkbox"
+                                                                 class="ace"><span
+                        class="lbl"></span></label></th>
+                <th>课程</th>
+                <th>共享服务器</th>
+                <th>用户名</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for account in account_list %}
+                <tr>
+                    <td class='center'><label class="pos-rel"><input
+                            type='checkbox' id="{{ account.id }}"
+                            class="ace"/><span class="lbl"></span></label></td>
+                    <td>
+                        <span>
+                            <input type="hidden" id="course_{{ account.id }}"
+                                   value="{{ account.course.id }}"/>
+                            {{ account.course.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <input type="hidden" id="ftp_{{ account.id }}"
+                                   value="{{ account.ftp.id }}"/>
+                            {{ account.ftp.ip }}/{{ account.ftp.port }}
+                        </span>
+                    </td>
+                    <td id="username_{{ account.id }}">{{ account.username }}</td>
+                    <input type="hidden" id="password_{{ account.id }}"
+                           value="{{ account.password }}"/>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="javascript:void(0)" title="修改"
+                               onclick="editById({{ account.id }})"><i
+                                    class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                            <a class="red" title="删除"
+                               onclick="deleteById({{ account.id }})"><i
+                                    class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">关联</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="new_form" action="{{ url_for('storage.add_share_account') }}" method="post">
+                        <div class="form-group course">
+                            <label for="form-field-8">课程</label>
+                            <div class="">
+                                <select id="add_course"  class="select2" name="course" data-placeholder="请选择" style="width:100%" data-rule-required="true" data-msg-required='请选择课程'>
+                                    <option value=""></option>
+                                    {% for course in course_list %}
+                                        <option value="{{course.id}}" >{{course.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group ftp">
+                            <label for="form-field-8">服务器</label>
+                            <div class="">
+                                <select id="add_ftp" name="ftp" class="select2" data-placeholder="请选择" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请选择共享服务器'>
+                                    <option value=""></option>
+                                    {% for ftp in ftp_list %}
+                                        <option value="{{ftp.id}}">{{ftp.ip}}/{{ftp.port}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                       <div class="form-group username">
+                            <label for="form-field-8">用户名</label>
+                            <div class="">
+                                <input type="text" id="add_username" name="username" value="" placeholder="用户名" style="width:100%" data-rule-required="true" data-msg-required='请填写用户名' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group passwd">
+                            <label for="form-field-8">密码</label>
+                            <div class="">
+                                <input type="password" id="add_password" name="password" value="" placeholder="密码" style="width:100%" data-rule-required="true" data-msg-required='请填写密码' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="add_create" class="btn btn-success btn-sm add_user_create" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>关联
+                    </button>
+                    <button id="add_close" class="btn btn-danger btn-sm add_user_close" type="button">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_dialog_title">修改</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="edit_form" action="{{ url_for('storage.update_share_account') }}" method="post">
+                    <input type="hidden" id="edit_id" name="account_id" value="" />
+                        <div class="form-group course">
+                            <label for="form-field-8">课程</label>
+                            <div class="">
+                                <select id="edit_course"  class="select2" name="course" data-placeholder="请选择" style="width:100%" data-rule-required="true" data-msg-required='请选择课程'>
+                        <option value=""></option>
+                        {% for course in course_list %}
+                            <option value="{{course.id}}">{{course.name}}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+                        </div>
+                        <div class="form-group ftp">
+                            <label for="form-field-8">服务器</label>
+                            <div class="">
+                            <select id="edit_ftp" name="ftp" class="select2" data-placeholder="请选择" style="width:100%"
+                                data-rule-required="true" data-msg-required='请选择共享服务器'>
+                        <option value=""></option>
+                        {% for ftp in ftp_list %}
+                            <option value="{{ftp.id}}">{{ftp.ip}}/{{ftp.port}}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+                        </div>
+                       <div class="form-group username">
+                            <label for="form-field-8">用户名</label>
+                            <div class="">
+                                <input type="text" id="edit_username" name="username" value="" placeholder="用户名" style="width:100%" data-rule-required="true" data-msg-required='请填写用户名' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group passwd">
+                            <label for="form-field-8">密码</label>
+                            <div class="">
+                                <input type="password" id="edit_password" name="password" value="" placeholder="密码" style="width:100%" data-rule-required="true" data-msg-required='请填写密码' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="edit_save" class="btn btn-success btn-sm" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i> 保存
+                    </button>
+                    <button id="edit_close" class="btn btn-danger btn-sm" type="button">
+                        <i class="ace-icon fa fa-undo"></i> 取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除共享存储账户</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的共享存储账户?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+
+    <script>
+        active_sidebar("#storages", "#share_accounts");
+
+        $(function() {
+            //init JQuery's data table
+            var dTable = $('#table_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{"bSortable": false, "bSearchable": false},
+                    null, null, null,
+                    {"bSortable": false, "bSearchable": false}],
+                "aaSorting":[]
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click',
+                function() {
+                    var that = this;
+                    $(this).closest('table').find('tr > td:first-child input:checkbox').each(function() {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    });
+                }
+            );
+            $('[data-rel=tooltip]').tooltip();
+
+            /*******************validate the form***********************/
+            var $new_validator = $("#new_form").validate({
+                ignore:''
+            });
+
+            var $edit_validator = $("#edit_form").validate({
+                ignore:''
+            });
+            /**************end validate*************/
+
+            /***********add dialog initial****************/
+
+            $("#add_share_account").click(function() {
+                $("#new_form").validate().resetForm(); //重置表单
+                $("#add_course").trigger("liszt:updated");
+                $("#add_ftp").trigger("liszt:updated");
+                $('#add_course').select2('val',"");
+                $('#add_ftp').select2('val',"");
+                $("#add_dialog").modal("show");
+            });
+
+            $("#add_ftp").change(function(){
+                $new_validator.showErrors({ftp:""});
+            });
+
+            $("#add_course").change(function(){
+                $new_validator.showErrors({course:""});
+            });
+
+
+            $("#add_create").click(function() {
+                var isvalid = $("#new_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                addShareAccount();
+            });
+
+            $("#add_close").click(function() {
+                $("#add_dialog").modal("hide");
+            });
+
+            function addShareAccount() {
+                var options = {
+                    beforeSubmit: beforeSubmit,
+                    //提交前的回调函数
+                    success: callback,
+                    //提交后的回调函数
+                    url: "{{ url_for('storage.add_share_account') }}",
+                    type: "post",
+                    dataType: "json",
+                    //html(默认), xml, script, json...接受服务端返回的类型
+                    //resetForm: true,         //成功提交后，重置所有表单元素的值
+                    timeout: 10000 //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                function beforeSubmit(formData, jqForm, options) {
+                    return;
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText['status'] == "success") {
+                        //成功，刷新页面
+                        $("#add_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '添加共享账户成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    } else {
+                        //操作失败
+                        //恢复页面
+                        $("#add_dialog").modal("hide");
+                        var content;
+                        //判断是否重复
+                        if (responseText['status'] == "existed"){
+                            content = "账号已存在";
+                        }
+                        else if(responseText['status'] == "ftp_fail"){
+                            content = "创建失败，请检查共享服务器密码是否正确";
+                        }
+                        else{
+                            content = "创建账户失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+                $("#new_form").ajaxSubmit(options);
+            }
+            /***************end initial***********************/
+
+            /******* init edit dialog******/
+            function updateAccount() {
+                function beforeSubmit(formData, jqForm, options) {
+                    return;
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText['status'] == "success") {
+                        //成功，刷新页面
+                        $("#edit_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '更新共享账户成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    }else{
+                        //$("#edit_dialog").modal("show");
+                        //检验是否账号重复
+                        var content;
+                        if(responseText['status'] == "existed"){
+                           content="账号已存在";
+                        }else if(responseText['status'] == "ftp_fail"){
+                           content="保存失败，请检查共享服务器和密码是否正确";
+                        }else {
+                            //否则属于操作失败
+                           content="保存失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+
+                var options = {
+                    beforeSubmit: beforeSubmit,
+                    //提交前的回调函数
+                    success: callback,
+                    //提交后的回调函数
+                    url: "{{ url_for('storage.update_share_account') }}",
+                    type: "post",
+                }
+
+                $("#edit_form").ajaxSubmit(options);
+            }
+
+            $("#edit_ftp").change(function(){
+                $edit_validator.showErrors({ftp:""});
+            });
+
+            $("#edit_course").change(function(){
+                $edit_validator.showErrors({course:""});
+            });
+
+            $("#edit_save").click(function() {
+                var isvalid = $("#edit_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                updateAccount();
+            });
+
+            $("#edit_close").click(function() {
+                $("#edit_dialog").modal("hide");
+            });
+
+            /*************end dialog initial**********************/
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                deleteAccount(selected_account)
+            });
+
+            $("#delete_share_account").click(function(){
+                selected_account = [];
+                $("#table_list td input[type=checkbox]").each(function(){
+                    if(this.checked){
+                        selected_account.push(this.id);
+                    }
+                });
+                if (selected_account.length > 0){
+                    $("#delete_confirm_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的共享文件夹";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+
+
+
+            $("#add_dialog .select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+
+            $("#edit_dialog .select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+        });
+
+        function editById(id) {
+            var course = $("#course_" + id).val();
+            var ftp = $("#ftp_" + id).val();
+            var username = $("#username_" + id).text();
+            $("#edit_course").select2("val",course);
+            $("#edit_ftp").select2("val",ftp);
+            $("#edit_username").val(username);
+            $("#edit_password").val('');
+            $("#edit_id").val(id);
+            $("#edit_dialog").modal("show");
+        }
+
+        function deleteById(id) {
+            selected_account = [];
+            selected_account.push(id);
+            if(selected_account.length > 0){
+                 $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+
+        function deleteAccount(ids) {
+            $.ajax({
+                url: "{{ url_for('storage.delete_share_account') }}",
+                type: "post",
+                async: false,
+                data: {
+                    ids: ids
+                },
+                success: function(responseText, status) {
+                    if (responseText['status'] == "success") {
+                        $("#delete_confirm_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '删除共享账户成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    } else {
+                        content = "删除失败"
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+{% endblock %}

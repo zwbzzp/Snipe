@@ -1,0 +1,335 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block title %}系统配置{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+    <style type="text/css">
+
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>外设策略</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header">
+            <h4 class="widget-title">外设策略列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="create_policy" href="javascript:void(0)"><i class="ace-icon fa fa-plus-circle"></i> 创建新策略 </a>
+                    <a id="delete_policy" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 删除所选策略 </a>
+                </div>
+            </div>
+            <div class="widget-main no-padding">
+                <table id="policy_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                        <th>名称</th>
+                        <th>启用USB</th>
+                        <th>启用剪切板</th>
+                        <th>启用音频</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for policy in policy_list %}
+                        <tr id="policy_tr_{{ policy.id }}">
+                            <td class="center"><label class="pos-rel"><input type="checkbox" id="policy_{{ policy.id }}" {% if policy.name == "default" %} disabled class="ace disabled_chekbox" {% elif policy.courses.all() %} disabled class="ace disabled_chekbox"{% else %} class="ace" {% endif %}><span class="lbl"></span></label></td>
+                            <td id="policy_name_{{ policy.id }}">{{ policy.name }}</td>
+                            <td id="enable_usb_{{ policy.id }}">{{ policy.enable_usb }}</td>
+                            <td id="enable_clipboard_{{ policy.id }}">{{ policy.enable_clipboard }}</td>
+                            <td id="enable_audio_{{ policy.id }}">{{ policy.enable_audio }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="javascript:void(0)" title="编辑用户" onclick="on_update_click({{ policy.id }})"><i class="ace-icon fa fa-pencil-square-o bigger-130"></i></a>
+                                    <a href="javascript:void(0)" title="删除用户" {% if policy.name == "default" %}  class="grey" {% elif not policy.courses.all() %} class="red"  onclick="on_delete_click({{ policy.id }})" {% else %} class="grey"  {% endif %}><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- add system policy dialog -->
+    <div id="add_system_policy_dialog" class="modal fade">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建策略</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="newpolicy_form" class="form-inline" role="form" method="post">
+                        {{ form.csrf_token }}
+                        <div class="profile-user-info profile-user-info-striped ">
+                            <div class="profile-info-row ">
+                                <div class="profile-info-name" style="text-align: center"> 名称 </div>
+                                <div class="profile-info-value" style="padding-right:12px;">
+                                    <input class="form-control add_new_policy" style="width: 160px" type="text" id="policy_name" name="name" placeholder="请输入外设策略名" >
+                                </div>
+                            </div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="text-align: center"> 启用项 </div>
+                                <div class="profile-info-value"  style="padding-right:12px;">
+                                    <div class="row ">
+                                    <label for="add_usb" class="col-sm-5">&nbsp;USB</label>
+                                    <input type="checkbox" id="add_usb" name="enable_usb" class="col-sm-7"/>
+                                    </div>
+                                    <div class="row ">
+                                    <label for="add_clipboard" class="col-sm-5">&nbsp;剪切板</label>
+                                    <input type="checkbox" id="add_clipboard" name="enable_clipboard" class="col-sm-7"/>
+                                    </div>
+                                    <div class="row ">
+                                    <label for="add_audio" class="col-sm-5">&nbsp;音频</label>
+                                    <input type="checkbox" id="add_audio" name="enable_audio" class="col-sm-7"/>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_add_policy" type="button" class="btn btn-success"> 创建 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- edit system policy dialog -->
+    <div id="edit_system_policy_dialog" class="modal fade">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改策略</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="editpolicy_form" class="form-inline" role="form" method="post">
+                        {{ edit_form.csrf_token }}
+                        <div class="profile-user-info profile-user-info-striped ">
+                            <div class="profile-info-row ">
+                                <div class="profile-info-name" style="text-align: center"> 名称 </div>
+                                <div class="profile-info-value" style="padding-right:12px;">
+                                    <input class="form-control edit_new_policy" style="width: 160px" type="text" id="edit_policy_name" name="name" placeholder="请输入外设策略名">
+                                </div>
+                            </div>
+                            <div class="profile-info-row">
+                                <div class="profile-info-name" style="text-align: center"> 启用项 </div>
+                                <div class="profile-info-value"  style="padding-right:12px;">
+                                    <div class="row ">
+                                        <label for="add_usb" class="col-sm-5">&nbsp;USB</label>
+                                        <input type="checkbox" id="edit_usb" name="enable_usb" class="col-sm-7"/>
+                                    </div>
+                                    <div class="row ">
+                                        <label for="add_clipboard" class="col-sm-5">&nbsp;剪切板</label>
+                                        <input type="checkbox" id="edit_clipboard" name="enable_clipboard" class="col-sm-7"/>
+                                    </div>
+                                    <div class="row ">
+                                        <label for="add_audio" class="col-sm-5">&nbsp;音频</label>
+                                        <input type="checkbox" id="edit_audio" name="enable_audio" class="col-sm-7"/>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_edit_policy" type="button" class="btn btn-success"> 修改 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_policy_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">确认删除</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning bigger-130 icon-animated-bell"></i> 确认移除所选择的外设策略?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete_policy" type="button" class="btn btn-danger"> 确认</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.custom.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.ui.touch-punch.min.js') }}"></script>
+
+    <script>
+
+        active_sidebar("#setting", "#policies");
+
+        selected_policies = [];
+
+        function on_update_click(id){
+            $("#editpolicy_form").validate().resetForm();
+            $("#edit_policy_name").val($("#policy_name_" + id).html());
+            if($("#enable_usb_" + id).html() == "True")
+                $("#edit_usb").prop("checked", true);
+            if($("#enable_clipboard_" + id).html() == "True")
+                $("#edit_clipboard").prop("checked", true);
+            if($("#enable_audio_" + id).html() == "True")
+                $("#edit_audio").prop("checked", true);
+            var url_template = "{{ url_for('setting.update_policy', id=0) }}";
+            var url = url_template.replace('0', id);
+
+            if( $("#edit_policy_name").val() == "default")
+                $("#edit_policy_name").prop("readonly", true);
+            else
+                $("#edit_policy_name").prop("readonly", false);
+            $("#editpolicy_form").prop("action", url );
+            $("#edit_system_policy_dialog").modal("show");
+        }
+
+        function on_delete_click(id){
+            selected_policies.push(id);
+            $("#delete_policy_confirm_dialog").modal("show");
+        }
+
+        $(document).ready(function () {
+
+            $('#policy_table').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false},
+                              null, null, null, null,
+                              {"bSortable": false, "bSearchable": false}
+                             ],
+                "bAutoWidth": false
+              });
+
+            $("table th input[type=checkbox]").change(function () {
+                var checked = this.checked;
+                $(this).closest("table").find("td input[type=checkbox]").each(function () {
+                    if(! $(this).hasClass('disabled_chekbox'))
+                        this.checked = checked;
+                });
+            });
+
+            $("#create_policy").click(function(){
+                $("#newpolicy_form").validate().resetForm();
+                $("#add_system_policy_dialog").modal("show");
+            });
+
+            var $validator = $("#newpolicy_form").validate({
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                        isname: true
+                    }
+                },
+                messages: {
+                    name: {
+                        required: '请填写策略名称',
+                        maxlength: '长度不能超过64个字符'
+                    }
+                }
+            });
+
+            var $validator1 = $("#editpolicy_form").validate({
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                        isname: true
+                    }
+                },
+                messages: {
+                    name: {
+                        required: '请填写策略名称',
+                        maxlength: '长度不能超过64个字符'
+                    }
+                }
+            });
+
+            $("#confirm_add_policy").click(function(){
+                var isvalid = $("#newpolicy_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                else {
+                    $("#newpolicy_form").submit();
+                }
+            });
+
+            $("#confirm_edit_policy").click(function () {
+                var isvalid = $("#editpolicy_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                else {
+                    $("#editpolicy_form").submit();
+                }
+            })
+
+            $("#delete_policy").click(function () {
+                selected_policies = [];
+                $("#policy_table td input[type=checkbox]").each(function () {
+                    if (this.checked) {
+                        var policy_id = this.id.split('_')[1];
+                        selected_policies.push(policy_id);
+                    }
+                });
+                if (selected_policies.length > 0) {
+                    $("#delete_policy_confirm_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的外设策略";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            $("#confirm_delete_policy").click(function(){
+                $.ajax({
+                    url: "{{ url_for('setting.delete_policies') }}",
+                    type: "DELETE",
+                    contentType: "application/json",
+                    data: $.toJSON(selected_policies),
+                    success: function () {
+                        location.reload();
+                    }
+                });
+            });
+        })
+
+    </script>
+
+{% endblock %}

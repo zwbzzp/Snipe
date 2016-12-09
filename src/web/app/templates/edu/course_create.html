@@ -1,0 +1,336 @@
+{% extends 'layout.html' %}
+
+{% block title %}云课室 - 添加课程{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}">
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>{% if course %}{{ course.name }}{% else %}添加课程{% endif %}</h1>
+    </div>
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped" style="width: 33%">第一步：填写课程基本信息</div>
+        <div class="progress-bar progress-bar-striped" style="width: 33%;background-color: #DADADA;">第二步：添加上课时间</div>
+        <div class="progress-bar progress-bar-striped" style="width: 34%;background-color: #DADADA;">第三步：添加学生名单</div>
+
+    </div>
+    {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <ul class=errors>
+                {% for field, msg in form.errors.items() %}
+                    <li>{{ field }}: {{ msg[0] }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form id="course_form" class="form-horizontal no-padding" role="form" method="post">
+        {{ form.csrf_token }}
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_name">课程名称</label>
+
+                    <div class="">
+                        <input class="form-control" id="course_name" name="name" placeholder="课程名称" type="text" value="" data-rule-required='true' data-msg-required='请输入课程名称' data-rule-maxlength="64" data-msg-maxlength='长度不超过64个字'>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_owner">授课老师</label>
+
+                    <div class="">
+                        <input class="select2" data-placeholder="授课老师" id="course_owner" name="owner_id" style="width:100%" type="text" value="" data-rule-required='true' data-msg-required='请选择授课老师'>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_start_date">开始日期</label>
+
+                    <div class="">
+                        <div class="input-group">
+                            <input class="form-control date-picker" id="course_start_date" name="start_date" placeholder="开始日期" type="text" value="" data-rule-required='true' data-msg-required='请选择开始时间'>
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar bigger-110"></i>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_end_date">结束日期</label>
+
+                    <div class="">
+                        <div class="input-group">
+                            <input class="form-control date-picker required" id="course_end_date" name="end_date" placeholder="结束日期" type="text" value="" data-rule-required='true' data-msg-required='请选择结束时间'>
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar bigger-110"></i>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_image">课程镜像</label>
+
+                    <div class="">
+                        <select class="select2" data-placeholder="课程镜像" id="course_image" name="image_ref" style="width:100%" data-rule-required='true' data-msg-required='请选择课程镜像'>
+                        {% for choice in form.image_ref.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_flavor">配置类型</label>
+
+                    <div class="">
+                        <select class="select2" data-placeholder="配置类型" id="course_flavor" name="flavor_ref" style="width:100%" data-rule-required='true' data-msg-required='请选择配置类型'>
+                        {% for choice in form.flavor_ref.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_capacity">桌面数量</label>
+
+                    <div class="">
+                        <input class="form-control" id="course_capacity" min="0" name="capacity" placeholder="上课人数" type="digits" value="0" data-rule-required='true' data-msg-required='请输入桌面数量' data-rule-min='0' data-msg-min='请输入非负整数'>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_places">指定教室</label>
+
+                    <div class="">
+                        <select class="select2" data-placeholder="指定课室" id="course_places" multiple name="places" style="width:100%">
+                        {% for choice in form.places.choices %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endfor %}</select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_network">虚拟内网：</label>
+                    <select class="select2" data-placeholder="虚拟内网" id="course_network" name="network_ref" style="width:100%">
+                    {% for choice in form.network_ref.choices %}
+                        <option value={{choice[0]}}>{{choice[1]}}</option>
+                    {% endfor %}</select>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_protocol">客户端连接协议：</label>
+                    <select class="select2" data-placeholder="客户端连接协议" id="course_protocol" name="protocol" style="width:100%">
+                    {% for choice in form.protocol.choices %}
+                        {% if form.protocol.coerce(choice[0]) != form.protocol.data %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% else %}
+                            <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group-sm">
+                    <label class="control-label" for="course_network">课程外设策略：</label>
+                    <select class="select2" data-placeholder="课程外设策略" id="course_policy" name="policy_id" style="width:100%">
+                    {% for choice in form.policy_id.choices %}
+                        {% if form.policy_id.coerce(choice[0]) != form.policy_id.data %}
+                            <option value={{choice[0]}}>{{choice[1]}}</option>
+                        {% else %}
+                            <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="space-20"></div>
+        <div class="row text-center">
+            <div class="col-sm-12">
+                <button type="submit" class="btn btn-success">创建课程</button>
+            </div>
+        </div>
+    </form>
+
+    <div style="display:none;" id="image-storage">
+        {% for image in image_list %}
+            <div id="image-storage-{{image.id}}" style="display:none;">
+                <span id="image-storage-{{image.id}}-ram">{{image.min_ram}}</span>
+                <span id="image-storage-{{image.id}}-disk">{{image.min_disk}}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#courses");
+        $(".date-picker").datepicker({
+            language: "zh-CN",
+            format: "yyyy-mm-dd",
+            autoclose: true,
+            todayHighlight: true
+        }).attr("data-date-format", "yyyy-mm-dd")
+                .on('changeDate', function (ev) {
+                    if ($(ev.target).attr('id') == 'course_start_date') {
+                        $('#course_end_date').datepicker('setStartDate', ev.date);
+                    } else {
+                        $('#course_start_date').datepicker('setEndDate', ev.date);
+                    }
+                })
+                .next().on(ace.click_event, function () {
+                    $(this).prev().focus();
+                });
+
+        $('#course_end_date').datepicker('setStartDate', $('#course_start_date').val());
+        $('#course_start_date').datepicker('setEndDate', $('#course_end_date').val());
+
+
+        $("#course_form").validate({
+            ignore:'',
+            errorPlacement: function (error, element) {
+                // Append error within linked label
+                $(element)
+                        .closest("form")
+                        .find("label[for='" + element.attr("id") + "']")
+                        .append(error);
+            },
+            errorElement: "span",
+            rules: {
+                owner_id: {
+                    required: true
+                }
+            },
+            messages: {
+                owner_id: "请选择授课老师"
+            }
+
+        });
+
+        // select2
+        $('select.select2').select2({
+            language: 'zh-CN',
+            allowClear: true
+        });
+
+        teacher_select2 = $("#course_owner").select2({
+            width: "100%",
+            language: "zh-CN",
+            allowClear: true,
+            placeholder: "搜索教师",
+            minimumInputLength: 2,
+            ajax: {
+                url: "{{ url_for('edu.teachers') }}",
+                dataType: 'json',
+                quietMillis: 300,
+                data: function (term, page) { // page is the one-based page number tracked by Select2
+                    return {
+                        q: term, //search term
+                        page: page // page number
+                    };
+                },
+                results: function (data, page) {
+                    var result = data.data;
+                    var more = page < result.pages; // whether or not there are more results available
+                    // notice we return the value of more so Select2 knows if more results can be loaded
+                    return {results: result.items, more: more};
+                },
+                cache: true
+            },
+            formatResult: function (obj) {
+                return obj.username + "-" + obj.fullname;
+            },
+            formatSelection: function (obj) {
+                return obj.fullname;
+            },
+            id: function (obj) {
+                return obj.id;
+            }
+        });
+
+        // 设置课程镜像的change事件
+        $("#course_image").change(function(evt, param){
+            filter_flavor("course_image", true);
+        });
+
+        // 页面第一次加载也要完成一次过滤, 否则可以选到不合要求的flavor
+        filter_flavor("course_image", false);
+
+        function reset_flavor_list(id) {
+            // 恢复隐藏的option
+            $("#" + id).children("span").each(function(){
+                $(this).children().clone().replaceAll($(this));
+            });
+        }
+
+        // select_first_one:当过滤完成后是否选中第一个合乎要求的flavor
+        function filter_flavor(id, select_first_one) {
+            reset_flavor_list('course_flavor');
+            image_id = $("#" + id).val();
+            min_ram = Number($("#image-storage-" + image_id + "-ram").html());
+            min_disk = Number($("#image-storage-" + image_id + "-disk").html());
+            flavors = $("#course_flavor").children();
+            first = null; // use to record the first option which meet damand
+            for (var i=0; i<flavors.length; i++) {
+                description = $(flavors[i]).html();
+                description = description.split("-");
+                flavor_info = description[description.length - 1];
+                flavor_info = $.trim(flavor_info);
+                flavor_info = flavor_info.split("|");
+                if (flavor_info.length != 3)
+                    continue;
+                ram = Number(flavor_info[1].substr(0, flavor_info[1].length-2));
+                disk = Number(flavor_info[2].substr(0, flavor_info[2].length-2));
+                if (ram < min_ram || disk < min_disk)
+                    $(flavors[i]).wrap("<span style='display:none'></span>");
+                else {
+                    if (first == null) {
+                        first = $(flavors[i]);
+                    }
+                }
+            }
+            // make select2 to select the specified option
+            if (select_first_one && first != null)
+                $("#course_flavor").select2('data', {id: first.val(), text: first.html()});
+
+            $("#course_flavor").trigger("liszt:updated");
+        }
+
+    </script>
+{% endblock %}

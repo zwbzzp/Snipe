@@ -1,0 +1,67 @@
+# configuration
+oslo.config==3.2.0    # configuration from openstack oslo
+
+# security
+passlib==1.6.5
+pycrypto==2.6.1
+rsa==3.4.2
+
+# time
+pytz==2015.7
+tzlocal==1.2
+iso8601==0.1.11
+
+# database
+PyMySQL==0.7.0
+SQLAlchemy==1.0.10
+Alembic==0.8.4         # sqlalchemy migration
+
+# openstack
+python-keystoneclient==2.1.1
+python-glanceclient==1.2.0
+python-novaclient==2.33.0
+python-neutronclient==3.0.0
+python-cinderclient==1.5.0
+python-swiftclient==2.7.0
+
+# web
+Flask==0.10.1
+Flask-Script==2.0.5
+Flask-Bootstrap==3.3.5.7
+Flask-Moment==0.5.1
+Flask-SQLAlchemy==2.1
+Flask-Mail==0.9.1
+Flask-Migrate==1.7.0
+Flask-WTF==0.12
+Flask-Babel==0.9
+WTForms==2.1
+Flask-Login==0.3.2
+Flask-SSLify==0.1.5
+Flask-httpauth==3.1.1
+# TODO Add Flask-Security to support token authentication and complicated security features
+# TODO Need a resource management library like Flask-RBAC
+
+# task queue with rabbitmq
+Celery==3.1.20
+kombu==3.0.33
+amqp==1.4.9
+
+# excel uploads
+xlrd==0.9.4
+pyexcel-io==0.1.0       # not 0.2.0
+pyexcel-xls==0.1.0      # not 0.2.0
+pyexcel-xlsx==0.1.0     # not 0.2.0
+pyexcel==0.2.0          # not 0.2.2
+Flask-Excel==0.0.4
+
+# auth
+Flask-Principal==0.4.0
+
+# voluptuous data validation
+voluptuous==0.8.9
+
+# intervaltree
+intervaltree==2.1.0
+
+#zookeeper client
+kazoo==2.2.1

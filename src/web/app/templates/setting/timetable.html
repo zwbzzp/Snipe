@@ -1,0 +1,672 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block title %}系统配置{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+    <style type="text/css">
+        .ui-dialog{
+            padding: 10px;
+        }
+        .bootstrap-timepicker-widget{
+            z-index: 9999;
+        }
+        .profile-info-value>span+span:before{
+            content: "";
+        }
+        #timepicker_start_time{
+            margin-left: 6px;
+            margin-bottom: 2px;
+            margin-top: 2px;
+        }
+        .alert{
+            margin-bottom: 0px;
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius:15px;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <style type="text/css">
+    </style>
+
+    <div class="page-header"><h1>课程时间表</h1></div>
+
+    <div class="widget-box" id = "showtimetable">
+        <div class="widget-header">
+            <h4 class="widget-title">时段列表</h4>
+
+        </div>
+        <div class="widget-body">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    {% if timetable_list %}
+                    <a href="javascript:void(0)" id="btn_edit" title="编辑时间表"><i class="ace-icon fa fa-pencil-square-o"></i> 编辑</a>
+                    <a href="javascript:void(0)" id="btn_update" class="green" style="display:none" title="保存时间表" onclick="updateTimetable()"><i class="ace-icon fa fa-floppy-o"></i> 保存</a>
+                    {% endif %}
+                    <a href="javascript:void(0)" id="btn_add" class="green" title="添加时间表"><i class="ace-icon fa fa-plus"></i> 添加时段</a>
+                    {% if timetable_list %}
+                     <a href="javascript:void(0)" id="btn_delete" class="red" title="删除选中时段"><i class="ace-icon fa fa-trash"></i> 删除选中时段</a>
+                    {# <a href="#" id="btn_reset" class="red" title="重置时间表" onclick="resetTimetable()"><i class="ace-icon fa fa-cog"></i> 重置时间表</a> #}
+                    {% else %}
+                    <a href="javascript:void(0)" title="生成时间表" onclick="resetTimetable()"><i class="ace-icon fa fa-cog"></i> 生成时间表</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="widget-main no-padding" >
+                <table id="time_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr class="row">
+                            <th class="col-sm-2 center"><label class="pos-rel"><input id="select_all" type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                            <th class="col-sm-2">时段序号</th>
+                            <th class="col-sm-4">开始时间</th>
+                            <th class="col-sm-4">结束时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for period in timetable_list %}
+                        <tr class="row">
+                            <td class="col-sm-2 center"><label class="pos-rel"><input type="checkbox" id="period_{{ period.id }}" class="ace"><span class="lbl"></span></label></td>
+                            <td class="col-sm-2" >第{{loop.index}}节</td>
+                            <td>
+                                <div class="col-sm-4 info-read" style="padding-left: 0px">
+                                    <span class="info-read">{{period.start_time | datetime_format("HH:mm")}}</span>
+                                </div>
+                                <div class="col-sm-4 info-edit" style="display:none;padding-left: 0px">
+                                    <div class="input-group" >
+                                        <input id="start_time_{{ period.id }}" value="{{period.start_time}}" type="text" class="time-picker" >
+                                        <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="col-sm-4 info-read" style="padding-left: 0px">
+                                    <span class="info-read">{{period.end_time | datetime_format("HH:mm") }}</span>
+                                </div>
+                                <div class="col-sm-4 info-edit" style="display:none;padding-left: 0px">
+                                    <div class="info-edit input-group" style="display:none">
+                                        <input id="end_time_{{ period.id }}" value="{{period.end_time}}" type="text" class="time-picker" >
+                                        <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="reset_dialog" class="modal fade">
+        <<div class="modal-dialog" style="width: 380px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">新建上课时段</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-user-info profile-user-info-striped">
+                        <div  class="profile-info-row control-group ui-spinner" >
+                            <div class="profile-info-name" style="text-align: center;">单节课程时间</div>
+                            <div class="profile-info-value" ">
+                                <input type="text" id="spinner_course_len" maxlength="2" value="45">
+                                分钟
+                            </div>
+                        </div>
+                        <div  class="profile-info-row control-group ui-spinner">
+                            <div class="profile-info-name" style="text-align: center;">课间休息时间</div>
+                            <div class="profile-info-value" >
+                                <input type="text" id="spinner_break_len" name="break_len" maxlength="2" value="10">
+                                分钟
+                            </div>
+                        </div>
+                        <div  class="profile-info-row control-group ui-spinner" >
+                            <div class="profile-info-name" style="text-align: center;">每天上课节数</div>
+                            <div class="profile-info-value" >
+                                <input type="text" id="spinner_course_num" value="12">
+                                节
+                            </div>
+                        </div>
+                        <div  class="profile-info-row">
+                            <div class="profile-info-name" style="text-align: center;">开始上课时间</div>
+                                <div class="profile-info-value" >
+                                    <div class="input-group" >
+                                        <input id="timepicker_start_time" value="" type="text" class=" time-picker" style="margin-top: 0px;margin-bottom: 0px">
+                                        <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                    <button id="confirm_reset" type="button" class="btn btn-danger"> 确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="saveTimetable_dialog" title="保存" style="display:none">
+        <p>
+            <span class="glyphicon glyphicon-warning-sign red" style="float:left; margin:0 7px 20px 0;"></span>
+            <span style="color: red">重置上课时段将会清除系统原本定义的课程表安排，确定重置吗？</span>
+        </p>
+    </div>
+
+    <div id="operation_confirm" class="modal fade">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">操作确认</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="red">更新时间表将同时调整所有课程未上课的课时时间</p>
+                    <span id="confirm-content" class="red"><i class="red ace-icon fa fa-warning icon-animated-bell bigger-130"></i>确定要更新时间表吗？</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                    <button id="confirm_update" type="button" class="btn btn-info"> 更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="add_dialog" class="modal fade" >
+        <div class="modal-dialog modal-sm">
+            <form method="POST" action="{{ url_for('setting.add_period') }}">
+                {{ form.csrf_token }}
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">添加时段</h4>
+                    </div>
+                    <div class="modal-body" style="padding: 20px;">
+                        <div class="profile-user-info profile-user-info-striped">
+                                <div class="profile-info-row ui-spinner">
+                                    <div class="profile-info-name" style="text-align: center;">开始时间</div>
+                                    <div class="profile-info-value">
+                                        <div class="input-group" >
+                                            <input name="start_time" type="text" class="input-small time-picker" >
+                                            <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div  class="profile-info-row ui-spinner">
+                                    <div class="profile-info-name" style="text-align: center;">结束时间</div>
+                                    <div class="profile-info-value">
+                                        <div class="input-group">
+                                            <input name="end_time" type="text" class="input-small time-picker" >
+                                            <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                        <button id="confirm_add" type="submit" class="btn btn-success"> 添加</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="delete_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除时段</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="red">删除时段不影响正在上课的课时, 但将同时删除所有课程未上课的课时</p>
+                    <p class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的时段?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.custom.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.ui.touch-punch.min.js') }}"></script>
+
+    <script>
+
+        active_sidebar("#setting", "#timetable");
+        var timeTable = {};
+
+        $(function() {
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+            // select all
+            $("#time_table thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find('tbody td input[type=checkbox]').each(function () {
+                    this.checked = checked;
+                })
+            });
+
+            $(".time-picker").timepicker({
+                minuteStep: 1,
+                showSeconds: false,
+                showMeridian: false
+            }).on(ace.click_event, function(){
+                $(".bootstrap-timepicker-widget").css("z-index", "9999");
+            }).next().on(ace.click_event, function(){
+                $(this).prev().focus();
+            });
+
+            $("#confirm_update").click(function() {
+                $("#operation_confirm").modal("hide");
+                var tableInfo = getTimetable();
+                doUpdateTimetable(tableInfo);
+            });
+
+{#
+            $("#saveTimetable_dialog").dialog({
+                autoOpen: false,
+                resizable: false,
+                modal: true,
+                buttons: {
+                    "取消": function() {
+                        $(this).dialog("close");
+                    },
+                    "确认": function() {
+                        $(this).dialog("close");
+                        $("#reset_dialog").modal("hide");
+                        doresetTimetable(timeTable);
+                    }
+                }
+            });
+#}
+
+            $('#spinner_course_len').spinner({
+                create: function( event, ui ) {
+                    //add custom classes and icons
+                    $(this)
+                        .next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-up"></i>')
+						.next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-down"></i>')
+                },
+                spin: function( event, ui ) {
+                    if ( ui.value > 59 ) {
+                         $( this ).spinner( "value", 0 );
+                        return false;
+                    } else if ( ui.value < 0 ) {
+                        $( this ).spinner( "value", 59 );
+                        return false;
+                    }
+                },
+                step:1,
+                btn_up_class:'btn-info',
+                btn_down_class:'btn-info'
+            })
+                .on('change', function(){
+                    var num = $(this).val();
+            });
+
+            $('#spinner_break_len').spinner({
+                create: function( event, ui ) {
+                    //add custom classes and icons
+                    $(this)
+                        .next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-up"></i>')
+						.next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-down"></i>')
+                },
+                spin: function( event, ui ) {
+                    if ( ui.value > 59 ) {
+                         $( this ).spinner( "value", 0 );
+                        return false;
+                    } else if ( ui.value < 0 ) {
+                        $( this ).spinner( "value", 59 );
+                        return false;
+                    }
+                },
+                step:1,
+                btn_up_class:'btn-info',
+                btn_down_class:'btn-info'
+            })
+                .on('change', function(){
+                    var num = $(this).val();
+            });
+
+            $('#spinner_course_num').spinner({
+                create: function( event, ui ) {
+                    //add custom classes and icons
+                    $(this)
+                        .next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-up"></i>')
+						.next().addClass('btn btn-blue btn-sm').html('<i class="fa fa-angle-down"></i>')
+                },
+                min:1,
+                step:1,
+                btn_up_class:'btn-info',
+                btn_down_class:'btn-info'
+            })
+                .on('change', function(){
+                    var num = $(this).val();
+                    if(num > 0)
+                        $(".course_start_time").show();
+                    else
+                        $(".course_start_time").hide();
+            });
+
+        });
+
+
+        $("#btn_edit").click(function() {
+            if ($(this).hasClass("editing")) {
+                $(this).removeClass("editing");
+                $(".info-read").show();
+                $(".info-edit").hide();
+                $("#btn_update").hide();
+                $("#btn_add, #btn_delete, #btn_reset").show();
+                $(this).html("<i class='ace-icon fa fa-pencil-square-o'></i> 编辑");
+            } else {
+                $(".info-read").hide();
+                $(".info-edit").show();
+                $("#btn_update").show();
+                $("#btn_add, #btn_delete, #btn_reset").hide();
+                $(this).addClass("editing");
+                $(this).html("<i class='ace-icon fa fa-pencil-square-o'></i> 取消编辑");
+            }
+        });
+
+        function updateTimetable(){
+            if (isTimetableLegal()){
+                // $("#confirm-content").text("确定要更新时间表吗？");
+                $("#operation_confirm").modal("show");
+                OP = "UPDATE";
+                // $("#operation_confirm").dialog("open");
+            }
+        }
+
+        function resetTimetable() {
+            $("#reset_dialog").modal("show");
+        }
+
+        $("#confirm_reset").click(function() {
+            setTimetable();
+
+        });
+
+        function isTimetableLegal(){
+            /* 判断时间表是否合法
+             * 合法条件： 每一节课的开始时间和结束时间不能为空，且每个时间点的设置都是递增的
+             */
+            var len = $("table tbody tr").length; // 课程节数
+            var last_time = "00:00";
+            last_time = parseInt(last_time.toString().replace(":",""));
+            var legal = true;
+
+            $("table tbody tr").each(function (index) {
+                var start_time = parseInt($(this).find("input[id^=start_time_]").val().toString().replace(":", ""));
+                var end_time = parseInt($(this).find("input[id^=end_time_]").val().toString().replace(":", ""));
+                if (start_time >= last_time && end_time > start_time ) {
+                    last_time = end_time
+                } else {
+                    $.gritter.add({
+                        text: "第" + (index + 1) + "节课时间配置不合法，开始时间必须小于结束时间且大于等于上一节课的结束时间！",
+                        class_name: 'gritter-error'
+                    });
+                    legal = false;
+                    return false;
+                }
+            });
+            return legal;
+        }
+
+        function getTimetable(){
+            /* 获取时间表 */
+            var len = $("table tbody tr").length; // 课程节数
+            var timetable = {};
+
+            $("table tbody tr").each(function () {
+                var id = $(this).find("input[id^=start_time_]").attr('id').split("_")[2]
+                var start_time = $(this).find("input[id^=start_time_]").val();
+                var end_time = $(this).find("input[id^=end_time_]").val();
+                timetable[id] = {};
+                timetable[id]['start_time'] = start_time;
+                timetable[id]['end_time'] = end_time;
+            });
+            return timetable;
+        }
+
+        function doUpdateTimetable(timetable){
+            var json = $.toJSON(timetable);
+            $.ajax({
+                url: "{{ url_for('setting.update_timetable') }}",
+                type:"POST",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success:function(data,status){
+                    if (data["result"] == "success"){
+                        location.reload();
+                    }
+                    else {
+                        $.gritter.add({
+                            text: '操作失败',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1500);
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    $.gritter.add({
+                        text: '操作失败',
+                        class_name: 'gritter-error'
+                    });
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1500);
+                }
+            });
+        }
+
+        function setTimetable(){
+            var courseLen = $('#spinner_course_len').val();
+            var breakLen = $('#spinner_break_len').val();
+            var courseNum = $('#spinner_course_num').val();
+            var startTime = $('#timepicker_start_time').val();
+            var result = true;
+            var courses = new Array();
+            var courses_ms = new Array();
+
+            startTime = '2011/11/11 '+startTime+':00';
+
+            if(courseLen <= 0){
+                $.gritter.add({
+                    text: '课程时间长度必须为大于0的整数！',
+                    class_name: 'gritter-error'
+                });
+                // $("#error-content").text("课程时间长度必须为大于0的整数！");
+                $(".error-tips").show();
+                result = false;
+            }
+
+            if(courseNum > 0){
+                courses_ms[0] = (new Date(startTime)).getTime();
+                courses[0] = new Date(courses_ms[0]);
+            }
+
+            for(var k=1; k<courseNum; k++){
+                courses_ms[k] = courses_ms[k-1] + courseLen * 60 * 1000 + breakLen * 60 * 1000;
+                courses[k] = new Date(courses_ms[k]);
+            }
+
+            if(courseNum > 0){
+                courses[courseNum - 1] = new Date(courses[courseNum - 1].getTime() + courseLen * 60 * 1000);
+                if( courses[0].getDate() != courses[courseNum - 1].getDate() ){
+                    $.gritter.add({
+                        text: '课程时段范围不能超过一天！',
+                        class_name: 'gritter-error'
+                    });
+                    // $("#error-content").text("课程时段范围不能超过一天！");
+                    $(".error-tips").show();
+                result = false;
+            }
+            courses[courseNum - 1] = new Date(courses[courseNum - 1].getTime() - courseLen * 60 * 1000);
+        }
+        if(courseNum <= 0){
+            $.gritter.add({
+                text: '每天上课课时必须为大于0的整数！',
+                class_name: 'gritter-error'
+            });
+            // $("#error-content").text("每日上课课时必须为大于0的整数！");
+            $(".error-tips").show();
+            result = false;
+        }
+
+        for(var i = 1; i <= courseNum; i++){
+            timeTable[i] = {};
+            var endTime_ms = courses_ms[i-1] + courseLen * 60 * 1000;
+            var endTime = new Date(endTime_ms);
+            timeTable[i]["start_time"] = courses[i-1].toTimeString().substr(0,5);
+            timeTable[i]["end_time"] = endTime.toTimeString().substr(0,5);
+        }
+
+        if(result){
+            {# timeTableJson = JSON.stringify(timeTable); #}
+            // $("#reset_dialog").dialog("close");
+            {#
+            {% if timetable_list %}
+                // 重置课程时间安排
+                $("#saveTimetable_dialog").dialog("open");
+            {% else %}
+                // 第一次设置时间
+                doresetTimetable(timeTable);
+            {% endif %}
+             #}
+            doresetTimetable(timeTable);
+        }
+    }
+
+    function doresetTimetable(timeTable){
+        $("#reset_dialog").modal("hide");
+        var json = $.toJSON(timeTable);
+        $.ajax({
+            url: "{{ url_for('setting.reset_timetable') }}",
+            type:"POST",
+            data:json,
+            contentType: "application/json",
+            async: false,
+            global: true,
+            success:function(data,status){
+                if (data['result'] == "success"){
+                    location.reload();
+                }else{
+                    $.gritter.add({
+                        text: '生成时间表操作失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                $.gritter.add({
+                    text: '生成时间表操作失败',
+                    class_name: 'gritter-error'
+                });
+            }
+        });
+    }
+
+
+
+    function doDeleteTimetable(timeTable){
+        var json = $.toJSON(timeTable);
+        $.ajax({
+            url: "{{ url_for('setting.delete_period') }}",
+            type:"POST",
+            data:json,
+            contentType: "application/json",
+            async: false,
+            global: true,
+            success:function(data, status){
+                if (data['result'] == "success"){
+                    $.gritter.add({
+                        text: "删除成功",
+                        class_name: "gritter-success"
+                    });
+                }else{
+                    $.gritter.add({
+                        text: '删除课时失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+                setTimeout(function () {
+                    location.reload();
+                }, 1500);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                $.gritter.add({
+                    text: '删除课时失败',
+                    class_name: 'gritter-error'
+                });
+                setTimeout(function () {
+                    location.reload();
+                }, 1500);
+            }
+        });
+    }
+
+    $("#btn_add").click(function() {
+        $("#add_dialog").modal("show");
+    });
+
+    $("#btn_delete").click(function() {
+        selected_time = [];
+        $("#time_table td input[type=checkbox]").each(function () {
+            if (this.checked) {
+                var time_id = this.id.split("_")[1];
+                selected_time.push(time_id);
+            }
+        });
+        if (selected_time.length > 0) {
+            $("#delete_dialog").modal("show");
+        } else {
+            var content = "请选择一个或多个要删除的时段";
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: content,
+                class_name: 'gritter-error'
+            });
+        }
+    });
+
+    $("#confirm_delete").click(function() {
+        doDeleteTimetable(selected_time);
+        $("#delete_dialog").modal("hide");
+    });
+
+    </script>
+
+{% endblock %}

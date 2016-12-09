@@ -1,0 +1,241 @@
+<style type="text/css">
+  .myImage{
+    margin: 5px 0 15px 0;
+    width: 380px;
+    height: 200px;
+  }
+</style>
+
+<div id="host_performance" class="tab-pane" style="overflow: hidden">
+    <div class="col-xs-9" id="left_part">
+        <div class="widget-box">
+            <div class="widget-header">
+                <h4 class="widget-title lighter">监控信息</h4>
+                <div class="widget-toolbar no-border">
+                    <a href="javascript:void(0)" data-action="collapse">
+                        <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <input type = "hidden" name = "clustername" id = "clustername" value = "{{cluster.NAME}}"/>
+                    <div id = "show_images">
+                        {% for list in sum_list %}
+                            <img class = "myImage" src = "/monitor/usage_makeImage/?&c={{cluster.NAME}}&q={{list}}&h={{default_host}}&r={{default_range}}" />
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xs-3" style="float:right; min-width: 250px" id="right_part">
+        <div class="widget-box">
+            <div class="widget-header">
+                <h4 class="widget-title lighter">参数选择</h4>
+                <div class="widget-toolbar no-border">
+                    <a href="javascript:void(0)" data-action="collapse">
+                        <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row-fluid">
+                        <h5><i class="fa fa-laptop"> 监控节点</i></h5>
+                        <select class="chzn-select" id="form-field-select-3" data-placeholder="Choose a Node..." style="width: 100%">
+                            {% for host in host_detail %}
+                                {% if host.NAME == default_host %}
+                                    <option value ="{{host.NAME}}" selected = "selected">{{host.NAME}}</option>
+                                {% else %}
+                                    <option value ="{{host.NAME}}">{{host.NAME}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <hr />
+                    <div class="row-fluid">
+                        <h5><i class="fa fa-clock-o"> 监控间隔</i></h5>
+                        <input value ="hour" class="query-range" name="query-range" type="radio" checked="checked" /><span class="lbl">&nbsp;小时</span>
+                        <input value ="day" class="query-range" name="query-range" type="radio" /><span class="lbl">&nbsp;天</span>
+                        <input value ="week" class="query-range" name="query-range" type="radio" /><span class="lbl">&nbsp;周</span>
+                        <input value ="month" class="query-range" name="query-range" type="radio" /><span class="lbl">&nbsp;月</span>
+                        <input value ="year" class="query-range" name="query-range" type="radio" /><span class="lbl">&nbsp;年</span>
+                    </div>
+                    <hr />
+                    <div class="control-label">
+                        <h5><i class="fa fa-key"> 监控指标</i></h5>
+                        <input id="selectall"  class="ace-checkbox-1" type="checkbox" /><span class="lbl">&nbsp; select/delete all</span>
+                        {% for index in index_list %}
+                            <div class="controls">
+                                {% if index in sum_list %}
+                                    <input value = "{{index}}" name="form-field-checkbox" class="ace-checkbox-1" type="checkbox" checked="checked" /><span class="lbl">&nbsp; {{index}}</span>
+                                {% else %}
+                                    <input value = "{{index}}" name="form-field-checkbox" class="ace-checkbox-1" type="checkbox" /><span class="lbl">&nbsp; {{index}}</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!--/span-->
+</div>
+
+
+<script src="{{ url_for('static', filename='js/jquery.2.1.1.min.js') }}"></script>
+<script type="text/javascript">
+    var default_range;
+    var clustername;
+    var default_host;
+    var flag_Interval;
+    var load_array = [];
+
+    $(function () {
+        default_range = $(".query-range").val();
+        default_host = $("#form-field-select-3").val();
+        clustername = $("#clustername").val();
+
+        //add click function to trigger the circle function
+        $("#myTab li").click(function(){
+            if($(this).find('a').attr("href") == "#host_overview" ) {
+               clearInterval(flag_Interval);
+               flag_Interval="";
+            }
+            else {
+                if(flag_Interval == undefined || flag_Interval == "") {
+                    flag_Interval = setInterval(updateImage, 60*1000); //60秒后刷新
+                }
+            }
+        });
+
+        init_load_array();//初始化load_array的数值
+
+        $(".query-range").change(function(){
+            default_range = $(this).val();
+            updateImage();
+        });
+        $("#form-field-select-3").bind('change', function(){
+            default_host = $('#form-field-select-3 option:selected').text();
+            updateImage();
+        });
+
+
+
+        //增加点击全选的触发事件
+        $(".ace-checkbox-1").click(function(){
+            if ($(this).attr("id") == "selectall"){
+                var that = this;
+                $(this).parent().find('.controls input:checkbox')
+                .each(function(){
+                    this.checked = that.checked;
+                    $(this).closest('tr').toggleClass('selected');
+                });
+            }
+            var load_array_before = load_array;
+            load_array = [];
+            $('input[name="form-field-checkbox"]:checked').each(function(){
+               load_array.push($(this).val());
+            });
+            var check_box_count = $('input[name="form-field-checkbox"]').length;
+            if(document.getElementById("selectall").checked == true) {
+               if(check_box_count != load_array.length) {
+                   $("#selectall").attr("class","ace-checkbox-2");
+               }
+               else {
+                   $("#selectall").attr("class","ace-checkbox-1");
+               }
+            }
+            else
+            {
+               $("#selectall").attr("class","ace-checkbox-1");
+            }
+            updateLoadTypeImage(load_array_before);
+        });
+
+        $(".chzn-select").chosen();
+    });
+    function updateImage(){
+        var img_list = $(".myImage");
+        for (var i = 0; i < img_list.length; i ++){
+            var getsrc = $(img_list[i]).attr("src");
+            var index = getsrc.indexOf('q=');
+            if (index) {
+                var index2 = getsrc.indexOf('&', index);
+                if (index2) {
+                    var load = getsrc.substring(index + 2, index2);
+                }
+                else {
+                    var load = getsrc.substring(index + 2);
+                }
+                $(img_list[i]).attr("src", "/monitor/usage_makeImage/?&c=" + clustername +"&q=" + load + "&h=" + default_host + "&r=" + default_range);
+            }
+        }
+    }
+
+    function init_load_array()
+    {
+        $('input[name="form-field-checkbox"]:checked').each(function(){
+            load_array.push($(this).val());
+        });
+    }
+
+    function updateLoadTypeImage(load_array_before){
+        if(load_array_before.length == 0 || load_array_before.length +1 < load_array.length) {
+            $("#show_images").html("");
+            for(var i = 0 ; i < load_array.length ; i++) {
+                var src = "/monitor/usage_makeImage/?&c=" + clustername +"&q=" + load_array[i] + "&h=" + default_host + "&r=" + default_range;
+                var html = '<img class = "myImage" src =' + src + ' />';
+                $("#show_images").append(html);
+            }
+        }
+        else if(load_array.length == 0  &&  document.getElementById("selectall").checked == false) {
+            $("#show_images").html("");
+        }
+        else {
+            if(load_array_before.length > load_array.length) {
+                var selectedItem=0;
+                for(var i = 0 ; i < load_array_before.length ; i ++) {
+                    var k = 0;
+                    for(var j = 0 ; j < load_array.length ; j++) {
+                        if(load_array_before[i] != load_array[j]) {
+                            k++;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    if(k == load_array.length) {
+                        selectedItem = i;
+                        break;
+                    }
+                }
+                var src = "/monitor/usage_makeImage/?&c=" + clustername +"&q=" + load_array_before[selectedItem] + "&h=" + default_host + "&r=" + default_range;
+                $("#show_images img[src='"+src+"']").remove();
+            }
+
+            if(load_array_before.length < load_array.length) {
+                var selectedItem=0;
+                for(var i = 0 ; i < load_array.length ; i ++) {
+                    var k = 0;
+                    for(var j = 0 ; j < load_array_before.length ; j++) {
+                        if(load_array[i] != load_array_before[j]) {
+                            k++;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    if(k == load_array_before.length) {
+                        selectedItem = i;
+                        break;
+                    }
+                }
+                var src = "/monitor/usage_makeImage/?&c=" + clustername +"&q=" + load_array[selectedItem] + "&h=" + default_host + "&r=" + default_range;
+                var html = '<img class = "myImage" src =' + src + ' />';
+                $("#show_images").append(html);
+            }
+        }
+  }
+</script>

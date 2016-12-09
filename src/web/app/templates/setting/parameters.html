@@ -1,0 +1,598 @@
+{% extends 'layout.html' %}
+{% block title %}系统参数{% endblock %}
+{% block inline_styles %}
+    <style type="text/css">
+        .text-editable{}
+        .number-editable{}
+        .date-editable{}
+        a.alert-warning{
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius:15px;
+        }
+    </style>
+
+{% endblock %}
+{% block page_content %}
+    <div class="page-header"><h1>系统参数</h1></div>
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-book orange"></i>
+                课程桌面参数
+            </h4>
+
+            <div class="widget-toolbar no-border" >
+                <a class="alert alert-warning"  id="error-info_course" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>
+                <a id="btn_save_params_course" class="green" title="保存更改" href="" style="visibility: hidden"><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body" >
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped">
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.course_desktop.course_schedule_ahead.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable number-editable course"
+                               id="course_schedule_ahead"> {{ parameter_group.course_desktop.course_schedule_ahead.value }} </a>  （单位：分钟）
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.course_desktop.course_schedule_latency.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable number-editable course"
+                               id="course_schedule_latency"> {{ parameter_group.course_desktop.course_schedule_latency.value }} </a>  （单位：分钟）
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog-message-course" class="hide">
+            <p>s
+                This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.
+            </p>
+            <div class="hr hr-12 hr-double"></div>
+            <p>
+                Currently using
+                <b>36% of your storage space</b>.
+            </p>
+        </div><!-- #dialog-message -->
+    </div>
+
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-book pink"></i>
+                自由上机桌面参数
+            </h4>
+
+            <div class="widget-toolbar no-border" >
+                <a class="alert alert-warning "  id="error-info_free" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>
+                <a id="btn_save_params_free" class="green" title="保存更改" href="" style="visibility: hidden" ><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body">
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped" >
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_switch.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable free" id="{{ parameter_group.free_desktop.free_desktop_switch.name }}"> {{ parameter_group.free_desktop.free_desktop_switch.value }} </a>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_capacity.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable number-editable free" id="{{ parameter_group.free_desktop.free_desktop_capacity.name }}"> {{ parameter_group.free_desktop.free_desktop_capacity.value }} </a>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_image.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable free"
+                               id="{{ parameter_group.free_desktop.free_desktop_image.name }}"> {{ image_name_dict[parameter_group.free_desktop.free_desktop_image.value] }} </a>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_flavor.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable free"
+                               id="{{ parameter_group.free_desktop.free_desktop_flavor.name }}"> {{ flavor_name_dict[parameter_group.free_desktop.free_desktop_flavor.value] }} </a>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_start_time.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable date-editable free"  id="{{ parameter_group.free_desktop.free_desktop_start_time.name }}"> {{ parameter_group.free_desktop.free_desktop_start_time.value }} </a>
+                        </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.free_desktop.free_desktop_stop_time.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable date-editable free" id="{{ parameter_group.free_desktop.free_desktop_stop_time.name }}"> {{ parameter_group.free_desktop.free_desktop_stop_time.value }} </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog-message-free" class="hide">
+            <p>
+                This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.
+            </p>
+            <div class="hr hr-12 hr-double"></div>
+            <p>
+                Currently using
+                <b>36% of your storage space</b>.
+            </p>
+        </div><!-- #dialog-message -->
+    </div>
+
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-book orange"></i>
+                终端参数
+            </h4>
+
+            <div class="widget-toolbar no-border" >
+                <a class="alert alert-warning"  id="error-info_connection" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>
+                <a id="btn_save_params_connection" class="green" title="保存更改" href="" style="visibility: hidden"><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body" >
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped">
+
+
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.terminal.terminal_register_mode.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable connection" id="{{ parameter_group.terminal.terminal_register_mode.name }}"> {{ TerminalState.get_state_chs(parameter_group.terminal.terminal_register_mode.value) }} </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog-message-connection" class="hide">
+            <p>s
+                This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.
+            </p>
+            <div class="hr hr-12 hr-double"></div>
+            <p>
+                Currently using
+                <b>36% of your storage space</b>.
+            </p>
+        </div><!-- #dialog-message -->
+    </div>
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-book orange"></i>
+                系统默认参数
+            </h4>
+
+            <div class="widget-toolbar no-border" >
+                <a class="alert alert-warning"  id="error-info_system" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>
+                <a id="btn_save_params_system" class="green" title="保存更改" href="" style="visibility: hidden"><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body" >
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped">
+                    {% for (parameter_system,parameter_system_val) in parameter_group.system.items() %}
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_system_val.get("description") }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable text-editable system"
+                               id={{ parameter_system_val.get("name") }} > {{ parameter_system_val.get("value") }} </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog-message-course" class="hide">
+            <p>s
+                This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.
+            </p>
+            <div class="hr hr-12 hr-double"></div>
+            <p>
+                Currently using
+                <b>36% of your storage space</b>.
+            </p>
+        </div><!-- #dialog-message -->
+    </div>
+    
+    {% if is_vmotion_enable %}
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="widget-title lighter">
+                <i class="ace-icon fa fa-exchange blue"></i>
+                迁移参数
+            </h4>
+
+            <div class="widget-toolbar no-border" >
+                <a class="alert alert-warning"  id="error-info_system" style="color:peru;visibility: hidden">&nbsp&nbsp<i class="ace-icon fa  fa-bell" ></i><strong>&nbsp请先保存此设置!&nbsp&nbsp</strong></a>
+                <a id="btn_save_params_system" class="green" title="保存更改" href="" style="visibility: hidden"><i class="ace-icon fa fa-floppy-o"></i> 保存 </a>
+                <a href="javascript:void(0)" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body" >
+            <div class="widget-main padding-6 no-padding-left no-padding-right">
+                <div class="profile-user-info profile-user-info-striped">
+                
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.vmotion.vmotion_notification_email.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable connection" id="{{ parameter_group.vmotion.vmotion_notification_email.name }}"> {{ parameter_group.vmotion.vmotion_notification_email.value }} </a>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info-row">
+                        <div class="profile-info-name" style="width: 150px;text-align: center"> {{ parameter_group.vmotion.vmotion_auto_evacuation.description }} </div>
+                        <div class="profile-info-value">
+                            <a class="editable list-editable connection" id="{{ parameter_group.vmotion.vmotion_auto_evacuation.name }}"> {{ parameter_group.vmotion.vmotion_auto_evacuation.value }} </a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog-message-course" class="hide">
+            <p>s
+                This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.
+            </p>
+            <div class="hr hr-12 hr-double"></div>
+            <p>
+                Currently using
+                <b>36% of your storage space</b>.
+            </p>
+        </div><!-- #dialog-message -->
+    </div>
+    {% endif %}
+
+    <div class="images-info" style="visibility: hidden">
+        {% for im in images %}
+        <div class="images" id="{{ im.id }}">{{ im.name }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="flavors-info" style="visibility: hidden">
+        {% for fla in flavors %}
+        <div class="flavors" id="{{ fla.id }}">{{ fla.name }}</div>
+        {% endfor %}
+    </div>
+    
+    <div class="protocols-info" style="visibility: hidden">
+        {% for pro in protocols %}
+        <div class="protocols" id={{ pro.name }}></div>
+        {% endfor %}
+    </div>
+
+    <div class="policies-info" style="visibility: hidden">
+        {% for pro in policies %}
+        <div class="policies" id={{ pro.name }}></div>
+        {% endfor %}
+    </div>
+
+    <div class="terminal-info" style="visibility: hidden">
+        <div class="terminals" id="{{ TerminalState.APPROVED }}">{{ TerminalState.get_state_chs(TerminalState.APPROVED) }} </div>
+        <div class="terminals" id="{{ TerminalState.WAITING }}">{{ TerminalState.get_state_chs(TerminalState.WAITING) }} </div>
+        <div class="terminals" id="{{ TerminalState.REJECTED }}">{{ TerminalState.get_state_chs(TerminalState.REJECTED) }} </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+
+        active_sidebar("#setting", "#parameters");
+
+        var params_lists = [];
+        var default_param = {};
+        var dirty_params = {};
+
+        // init plugins
+        function get_all_images(){
+            $.each( $(".images") , function(k, v){
+                params_lists["free_desktop_image"].push({id: v.id, text: v.innerHTML});
+                }
+            )
+        }
+
+        function get_all_flavors(){
+            $.each( $(".flavors") , function(k, v){
+                params_lists["free_desktop_flavor"].push({id: v.id, text: v.innerHTML});
+                }
+            )
+        }
+        
+        function get_all_protocols() {
+            $.each( $(".protocols"), function (k, v) {
+                params_lists["default_protocol"].push({id: v.id, text: v.id});
+            })
+        }
+
+        function get_all_policies() {
+            $.each( $(".policies"), function (k, v) {
+                params_lists["default_policy"].push({id: v.id, text: v.id});
+            })
+        }
+
+        function get_all_terminals() {
+            $.each( $(".terminals"), function (k, v) {
+                params_lists["terminal_register_mode"].push({id: v.id, text: v.innerHTML});
+            })
+        }
+
+        function init_select_free(){
+            params_lists["free_desktop_switch"] = [];
+            $.each(["on", "off"] , function(k, v){
+                params_lists["free_desktop_switch"].push({id: v, text: v});
+            });
+
+            params_lists["free_desktop_image"] = [];
+            get_all_images();
+
+            params_lists["free_desktop_flavor"] = [];
+            get_all_flavors();
+        }
+
+        function init_select_connection() {
+            params_lists['default_policy'] = [];
+            get_all_policies();
+            params_lists['default_protocol'] = [];
+            get_all_protocols();
+            params_lists['terminal_register_mode'] = [];
+            get_all_terminals();
+        }
+
+        function saveinfo(json) {
+            $.ajax({
+                url: "{{ url_for('setting.batch_update_parameters') }}",
+                type: "POST",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success: on_modify_success,
+                error: on_modify_error
+            });
+        };
+
+        function on_modify_success(request, msg, e) {
+            var json_result = $.parseJSON(e.responseText);
+            if (json_result) {
+                var status = json_result.result;
+                switch (status) {
+                    case "success":
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '信息修改成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "信息修改成功失败",
+                            class_name: 'gritter-error'
+                        });
+                        location.reload();
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                        location.reload();
+                }
+                dirty_params = {};
+            }
+        }
+
+        function on_modify_error(response) {
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: '信息修改过程中出现错误',
+                class_name: 'gritter-error'
+            });
+            dirty_params = {};
+            location.reload();
+        }
+
+        function find_select(val, param_list) {
+            $.each( $(".protocols"), function (k, v) {
+                params_lists["default_protocol"].push({id: v.id, text: v.id});
+            })
+
+        }
+
+        function find_id() {
+            $.each( $(".images"), function (k, v){
+                if (v.innerHTML.replace(/ /g,'') == default_param["free_desktop_image"]) {
+                    default_param["free_desktop_image"] = v.id;
+                }
+            });
+            $.each( $(".flavors"), function (k, v){
+                if (v.innerHTML.replace(/ /g,'') == default_param["free_desktop_flavor"]) {
+                    default_param["free_desktop_flavor"] = v.id;
+                }
+            });
+            $.each( $(".terminals"), function (k, v){
+                if (v.innerHTML.replace(/ /g,'') == default_param["terminal_register_mode"]) {
+                    default_param["terminal_register_mode"] = v.id;
+                }
+            });
+        }
+
+        
+        $(function(){
+
+            $.fn.editable.defaults.mode = 'inline';
+
+            init_select_free();
+            init_select_connection();
+
+            default_param["free_desktop_switch"] = $('#free_desktop_switch').text().replace(/ /g,'');
+            default_param["vmotion_auto_evacuation"] = $('#vmotion_auto_evacuation').text().replace(/ /g,'');
+            default_param["default_protocol"] = $('#default_protocol').text().replace(/ /g,'');
+            default_param["default_policy"] = $('#default_policy').text().replace(/ /g,'');
+            default_param["free_desktop_image"] = $('#free_desktop_image').text().replace(/ /g,'');
+            default_param["free_desktop_flavor"] = $('#free_desktop_flavor').text().replace(/ /g,'');
+            default_param["terminal_register_mode"] = $('#terminal_register_mode').text().replace(/ /g,'');
+            find_id();
+
+            $('#free_desktop_switch').editable({
+                type: 'select2',
+                value: default_param["free_desktop_switch"],
+                source: params_lists["free_desktop_switch"],
+                select2: {
+                    'width': 140
+                }
+            });
+            
+            $('#vmotion_auto_evacuation').editable({
+                type: 'select2',
+                value: default_param["vmotion_auto_evacuation"],
+                source: [{id: 'off', text: 'off'}, {id: 'on', text: 'on'}],
+                select2: {
+                    'width': 140
+                }
+            });
+
+            $('#free_desktop_image').editable({
+                type: 'select2',
+                value: default_param["free_desktop_image"],
+                source: params_lists["free_desktop_image"],
+                select2: {
+                    'width': 200
+                }
+            });
+
+            $('#free_desktop_flavor').editable({
+                type: 'select2',
+                value: default_param["free_desktop_flavor"],
+                source: params_lists["free_desktop_flavor"],
+                select2: {
+                    'width': 200
+                }
+            });
+
+            $("#default_protocol").editable({
+                type: 'select2',
+                value: default_param["default_protocol"],
+                source: params_lists['default_protocol'],
+                select2: {
+                    'width': 140
+                }
+            });
+
+            $("#default_policy").editable({
+                type: 'select2',
+                value: default_param["default_policy"],
+                source: params_lists['default_policy'],
+                select2: {
+                    'width': 140
+                }
+            });
+
+            $("#terminal_register_mode").editable({
+                type: 'select2',
+                value: default_param["terminal_register_mode"],
+                source: params_lists['terminal_register_mode'],
+                select2: {
+                    'width': 140
+                }
+            });
+
+            $(".date-editable").editable({
+                type: 'time',
+                time: {
+                    format: 'HH:MM',
+					viewformat: 'HH:MM'
+                },
+            });
+
+            // variable to store change record
+            dirty_params = {};
+            // function to save dirty fields
+            $('.text-editable, .number-editable , .list-editable, .date-editable').on('save', function(e, editable) {
+                var target = e.currentTarget;
+                var newValue;
+                newValue = editable.newValue;
+
+                dirty_params[target.id] = newValue;
+
+                var json = $.toJSON(dirty_params);
+                saveinfo(json);
+            });
+
+
+            // editable plugin init
+            $('.text-editable').editable('option', 'validate', function(v) {
+                if(!v) return '不能为空！';
+            });
+
+            $('.date-editable').editable('option', 'validate', function(v) {
+                if(!v) return '不能为空！';
+            });
+
+            $('.list-editable').editable('option', 'validate', function(v) {
+                if(!v) return '不能为空！';
+            });
+
+            $('.number-editable').editable('option', 'validate', function(v) {
+                if(!v) {
+                    return '不能为空！';
+                }
+                else if (!$.isNumeric(v)){
+                    return '请输入数字！'
+                }else if (parseInt(v) < 0 || parseInt(v) != v )
+                    return '请输入非负整数！'
+            });
+        });
+
+
+    </script>
+{% endblock %}
+

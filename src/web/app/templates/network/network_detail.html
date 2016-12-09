@@ -1,0 +1,1322 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}网络详情{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-detail {
+            width: 450px;
+        }
+        body .profile-info-value {
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        body .modal-create-port {
+            width: 350px;
+        }
+        
+        textarea.form-control {
+            height: 50px !important;
+        }
+        
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>网络详情:{{ network_info.name or ("(" + network_info.id + ")") }}</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">网络概况</h4>
+        </div>
+        <div class="widget-main no-padding">
+        <table id="network_info"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>ID</th>
+                <th>状态</th>
+                <th>管理员状态</th>
+                <th>共享的</th>
+                <th>外部网络</th>
+                <th>提供者网络</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th id="current_network_name" style="vertical-align:middle">{{ network_info.name or "无" }}</th>
+                    <th id="current_network_id" style="vertical-align:middle">{{ network_info.id }}</th>
+                    <th style="vertical-align:middle">{{ network_info.status }}</th>
+                    <th style="vertical-align:middle">{% if network_info.admin_state_up %}UP{% else %}DOWN{% endif %}</th>
+                    <th style="vertical-align:middle">{{ network_info.shared }}</th>
+                    <th style="vertical-align:middle">{{ network_info["router:external"] }}</th>
+                    <th style="vertical-align:middle">网络类型:{{ network_info["provider:network_type"] }}<br>
+                        物理网络:{{ network_info["provider:physical_network"] or "-" }}<br>
+                        段ID:{{ network_info["provider:segmentation_id"] or "-"}}</th>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+
+    <div class="page-header"></div>
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">子网列表</h4>
+            <div class="widget-toolbar">
+                <a href="#" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="create_subnet" title="创建子网" href="javascript:void(0)"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                创建子网 </a>
+                            <a id="batch_delete_subnets" class="red" href="javascript:void(0)"
+                               title="删除子网"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除子网
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table id="subnet_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>名称</th>
+                    <th>CIDR</th>
+                    <th>IP版本</th>
+                    <th>网关IP</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for subnet in subnets_info %}
+                    <tr id="subnet_tr_{{subnet.id}}">
+                        <td class='center'>
+                            <label><input type='checkbox' id="{{subnet.id}}" class="ace"/><span class="lbl"></span></label>
+                            <input id="subnet_allocation_pools_{{subnet.id}}" type="hidden" value=
+                                "{% if not subnet.allocation_pools %}
+                                    无
+                                {% endif %}
+                                {% for pool in subnet.allocation_pools %}
+                                    开始 {{ pool.start }} - 结束 {{ pool.end }}
+                                {% endfor %}">
+                            <input id="subnet_enable_dhcp_{{subnet.id}}" type="hidden" value="{{subnet.enable_dhcp}}">
+                            <input id="subnet_host_routes_{{subnet.id}}" type="hidden" original="{% for route in subnet.host_routes %}{{route.destination + ',' + route.nexthop + '\n'}}{% endfor%}" value=
+                                "{% if not subnet.host_routes %}
+                                    无
+                                {% endif %}
+                                {% for route in subnet.host_routes %}
+                                    目的地 {{ route.destination }}:下一跳 {{ route.nexthop }}
+                                    {% if not loop.last %}
+                                        <br/>
+                                    {% endif %}
+                                {% endfor %}">
+                            <input id="subnet_dns_nameservers_{{subnet.id}}" type="hidden" original="{% for ns in subnet.dns_nameservers %}{{ ns + '\n' }}{% endfor %}" value=
+                                "{% if not subnet.dns_nameservers %}无{% endif %}{% for ns in subnet.dns_nameservers %}{{ ns }}  {% endfor %}">
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" title="查看子网详情" id="subnet_name_{{subnet.id}}" value="{{ subnet.name }}" onclick="on_subnet_detail_click('{{subnet.id}}')">{{subnet.name or ("(" +subnet.id + ")") }}</a>
+                        </td>
+                        <td id="subnet_cidr_{{subnet.id}}">{{ subnet.cidr }}</td>
+                        <td id="subnet_ipversion_{{subnet.id}}">IPv{{ subnet.ip_version}}</td>
+                        <td id="subnet_gateway_{{subnet.id}}" value="{{subnet.gateway_ip or ''}}">{{ subnet.gateway_ip or "-" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="javascript:void(0)" title="编辑子网" onclick="on_subnet_update_click('{{ subnet.id }}')"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                                <a href="javascript:void(0)" class="red" title="删除子网" onclick="on_subnet_delete_click('{{ subnet.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="page-header"></div>
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">端口列表</h4>
+            <div class="widget-toolbar">
+                <a href="#" data-action="collapse">
+                    <i class="ace-icon fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a href="javascript:void(0)" id="create_port" title="创建端口"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                创建端口 </a>
+                            <a href="javascript:void(0)" id="batch_delete_ports" class="red"
+                               title="删除端口"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除端口
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <table id="port_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>名称</th>
+                    <th>固定IP</th>
+                    <th>设备已连接</th>
+                    <th>状态</th>
+                    <th>管理员状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for port in ports_info %}
+                    <tr id="port_tr_{{port.id}}">
+                        <td class='center'>
+                            <label><input type='checkbox' id="{{ port.id }}" class="ace"/><span class="lbl"></span></label>
+                            <input id="port_mac_address_{{port.id}}" type="hidden" value="{{ port.mac_address }}">
+                            <input id="port_device_id_{{port.id}}" type="hidden" value="{{ port.device_id }}">
+                            <input id="port_device_owner_{{port.id}}" type="hidden" value="{{ port.device_owner}}">
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" title="查看端口详情" id="port_name_{{port.id}}" value="{{ port.name }}" onclick="on_port_detail_click('{{port.id}}')">{{ port.name or ("(" + port.id + ")") }}</a>
+                        </td>
+                        <td id="port_fixed_ips_{{port.id}}">
+                            {% for fixed_ip in port.fixed_ips %}
+                                {{ fixed_ip.ip_address }}
+                                {% if not loop.last %}
+                                    <br/>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td id="port_device_owner_{{port.id}}">{{ port.device_owner }}</td>
+                        <td id="port_status_{{port.id}}">{{ port.status }}</td>
+                        <td id="port_admin_state_up_{{port.id}}">{% if port.admin_state_up %}UP{% else %}DOWN{% endif %}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="javascript:void(0)" title="编辑端口" onclick="on_port_update_click('{{ port.id }}')"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                                <a href="javascript:void(0)" class="red" title="删除端口" onclick="on_port_delete_click('{{ port.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="port_create_dialog" class="modal fade">
+        <div class="modal-dialog modal-create-port">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建端口</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="port_create_form" action="#" method="post">
+                        {{ port_create_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">网络名称*</label>
+                                <div class="">
+                                    <input class="form-control" id="port_create_form_network_name" placeholder="网络名称" type="text" readonly>
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">网络ID*</label>
+                                <div class="">
+                                    {{ port_create_form.network_id(id="port_create_form_network_id", class_='form-control', type='text', placeholder='网络ID', readonly="readonly") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">名称</label>
+                                <div class="">
+                                    {{ port_create_form.name(id="port_create_form_name", class_='form-control', type='text', placeholder='端口名称') }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">管理员状态</label>
+                                <div class="">
+                                    <label class="pos-rel">{{ port_create_form.admin_state_up(id="port_create_form_admin_state_up", class_='ace') }}<span class="lbl"></span></label>
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">设备ID*</label>
+                                <div class="">
+                                    {{ port_create_form.device_id(id="port_create_form_device_id", class_='form-control', type='text', placeholder='设备ID', title="连接到端口的设备ID") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">设备属主*</label>
+                                <div class="">
+                                    {{ port_create_form.device_owner(id="port_create_form_device_owner", class_='form-control', type='text', placeholder='设备属主', title="连接到端口的设备所有人") }}
+                                </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="port_create_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="port_update_dialog" class="modal fade">
+        <div class="modal-dialog modal-update-port">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">编辑端口</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="port_update_form" action="#" method="post">
+                        {{ port_update_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">端口ID</label>
+                                <div class="">
+                                    {{ port_update_form.port_id(id="port_update_form_id", class_='form-control', type='text', placeholder='端口ID', readonly="readonly") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">名称</label>
+                                <div class="">
+                                    {{ port_update_form.name(id="port_update_form_name", class_='form-control', type='text', placeholder='端口名称') }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">管理员状态</label>
+                                <div class="">
+                                    <label class="pos-rel">{{ port_update_form.admin_state_up(id="port_update_form_admin_state_up", class_='ace') }}<span class="lbl"></span></label>
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">设备ID*</label>
+                                <div class="">
+                                    {{ port_update_form.device_id(id="port_update_form_device_id", class_='form-control', type='text', placeholder='设备ID', title="连接到端口的设备ID") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">设备属主*</label>
+                                <div class="">
+                                    {{ port_update_form.device_owner(id="port_update_form_device_owner", class_='form-control', type='text', placeholder='设备属主', title="连接到端口的设备所有人") }}
+                                </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="port_update_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="port_delete_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除端口</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="port_delete_dialog_reminder"> 确定删除所选择的端口吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="port_delete_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="subnet_delete_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除子网</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="subnet_delete_dialog_reminder"> 确定删除所选择的子网吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="subnet_delete_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="subnet_detail_dialog" class="modal fade">
+        <div class="modal-dialog modal-detail">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">子网详情</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-user-info profile-user-info-striped">
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 名称 </div>
+                                <div class="profile-info-value">
+                                    <span id="subnet_detail_name"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> ID </div>
+                                <div class="profile-info-value">
+                                    <span id="subnet_detail_id"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> IP池 </div>
+                            <div class="profile-info-value">
+                                <span id="subnet_detail_allocation_pools"></span>
+                            </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 使用DHCP </div>
+                            <div class="profile-info-value">
+                                <span id="subnet_detail_enable_dhcp"></span>
+                            </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 附加路由 </div>
+                                <div class="profile-info-value">
+                                    <span id="subnet_detail_host_routes"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> DNS域名服务器 </div>
+                                <div class="profile-info-value">
+                                    <span id="subnet_detail_dns_nameservers"></span>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="port_detail_dialog" class="modal fade">
+        <div class="modal-dialog modal-detail">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">端口详情</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-user-info profile-user-info-striped">
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 名称 </div>
+                                <div class="profile-info-value">
+                                    <span id="port_detail_name"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> ID </div>
+                                <div class="profile-info-value">
+                                    <span id="port_detail_id"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> MAC地址 </div>
+                            <div class="profile-info-value">
+                                <span id="port_detail_mac_address"></span>
+                            </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 连接设备 </div>
+                            <div class="profile-info-value">
+                                <span id="port_detail_device"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="subnet_create_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content wizard" data-initialize="wizard" id="subnet_create_wizard">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建子网</h4>
+                </div>
+                
+                <div class="steps-container">
+                    <ul class="steps">
+                        <li data-step="1" data-name="subnet" class="active">
+                            <span class="badge">1</span>子网
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-step="2" data-name="subnet-info">
+                            <span class="badge">2</span>子网详情
+                            <span class="chevron"></span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="modal-body step-content">
+                    <form id="subnet_create_form" action="#" method="post">
+                        {{ subnet_create_form.hidden_tag() }}
+                        <input type="hidden" name="network_id" value="{{network_info.id}}">
+                        <div class="step-pane active sample-pane" data-step="1">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">子网名称</label>
+                                        <div class="">
+                                            {{ subnet_create_form.name(id="subnet_create_form_name", class_='form-control', type='text', placeholder='子网名称') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">CIDR网络地址</label>
+                                        <div class="">
+                                            {{ subnet_create_form.cidr(id="subnet_create_form_cidr", class_='form-control', type='text', placeholder='CIDR网络地址') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">IP版本</label>
+                                        <div class="">
+                                            {{ subnet_create_form.ip_version(id="subnet_create_form_ip_version", class_='select2', placeholder='请选择', style="width:100%") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">网关IP*</label>
+                                        <div class="">
+                                            {{ subnet_create_form.gateway_ip(id="subnet_create_form_gateway_ip", class_='form-control', type='text', placeholder='网关IP') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">禁用网关</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ subnet_create_form.disable_gateway(id="subnet_create_form_disable_gateway", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                         <p></p><p>可以为网络创建子网.在"子网详情"中可以设置高级配置.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-pane sample-pane" data-step="2">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">激活DHCP</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ subnet_create_form.enable_dhcp(id="subnet_create_form_enable_dhcp", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">分配地址池</label>
+                                        <div class="">
+                                            {{ subnet_create_form.allocation_pools(id="subnet_create_form_allocation_pools", class_='form-control', type='text', placeholder="IP地址池,'<start_ip>,<end_ip>',每行一个") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">DNS域名解析服务</label>
+                                        <div class="">
+                                            {{ subnet_create_form.dns_nameservers(id="subnet_create_form_dns_nameservers", class_='form-control', type='text', placeholder='该子网的DNS服务器ip地址列表,每行一个') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">主机路由</label>
+                                        <div class="">
+                                            {{ subnet_create_form.host_routes(id="subnet_create_form_host_routes", class_='form-control', type='text', placeholder="向主机宣布的附加路由,'<destination_cidr>,<nexthop>',每行一个") }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <p></p><p>为子网指定额外的属性</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer wizard-actions">
+                    <button class="btn btn-success btn-sm btn-next" data-last="创建">
+                            下一步
+                        <i class="ace-icon fa fa-arrow-right icon-on-right"></i>
+                    </button>
+
+                    <button class="btn btn-danger btn-sm btn-prev pull-left">
+                        <i class="ace-icon fa fa-arrow-left"></i>
+                            返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="subnet_update_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content wizard" data-initialize="wizard" id="subnet_update_wizard">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">编辑子网</h4>
+                </div>
+                
+                <div class="steps-container">
+                    <ul class="steps">
+                        <li data-step="1" data-name="subnet" class="active">
+                            <span class="badge">1</span>子网
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-step="2" data-name="subnet-info">
+                            <span class="badge">2</span>子网详情
+                            <span class="chevron"></span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="modal-body step-content">
+                    <form id="subnet_update_form" action="#" method="post">
+                        {{ subnet_update_form.hidden_tag() }}
+                        <input type="hidden" id="subnet_update_form_id" name="subnet_id" value="">
+                        <div class="step-pane active sample-pane" data-step="1">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">子网名称</label>
+                                        <div class="">
+                                            {{ subnet_update_form.name(id="subnet_update_form_name", class_='form-control', type='text', placeholder='子网名称') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">CIDR网络地址</label>
+                                        <div class="">
+                                            {{ subnet_update_form.cidr(id="subnet_update_form_cidr", class_='form-control', type='text', placeholder='CIDR网络地址', readonly="readonly") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">可选网关</label>
+                                        <div class="">
+                                            {{ subnet_update_form.gateway_ip(id="subnet_update_form_gateway_ip", class_='form-control', type='text', placeholder='可选网关') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">禁用网关</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ subnet_update_form.disable_gateway(id="subnet_update_form_disable_gateway", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                         <p></p><p>可以在网络里更新其子网.在"子网详情"中可以设置高级选项</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-pane sample-pane" data-step="2">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">激活DHCP</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ subnet_update_form.enable_dhcp(id="subnet_update_form_enable_dhcp", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">DNS域名解析服务</label>
+                                        <div class="">
+                                            {{ subnet_update_form.dns_nameservers(id="subnet_update_form_dns_nameservers", class_='form-control', type='text', placeholder='该子网的DNS服务器ip地址列表,每行一个') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">主机路由</label>
+                                        <div class="">
+                                            {{ subnet_update_form.host_routes(id="subnet_update_form_host_routes", class_='form-control', type='text', placeholder="向主机宣布的附加路由,'<destination_cidr>,<nexthop>',每行一个") }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <p></p><p>为子网指定额外的属性</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer wizard-actions">
+                    <button class="btn btn-success btn-sm btn-next" data-last="确定">
+                            下一步
+                        <i class="ace-icon fa fa-arrow-right icon-on-right"></i>
+                    </button>
+
+                    <button class="btn btn-danger btn-sm btn-prev pull-left">
+                        <i class="ace-icon fa fa-arrow-left"></i>
+                            返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fuelux.wizard.min.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks");
+        
+        var selected_ports = [];
+        var selected_subnets = [];
+
+        $(function() {
+            //init JQuery's data table
+            subnet_table = $('#subnet_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    {"bSortable": false}, null, {"bSortable": false, "bSearchable": false}]
+            });
+            
+            port_table = $('#port_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    null, {"bSortable": false}, {"bSortable": false}, {"bSortable": false, "bSearchable": false}]
+            });
+            
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+            
+            port_form_rules = {
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "请输入端口名称",
+                        maxlength: "长度不能超过64个字符",
+                    }
+                }
+            };
+            port_create_form_validator = $("#port_create_form").validate(port_form_rules);
+            port_update_form_validator = $("#port_update_form").validate(port_form_rules);
+            
+            subnet_form_rules = {
+                ignore:":hidden",
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                    },
+                    cidr: {
+                        required: true,
+                        maxlength: 256,
+                    },
+                    gateway_ip: {
+                        checkip: true,
+                        maxlength: 256,
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "请输入子网名称",
+                        maxlength: "长度不能超过64个字符",
+                    },
+                    cidr: {
+                        required: "请输入CIDR网络地址",
+                        maxlength: "长度不能超过256个字符",
+                    },
+                    gateway_ip: {
+                        checkip: "请输入正确的IP地址",
+                        maxlength: "长度不能超过256个字符",
+                    }
+                }
+            };
+            subnet_create_form_validator = $("#subnet_create_form").validate(subnet_form_rules);
+            subnet_update_form_validator = $("#subnet_update_form").validate(subnet_form_rules);
+            subnet_update_form_optional_rules = {
+                "subnet_update_form_gateway_ip": {
+                    required: true,
+                    messages: {
+                        required: '填写网关ip或者选择"禁用网关"',
+                    }
+                }
+            };
+            
+            $("#subnet_update_form_disable_gateway").change(function() {
+                subnet_update_form_adjust_optional_rules();
+            });
+            
+            $("#subnet_create_wizard").on("actionclicked.fu.wizard", function(event, data){
+                //if the direction is next, we valid the form and if invalid we won't go next
+                if (data.direction == "next" && !$("#subnet_create_form").valid())
+                    event.preventDefault();
+            });
+            
+            $("#subnet_create_wizard").on("finished.fu.wizard", function(e, data){
+                // create subnet here
+                create_subnet();
+            });
+            
+            $("#subnet_update_wizard").on("actionclicked.fu.wizard", function(event, data){
+                //if the direction is next, we valid the form and if invalid we won't go next
+                if (data.direction == "next" && !$("#subnet_update_form").valid())
+                    event.preventDefault();
+            });
+            
+            $("#subnet_update_wizard").on("finished.fu.wizard", function(e, data){
+                // update subnet here
+                update_subnet();
+            });
+
+            $("#create_port").click(function() {
+                port_create_form_validator.resetForm();
+                $("#port_create_form_network_name").val($("#current_network_name").text());
+                $("#port_create_form_network_id").val($("#current_network_id").text());
+                $("#port_create_dialog").modal("show");
+            });
+            
+            $("#create_subnet").click(function() {
+                $("#subnet_create_dialog").modal("show");
+            });
+            
+            $("#port_create_confirm").click(function() {
+                create_port();
+            });
+            
+            $("#port_delete_confirm").click(function() {
+                delete_ports();
+            });
+            
+            $("#port_update_confirm").click(function() {
+                update_port();
+            });
+            
+            $("#batch_delete_ports").click(function() {
+                selected_ports = [];
+                $("#port_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_ports.push(this.id);
+                });
+                
+                if (selected_ports.length > 0) {
+                    $("#port_delete_dialog_reminder").text("确定删除所选择的端口吗?");
+                    $("#port_delete_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的端口";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+            
+            $("#batch_delete_subnets").click(function() {
+                selected_subnets = [];
+                $("#subnet_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_subnets.push(this.id);
+                });
+                
+                if (selected_subnets.length > 0) {
+                    $("#subnet_delete_dialog_reminder").text("确定删除所选择的子网吗?");
+                    $("#subnet_delete_dialog").modal("show");
+                } else {
+                    $("#subnet_delete_dialog_reminder").text("请选择一个或多个子网!");
+                    $("#subnet_delete_dialog").modal("show");
+                }
+            });
+            
+            $("#subnet_delete_confirm").click(function() {
+                delete_subnets();
+            });
+        });
+
+        function on_subnet_detail_click(subnet_id) {
+            var subnet_name = $("#subnet_name_" + subnet_id).attr("value");
+            subnet_name = subnet_name? subnet_name: "无";
+            var subnet_allocation_pools = $("#subnet_allocation_pools_" + subnet_id).val();
+            var subnet_enable_dhcp = $("#subnet_enable_dhcp_" + subnet_id).val();
+            var subnet_host_routes = $("#subnet_host_routes_" + subnet_id).val();
+            var subnet_dns_nameservers = $("#subnet_dns_nameservers_" + subnet_id).val();
+            
+            $("#subnet_detail_name").text(subnet_name);
+            $("#subnet_detail_id").text(subnet_id);
+            $("#subnet_detail_allocation_pools").text(subnet_allocation_pools);
+            $("#subnet_detail_enable_dhcp").text(subnet_enable_dhcp);
+            $("#subnet_detail_host_routes").text(subnet_host_routes);
+            $("#subnet_detail_dns_nameservers").text(subnet_dns_nameservers);
+            $("#subnet_detail_dialog").modal("show");
+        }
+
+
+        function on_subnet_delete_click(subnet_id) {
+            selected_subnets = [];
+            selected_subnets.push(subnet_id);
+            
+            var reminder = "确定删除子网'" + $("#subnet_name_" + subnet_id).text() + "'吗?";
+            $("#subnet_delete_dialog_reminder").text(reminder);
+            $("#subnet_delete_dialog").modal("show");
+        }
+
+
+        function on_subnet_update_click(subnet_id) {
+            subnet_update_form_validator.resetForm();
+            // 让wizard回到第一步
+            $("#subnet_update_wizard").wizard('selectedItem', { step: 1 });
+            
+            var subnet_name = $("#subnet_name_" + subnet_id).attr("value");
+            var cidr = $("#subnet_cidr_" + subnet_id).text();
+            var gateway_ip = $("#subnet_gateway_" + subnet_id).attr("value");
+            var disable_gateway = (gateway_ip? false: true);
+            var enable_dhcp = $("#subnet_enable_dhcp_" + subnet_id).val();
+            var dns_nameservers = $("#subnet_dns_nameservers_" + subnet_id).attr("original");
+            var host_routes = $("#subnet_host_routes_" + subnet_id).attr("original");
+
+            $("#subnet_update_form_id").val(subnet_id);
+            $("#subnet_update_form_name").val(subnet_name);
+            $("#subnet_update_form_cidr").val(cidr);
+            $("#subnet_update_form_gateway_ip").val(gateway_ip);
+            if (disable_gateway)
+                $("#subnet_update_form_disable_gateway").attr("checked", "checked");
+            else
+                $("#subnet_update_form_disable_gateway").removeAttr("checked");
+            if (enable_dhcp == "True")
+                $("#subnet_update_form_enable_dhcp").attr("checked", "checked");
+            else
+                $("#subnet_update_form_enable_dhcp").removeAttr("checked");
+            $("#subnet_update_form_dns_nameservers").val(dns_nameservers);
+            $("#subnet_update_form_host_routes").val(host_routes);
+            
+            subnet_update_form_adjust_optional_rules();
+            $("#subnet_update_dialog").modal("show");
+        }
+
+
+        function on_port_detail_click(port_id) {
+            var port_name = $("#port_name_" + port_id).attr("value");
+            port_name = port_name? port_name: "无";
+            var port_mac_address = $("#port_mac_address_" + port_id).val();
+            var port_device_owner = $("#port_device_owner_" + port_id).val();
+            var port_device_id = $("#port_device_id_" + port_id).val();
+            var port_device = "设备属主:" + port_device_owner + "  设备ID:" + port_device_id;
+            
+            $("#port_detail_name").text(port_name);
+            $("#port_detail_id").text(port_id);
+            $("#port_detail_mac_address").text(port_mac_address);
+            $("#port_detail_device").text(port_device);
+            $("#port_detail_dialog").modal("show");
+        }
+
+
+        function on_port_update_click(port_id) {
+            port_update_form_validator.resetForm();
+            var port_name = $("#port_name_" + port_id).attr("value");
+            var port_admin_state_up = $("#port_admin_state_up_" + port_id).text();
+            var port_device_id = $("#port_device_id_" + port_id).val();
+            var port_device_owner = $("#port_device_owner_" + port_id).val();
+            
+            $("#port_update_form_id").val(port_id);
+            $("#port_update_form_name").val(port_name);
+            if (port_admin_state_up == "UP")
+                $("#port_update_form_admin_state_up").attr("checked", "checked");
+            else
+                $("#port_update_form_admin_state_up").removeAttr("checked");
+            $("#port_update_form_device_id").val(port_device_id);
+            $("#port_update_form_device_owner").val(port_device_owner);
+            $("#port_update_dialog").modal("show");
+        }
+
+
+        function subnet_update_form_adjust_optional_rules() {
+            // 在没有禁用网关的情况下, 网关是必填项
+            if($("#subnet_update_form_disable_gateway").is(':checked')) {
+                $("#subnet_update_form_gateway_ip").rules("remove", "required");
+            } else {
+                $("#subnet_update_form_gateway_ip").rules("add", {
+                    required: true,
+                    messages: {
+                        required: '填写网关ip或者选择"禁用网关"',
+                    }
+                });
+            }
+        }
+
+
+        function create_port() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.create_port') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#port_create_form").valid()) {
+                    $("#port_create_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "端口创建成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "端口创建失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#port_create_form").ajaxSubmit(options);
+        }
+
+
+        function on_port_delete_click(port_id) {
+            selected_ports = [];
+            selected_ports.push(port_id);
+            
+            var reminder = "确定删除端口'" + $("#port_name_" + port_id).text() + "'吗?";
+            $("#port_delete_dialog_reminder").text(reminder);
+            $("#port_delete_dialog").modal("show");
+        }
+
+
+        function delete_ports() {
+            $("#port_delete_dialog").modal("hide");
+            if (selected_ports.length <= 0)
+                return;
+
+            function on_delete_ports_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var port_name = $("#port_name_" + success_list[i]).text();
+                        if (port_name)
+                            success_text += "端口&nbsp;" + port_name + "&nbsp;删除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var port_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var port_name = $("#port_name_" + port_id).text();
+                        if (port_name)
+                            fail_text += "端口&nbsp;" + port_name + "&nbsp;删除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    // 更新table port_list
+                    for (var i in success_list) {
+                        port_table.row($("#port_tr_" + success_list[i])).remove();
+                    }
+                    port_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+
+            function on_delete_ports_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            $.ajax({
+                url: "{{ url_for('network.delete_ports') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_ports),
+                success: on_delete_ports_success,
+                error: on_delete_ports_error
+            });
+        }
+
+
+        function delete_subnets() {
+            $("#subnet_delete_dialog").modal("hide");
+            if (selected_subnets.length <= 0)
+                return;
+
+            function on_delete_subnets_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var subnet_name = $("#subnet_name_" + success_list[i]).text();
+                        if (subnet_name)
+                            success_text += "子网&nbsp;" + subnet_name + "&nbsp;删除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var subnet_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var subnet_name = $("#subnet_name_" + subnet_id).text();
+                        if (subnet_name)
+                            fail_text += "子网&nbsp;" + subnet_name + "&nbsp;删除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    // 更新table subnet_list
+                    for (var i in success_list) {
+                        subnet_table.row($("#subnet_tr_" + success_list[i])).remove();
+                    }
+                    subnet_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+
+            function on_delete_subnets_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            $.ajax({
+                url: "{{ url_for('network.delete_subnets') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_subnets),
+                success: on_delete_subnets_success,
+                error: on_delete_subnets_error
+            });
+        }
+
+
+        function update_port() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.update_port') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#port_update_form").valid()) {
+                    $("#port_update_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "端口编辑成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "端口编辑失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#port_update_form").ajaxSubmit(options);
+        }
+
+
+        function create_subnet() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.create_subnet') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#subnet_create_form").valid()) {
+                    $("#subnet_create_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "子网创建成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "子网创建失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#subnet_create_form").ajaxSubmit(options);
+        }
+
+
+        function update_subnet() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.update_subnet') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#subnet_update_form").valid()) {
+                    $("#subnet_update_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "子网编辑成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "子网编辑失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#subnet_update_form").ajaxSubmit(options);
+        }
+    </script>
+
+{% endblock %}

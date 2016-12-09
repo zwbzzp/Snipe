@@ -1,0 +1,28 @@
+{
+  "name": "phoenix",
+  "version": "0.0.1",
+  "description": "Phoenix project",
+  "main": "",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vinzor",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@172.18.231.4:2222/vinzor/phoenix.git"
+  },
+  "private": true,
+  "devDependencies": {
+    "bower": "^1.7.9",
+    "grunt": "^1.0.1",
+    "grunt-contrib-concat": "^1.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^1.0.1",
+    "grunt-contrib-less": "^1.3.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}

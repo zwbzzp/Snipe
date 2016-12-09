@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block title %}系统监控{% endblock %}
+
+{% block plugin_styles %}
+  {{ super() }}
+    <link href="{{ url_for('static', filename='css/chosen.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block inline_styles %}
+<style type="text/css">
+  body{
+    min-width:1480px;
+  }
+</style>
+{% endblock %}
+
+
+{% block page_content %}
+  <div class="page-header"><h1>物理集群管理</h1></div>
+  <div class="tabbable" id="all_part">
+      <ul class="nav nav-tabs" id="myTab">
+        <li {% if tab == "overview" %}class="active"{% endif %}><a href="{{ url_for('monitor.host_overview') }}" >基础信息</a></li>
+        <li {% if tab == "performance" %}class="active"{% endif %}><a href="{{ url_for('monitor.host_performance') }}" >实时监控</a></li>
+      </ul>
+    <div class="tab-content">
+      <div id="main_content" class="tab-pane in active">
+        {% if tab == "overview" %}
+          {% include 'monitor/host_overview.html' %}
+        {% else %}
+          {% include 'monitor/host_performance.html' %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block plugin_scripts %}
+    <script> active_sidebar("#monitor") </script>
+  {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chosen.jquery.min.js') }}"></script>
+{% endblock %}
+

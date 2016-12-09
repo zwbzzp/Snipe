@@ -1,0 +1,552 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}路由{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-create {
+            width: 350px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>路由</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">路由列表</h4>
+        </div>
+        
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="create_router" href="javascript:void(0)" title="新建路由"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                新建路由 </a>
+                            <a id="batch_delete_routers" class="red" href="javascript:void(0)"
+                               title="删除路由"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除路由
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <table id="router_list"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                </th>
+                <th>名称</th>
+                <th>状态</th>
+                <th>外部网络</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for router in routers %}
+                <tr id="router_tr_{{router.id}}">
+                    <td class='center'>
+                        <label><input type='checkbox' id="{{ router.id }}" class="ace"/><span class="lbl"></span></label>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('network.router_detail', id=router.id) }}" title="查看路由详情" id="router_name_{{ router.id }}" value="{{router.name}}">{{ router.name or ("(" + router.id + ")") }}</a>
+                    </td>
+                    <td id="router_status_{{router.id}}">{{router.status}}</td>
+                    <td id="router_external_network_{{router.id}}">{{ router.external_network or "-" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                        {% if router.external_network %}
+                            <a href="javascript:void(0)" title="清除网关" onclick="on_remove_gateway_click('{{ router.id }}')"><i class="ace-icon glyphicon glyphicon-log-out bigger-130"></i></a>
+                        {% else %}
+                            <a href="javascript:void(0)" title="设置网关" onclick="on_add_gateway_click('{{ router.id }}')"><i class="ace-icon glyphicon glyphicon-log-in bigger-130"></i></a>
+                        {% endif %}
+                        <a href="javascript:void(0)" class="red" title="删除路由" onclick="on_delete_router_click('{{ router.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+    <div id="router_create_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">新建路由</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="router_create_form" action="#" method="post">
+                        {{ router_create_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">路由名称</label>
+                                <div class="">
+                                    {{ router_create_form.name(id="router_create_form_name", class_='form-control', type='text', placeholder='路由名称') }}
+                                </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="router_create_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="router_add_gateway_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">设置网关</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="router_add_gateway_form" action="#" method="post">
+                        {{ router_add_gateway_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">路由ID</label>
+                                <div class="">
+                                    {{ router_add_gateway_form.router_id(id="router_add_gateway_form_id", class_='form-control', type='text', placeholder='路由ID', readonly="readonly") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-field-8">路由名称</label>
+                            <div class="">
+                                <input type="text" id="router_add_gateway_form_name" value="" class="form-control" disabled/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">外部网络</label>
+                                <div class="">
+                                    {{ router_add_gateway_form.external_network_id(id="router_add_gateway_form_external_network_id", class_='select2', placeholder='请选择', style="width:100%") }}
+                                </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="router_add_gateway_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="router_delete_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除路由</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="router_delete_dialog_reminder"> 确定删除所选择的路由吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="router_delete_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="router_remove_gateway_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">清除网关</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="router_remove_gateway_dialog_reminder"> 确定清除所选择路由的网关吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="router_remove_gateway_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks");
+
+        var selected_routers = [];
+
+        $(function() {
+            //init JQuery's data table
+            router_table = $('#router_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null,
+                    {"bSortable": false}, null, {"bSortable": false, "bSearchable": false}]
+            });
+            
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+            
+            $(".select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+            
+            router_create_form_validator = $("#router_create_form").validate({
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "请输入路由名称",
+                        maxlength: "长度不能超过64个字符",
+                    }
+                }
+            });
+            
+            router_add_gateway_form_validator = $("#router_add_gateway_form").validate({
+                ignore:[],
+                rules: {
+                    external_network_id: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    external_network_id: {
+                        required: "请选择外部网络",
+                    }
+                }
+            });
+            
+            $("#create_router").click(function() {
+                router_create_form_validator.resetForm();
+                $("#router_create_dialog").modal("show");
+            });
+            
+            $("#router_create_confirm").click(function() {
+                create_router();
+            });
+            
+            $("#router_delete_confirm").click(function() {
+                delete_routers();
+            });
+            
+            $("#batch_delete_routers").click(function() {
+                selected_routers = [];
+                $("#router_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_routers.push(this.id);
+                });
+                
+                if (selected_routers.length > 0) {
+                    $("#router_delete_dialog_reminder").text("确定删除所选择的路由吗?");
+                    $("#router_delete_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的路由";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+            
+            $("#router_remove_gateway_confirm").click(function() {
+                remove_gateway_routers();
+            });
+            
+            $("#router_add_gateway_confirm").click(function() {
+                add_gateway_router();
+            });
+        });
+
+
+        function create_router() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.create_router') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#router_create_form").valid()) {
+                    $("#router_create_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "路由创建成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "路由创建失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#router_create_form").ajaxSubmit(options);
+        }
+
+
+        function on_delete_router_click(router_id) {
+            // clear selected networks
+            selected_routers = [];
+            selected_routers.push(router_id);
+            
+            var reminder = "确定删除路由'" + $("#router_name_" + router_id).text() + "'吗?";
+            $("#router_delete_dialog_reminder").text(reminder);
+            $("#router_delete_dialog").modal("show");
+        }
+
+
+        function delete_routers() {
+            $("#router_delete_dialog").modal("hide");
+            if (selected_routers.length <= 0)
+                return;
+            
+            function on_delete_routers_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var router_name = $("#router_name_" + success_list[i]).text();
+                        if (router_name)
+                            success_text += "路由&nbsp;" + router_name + "&nbsp;删除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var router_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var router_name = $("#router_name_" + router_id).text();
+                        if (router_name)
+                            fail_text += "路由&nbsp;" + router_name + "&nbsp;删除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    // 更新table router_list
+                    for (var i in success_list) {
+                        router_table.row($("#router_tr_" + success_list[i])).remove();
+                    }
+                    router_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+            
+            function on_delete_routers_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+            
+            $.ajax({
+                url: "{{ url_for('network.delete_routers') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_routers),
+                success: on_delete_routers_success,
+                error: on_delete_routers_error
+            });
+        }
+
+
+        function on_remove_gateway_click(router_id) {
+            selected_routers = [];
+            selected_routers.push(router_id);
+            
+            var reminder = "确定清除路由'" + $("#router_name_" + router_id).text() + "'的网关吗?";
+            $("#router_remove_gateway_dialog_reminder").text(reminder);
+            $("#router_remove_gateway_dialog").modal("show");
+        }
+
+
+        function remove_gateway_routers() {
+            $("#router_remove_gateway_dialog").modal("hide");
+            if (selected_routers.length <= 0)
+                return;
+            
+            function on_remove_gateway_routers_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var router_name = $("#router_name_" + success_list[i]).text();
+                        if (router_name)
+                            success_text += "路由&nbsp;" + router_name + "&nbsp;网关清除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var router_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var router_name = $("#router_name_" + router_id).text();
+                        if (router_name)
+                            fail_text += "路由&nbsp;" + router_name + "&nbsp;网关清除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                    
+                    // if there are routers which were removed gateways successfully, refresh the page
+                    // FIXME: may need to delay the refresh operation
+                    if (success_list.length)
+                        setTimeout(function(){
+                            location.reload();
+                        }, 2000);
+                }
+            }
+            
+            function on_remove_gateway_routers_error(request, msg, e) {
+                $.gritter.add({
+                    text: '清除网关过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+            
+            $.ajax({
+                url: "{{ url_for('network.remove_gateway_routers') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_routers),
+                success: on_remove_gateway_routers_success,
+                error: on_remove_gateway_routers_error
+            });
+        }
+
+
+        function on_add_gateway_click(router_id) {
+            router_add_gateway_form_validator.resetForm();
+            $("#router_add_gateway_form_external_network_id").select2("val","");
+            $("#router_add_gateway_form_id").val(router_id);
+            $("#router_add_gateway_form_name").val($("#router_name_" + router_id).attr("value"));
+            $("#router_add_gateway_dialog").modal("show");
+        }
+
+
+        function add_gateway_router() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.add_gateway_router') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#router_add_gateway_form").valid()) {
+                    $("#router_add_gateway_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "设置网关成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "设置网关失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#router_add_gateway_form").ajaxSubmit(options);
+        }
+    </script>
+
+{% endblock %}

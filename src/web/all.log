@@ -1,0 +1,525 @@
+2016-10-11 08:49:59,851 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.compute'
+2016-10-11 08:50:00,371 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.image'
+2016-10-11 08:50:00,993 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.network'
+2016-10-11 08:50:01,009 DEBUG keystoneclient.auth.identity.v2 Making authentication request to http://172.18.215.3:5000/v2.0/tokens
+2016-10-11 08:50:01,229 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.admin.compute'
+2016-10-11 08:50:01,739 INFO werkzeug  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+2016-10-11 08:50:01,741 INFO werkzeug  * Restarting with stat
+2016-10-11 08:50:04,214 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.compute'
+2016-10-11 08:50:04,555 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.image'
+2016-10-11 08:50:04,983 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.network'
+2016-10-11 08:50:04,991 DEBUG keystoneclient.auth.identity.v2 Making authentication request to http://172.18.215.3:5000/v2.0/tokens
+2016-10-11 08:50:05,142 DEBUG phoenix.cloud.utils Loading backend 'openstack' from 'phoenix.cloud.openstack.admin.compute'
+2016-10-11 08:50:05,399 WARNING werkzeug  * Debugger is active!
+2016-10-11 08:50:05,422 INFO werkzeug  * Debugger pin code: 101-519-809
+2016-10-11 08:50:06,111 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET / HTTP/1.1" 302 -
+2016-10-11 08:50:06,160 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /auth/login?next=%2F HTTP/1.1" 200 -
+2016-10-11 08:50:06,186 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/css/bootstrap.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:06,192 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/font-awesome/4.2.0/css/font-awesome.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:06,199 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/css/ace.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:06,209 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/fonts/fonts.googleapis.com.css HTTP/1.1" 200 -
+2016-10-11 08:50:06,216 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/css/vinzor.css HTTP/1.1" 200 -
+2016-10-11 08:50:06,223 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/ace-extra.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,233 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/jquery.2.1.1.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,244 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/ace-elements.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,252 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/jquery.validate.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,257 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/i18n/jquery.validate.zh-CN.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,262 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/ace.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,272 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/bootstrap.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,280 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/js/vinzor-validate.js HTTP/1.1" 200 -
+2016-10-11 08:50:06,287 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/css/img/bg.jpg HTTP/1.1" 200 -
+2016-10-11 08:50:06,540 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /static/favicon.ico HTTP/1.1" 200 -
+2016-10-11 08:50:06,693 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+2016-10-11 08:50:06,737 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:06] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+2016-10-11 08:50:13,866 INFO sqlalchemy.engine.base.Engine SHOW VARIABLES LIKE 'sql_mode'
+2016-10-11 08:50:13,867 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,878 INFO sqlalchemy.engine.base.Engine SELECT DATABASE()
+2016-10-11 08:50:13,878 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,882 INFO sqlalchemy.engine.base.Engine show collation where `Charset` = 'utf8' and `Collation` = 'utf8_bin'
+2016-10-11 08:50:13,882 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,887 INFO sqlalchemy.engine.base.Engine SELECT CAST('test plain returns' AS CHAR(60)) AS anon_1
+2016-10-11 08:50:13,887 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,889 INFO sqlalchemy.engine.base.Engine SELECT CAST('test unicode returns' AS CHAR(60)) AS anon_1
+2016-10-11 08:50:13,889 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,889 INFO sqlalchemy.engine.base.Engine SELECT CAST('test collated returns' AS CHAR CHARACTER SET utf8) COLLATE utf8_bin AS anon_1
+2016-10-11 08:50:13,890 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,891 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:13,892 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.email = %(email_1)s OR users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2016-10-11 08:50:13,892 INFO sqlalchemy.engine.base.Engine {'username_1': 'admin', 'email_1': 'admin', 'param_1': 1}
+2016-10-11 08:50:13,907 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:13,907 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:13,913 INFO sqlalchemy.engine.base.Engine INSERT INTO log_useraction (userid, level, message, created_at) VALUES (%(userid)s, %(level)s, %(message)s, %(created_at)s)
+2016-10-11 08:50:13,913 INFO sqlalchemy.engine.base.Engine {'message': '登录系统', 'level': 'INFO', 'userid': 'admin', 'created_at': datetime.datetime(2016, 10, 11, 8, 50, 13, 912946)}
+2016-10-11 08:50:13,921 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:13,923 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:13,924 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:13,924 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:13,925 INFO UserAction User[admin]: 登录系统
+2016-10-11 08:50:13,927 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:13,927 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:13] "POST /auth/login?next=%2F HTTP/1.1" 302 -
+2016-10-11 08:50:13,935 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:13,936 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:13,936 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:13,937 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:13,937 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:13,939 INFO sqlalchemy.engine.base.Engine SELECT periods.id AS periods_id, periods.created_at AS periods_created_at, periods.updated_at AS periods_updated_at, periods.name AS periods_name, periods.start_time AS periods_start_time, periods.end_time AS periods_end_time 
+FROM periods ORDER BY periods.start_time
+2016-10-11 08:50:13,940 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:13,948 INFO sqlalchemy.engine.base.Engine SELECT lessons.start_time AS lessons_start_time, lessons.end_time AS lessons_end_time, lessons.id AS lessons_id, lessons.created_at AS lessons_created_at, lessons.updated_at AS lessons_updated_at, lessons.course_id AS lessons_course_id, lessons.start_date AS lessons_start_date, lessons.start_period_id AS lessons_start_period_id, lessons.end_date AS lessons_end_date, lessons.end_period_id AS lessons_end_period_id, lessons.scheduled AS lessons_scheduled, lessons.scheduled_at AS lessons_scheduled_at, lessons.started AS lessons_started 
+FROM lessons 
+WHERE NOT (lessons.start_date > %(start_date_1)s OR lessons.end_date < %(end_date_1)s)
+2016-10-11 08:50:13,948 INFO sqlalchemy.engine.base.Engine {'start_date_1': datetime.date(2016, 10, 17), 'end_date_1': datetime.date(2016, 10, 10)}
+2016-10-11 08:50:15,025 INFO sqlalchemy.engine.base.Engine SELECT periods.id AS periods_id, periods.created_at AS periods_created_at, periods.updated_at AS periods_updated_at, periods.name AS periods_name, periods.start_time AS periods_start_time, periods.end_time AS periods_end_time 
+FROM periods ORDER BY periods.start_time
+2016-10-11 08:50:15,026 INFO sqlalchemy.engine.base.Engine {}
+2016-10-11 08:50:15,046 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,047 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET / HTTP/1.1" 200 -
+2016-10-11 08:50:15,074 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,075 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,076 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,078 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,078 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,080 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,081 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/datepicker.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,088 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,089 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,089 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,091 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,091 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,094 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,096 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/bootstrap-datetimepicker.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,100 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,101 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,101 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,104 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,104 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,107 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,108 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/bootstrap-editable.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,112 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,113 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,113 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,114 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,115 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,117 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,118 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/chosen.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,124 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,125 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,125 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,128 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,128 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,131 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,133 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/bootstrap-timepicker.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,139 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,140 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,140 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,142 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,142 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,145 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,146 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/select2.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,150 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,151 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,151 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,154 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,154 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,157 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,158 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/jquery.gritter.min.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,162 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,163 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,163 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,165 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,165 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,169 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,171 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/css/vinzor-common.css HTTP/1.1" 200 -
+2016-10-11 08:50:15,177 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,178 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,178 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,181 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,181 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,184 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,188 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/bootstrap-editable.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,193 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,194 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,194 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,196 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,197 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,199 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,200 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,206 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,206 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,206 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,209 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,209 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,213 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,214 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/dataTables.tableTools.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,218 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,219 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,219 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,221 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,221 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,224 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,225 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery-ui.custom.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,231 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,232 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,232 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,235 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,237 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,243 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,247 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.easypiechart.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,254 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,255 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,255 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,265 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,266 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,270 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,273 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.flot.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,283 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,285 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,285 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,292 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,292 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,304 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,307 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.flot.resize.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,316 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,317 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,319 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,323 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,324 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,391 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,395 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/ace-editable.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,402 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,404 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,404 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,406 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,406 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,408 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,410 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/i18n/select2.zh-CN.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,414 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,415 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,415 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,417 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,417 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,421 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,423 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.json.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,427 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,428 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,428 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,430 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,431 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,435 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,437 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/bootstrap-datetimepicker.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,445 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,446 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,446 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,449 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,450 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,455 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,458 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/i18n/bootstrap-datetimepicker.zh-CN.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,479 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,487 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,490 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,494 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,495 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,498 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,499 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.gritter.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,506 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,506 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,506 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,509 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,510 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,514 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,515 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/bootstrap-datepicker.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,523 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,524 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,524 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,527 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,527 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,531 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,532 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.dataTables.bootstrap.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,538 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,538 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,538 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,540 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,541 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,543 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,544 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.ui.touch-punch.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,549 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,551 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,552 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,555 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,555 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,558 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,559 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.flot.pie.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,563 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,564 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,564 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,566 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,566 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,570 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,572 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/select2.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,578 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,579 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,579 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,582 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,582 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,585 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,586 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/moment.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,591 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,592 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,592 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,594 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,594 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,597 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,598 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/i18n/ace-file-input.zh-CN.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,603 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,604 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,604 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,606 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,607 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,609 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,610 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/i18n/bootstrap-datepicker.zh-CN.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,615 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,617 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,618 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,621 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,621 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,624 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,625 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.sparkline.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,631 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,631 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,631 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,634 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,634 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,638 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,640 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.form.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,647 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,650 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,650 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,654 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,654 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,662 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,664 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/jquery.blockUI.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,697 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,698 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,699 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,704 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,705 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,714 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,715 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/chosen.jquery.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,722 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,723 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,723 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,725 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,725 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,728 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,729 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/dataTables.colVis.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,736 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,737 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,738 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,740 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,740 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,743 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,744 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/js/bootstrap-timepicker.min.js HTTP/1.1" 200 -
+2016-10-11 08:50:15,747 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,748 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,748 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,751 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,751 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,754 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,755 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/avatars/avatar2.png HTTP/1.1" 200 -
+2016-10-11 08:50:15,759 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,760 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,760 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,762 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,762 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,766 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,767 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/fonts/google-fonts/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff HTTP/1.1" 200 -
+2016-10-11 08:50:15,771 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,772 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,772 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,775 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,775 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,777 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,778 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/fonts/google-fonts/DXI1ORHCpsQm3Vp6mXoaTXhCUOGz7vYGh680lGh-uXM.woff HTTP/1.1" 200 -
+2016-10-11 08:50:15,783 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-10-11 08:50:15,784 INFO sqlalchemy.engine.base.Engine SELECT users.id AS users_id, users.username AS users_username, users.fullname AS users_fullname, users.email AS users_email, users.is_active AS users_is_active, users.is_device AS users_is_device, users.role_id AS users_role_id, users.password_hash AS users_password_hash, users.confirmed AS users_confirmed 
+FROM users 
+WHERE users.id = %(param_1)s
+2016-10-11 08:50:15,784 INFO sqlalchemy.engine.base.Engine {'param_1': 3}
+2016-10-11 08:50:15,789 INFO sqlalchemy.engine.base.Engine SELECT roles.id AS roles_id, roles.name AS roles_name, roles.description AS roles_description, roles.permissions AS roles_permissions 
+FROM roles 
+WHERE roles.id = %(param_1)s
+2016-10-11 08:50:15,790 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-10-11 08:50:15,798 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-10-11 08:50:15,799 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 08:50:15] "GET /static/font-awesome/4.2.0/fonts/fontawesome-webfont.woff?v=4.2.0 HTTP/1.1" 200 -
+2016-10-11 09:26:27,543 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET / HTTP/1.1" 302 -
+2016-10-11 09:26:27,582 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /auth/login?next=%2F HTTP/1.1" 200 -
+2016-10-11 09:26:27,621 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+2016-10-11 09:26:27,630 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /static/favicon.ico HTTP/1.1" 200 -
+2016-10-11 09:26:27,651 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+2016-10-11 09:26:27,663 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET / HTTP/1.1" 302 -
+2016-10-11 09:26:27,675 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /auth/login?next=%2F HTTP/1.1" 200 -
+2016-10-11 09:26:27,702 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+2016-10-11 09:26:27,721 INFO werkzeug 127.0.0.1 - - [11/Oct/2016 09:26:27] "GET /apple-touch-icon.png HTTP/1.1" 404 -

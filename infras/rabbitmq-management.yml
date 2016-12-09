@@ -1,0 +1,14 @@
+# rabbitmq with management web ui
+# https://github.com/docker-library/docs/tree/master/rabbitmq
+
+rabbit:
+  image: rabbitmq:management
+  restart: always
+  environment:
+    - RABBITMQ_DEFAULT_USER=root
+    - RABBITMQ_DEFAULT_PASS=admin123
+  ports:
+    - "5672:5672"
+    - "4369:4369"
+    - "25672:25672"
+    - "15672:15672"   # management port

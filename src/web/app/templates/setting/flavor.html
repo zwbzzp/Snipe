@@ -1,0 +1,597 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}系统配置{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+    <style type="text/css">
+        .chzn-select-div p{
+            display: inline-block;
+        }
+
+        .chzn-select-div .error{
+            left: 10px !important;
+            bottom: 0 !important;
+        }
+
+        #delete_content, #edit_template_select{
+            word-wrap: break-word;
+            word-break: break-all;
+            color: gray;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>桌面配置</h1></div>
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">配置列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="add_flavor" href="javascript:void(0)"><i
+                            class="ace-icon fa fa-plus-circle"></i> 创建配置 </a>
+                    <a id="delete_flavor" class="red" href="javascript:void(0)"><i
+                            class="ace-icon fa fa-trash"></i> 删除配置 </a>
+                </div>
+            </div>
+
+            <div class="widget-main no-padding">
+                <table id="table_flavor_list"
+                       class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                        <th>名称</th>
+                        <th>cpu数量</th>
+                        <th>内存大小(MB)</th>
+                        <th>磁盘大小(GB)</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for flavor in flavor_list %}
+                        <tr>
+                            <td class='center'><label class="pos-rel"><input
+                                    type='checkbox'
+                                    id="{{ flavor.id }}"
+                                    class="ace"
+                                    {% if flavor.id in using_flavor %}disabled{% endif %}/><span
+                                    class="lbl"></span></label>
+                            </td>
+                            <td id="name_{{ flavor.id }}">{{ flavor.name }}</td>
+                            <td id="vcpus_{{ flavor.id }}">{{ flavor.vcpus }}</td>
+                            <td id="ram_{{ flavor.id }}">{{ flavor.ram }}</td>
+                            <td id="disk_{{ flavor.id }}">{{ flavor.disk }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="javascript:void(0)"
+                                       onclick="editFlavorById('{{ flavor.id }}')"
+                                       title="编辑">
+                                        <i class="ace-icon glyphicon glyphicon-edit bigger-130"></i>
+                                    </a>
+                                    <a class="red"
+                                       onclick="deleteFlavorById('{{ flavor.id }}', 'post')"
+                                       {% if flavor.id in using_flavor %} style="display: none"
+                                       title="配置使用中"
+                                       {% else %}title="删除"{% endif %}>
+                                        <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="new_flavor_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">创建配置</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="new_flavor_form" action="{{ url_for('setting.add_flavor') }}" method="post">
+                       <div class="form-group name">
+                            <label for="form-field-8">名称</label>
+                                <input type="text" id="add_name" name="name"
+                                       value="" placeholder="名称"
+                                       data-rule-required="true" data-msg-required='请填写配置名称'
+                                       data-rule-isname="true" data-msg-isname='只能使用英文字符,数字,下划线,横杠和点'
+                                       data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group cpu">
+                            <label for="form-field-8">cpu数量</label>
+                                <input type="text" id="add_cpu" name="cpunum"
+                                       value="" placeholder="cpu数量"
+                                       data-rule-required="true" data-msg-required='请填写虚拟cpu个数'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="8" data-msg-max='cpu范围为[1, 8]'
+                                       data-rule-min="1" data-msg-min='cpu范围为[1, 8]'
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group mem">
+                            <label for="form-field-8">内存(MB)</label>
+                                <input type="text" id="add_ram" name="ramnum"
+                                       value="" placeholder="内存(MB)"
+                                       data-rule-required="true" data-msg-required='请填写内存大小'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="8196" data-msg-max='内存范围为[512, 8196]'
+                                       data-rule-min="512" data-msg-min='内存范围为[512, 8196]'
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group disk">
+                            <label for="form-field-8">磁盘(GB)</label>
+                                <input type="text" id="add_disk"
+                                       name="disknum" value=""
+                                       placeholder="磁盘(GB)"
+                                       data-rule-required="true" data-msg-required='请填写磁盘大小'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="512" data-msg-max='磁盘范围为[1, 512]'
+                                       data-rule-min="1" data-msg-min='磁盘范围为[1, 512]'
+                                       style="width:100%"/>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="add_flavor_create" class="btn btn-success btn-small add_flavor_create" type="button">
+                            <i class="icon-ok"></i>创建
+                        </button>
+                    <button id="add_flavor_close" class="btn btn-danger btn-small add_flavor_close" type="button">
+                            <i class="icon-undo"></i>取消
+                        </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_flavor_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">修改配置</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="edit_flavor_form" action="{{ url_for('setting.update_flavor') }}" method="post">
+                    <input type="hidden" id="edit_id" name="flavorid" value=""/>
+                       <div class="form-group name">
+                            <label for="form-field-8">名称</label>
+                                <input type="text" id="edit_name" name="name"
+                                       value="" placeholder="名称"
+                                       data-rule-required="true" data-msg-required='请填写配置名称'
+                                       data-rule-isname="true" data-msg-isname='只能使用英文字符,数字,下划线,横杠和点'
+                                       data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group cpu">
+                            <label for="form-field-8">cpu数量</label>
+                                <input type="text" id="edit_cpu"
+                                       name="cpunum" value=""
+                                       placeholder="cpu数量"
+                                       data-rule-required="true" data-msg-required='请填写虚拟cpu个数'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="8" data-msg-max='cpu范围为[1, 8]'
+                                       data-rule-min="1" data-msg-min='cpu范围为[1, 8]'
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group mem">
+                            <label for="form-field-8">内存(MB)</label>
+                                <input type="text" id="edit_ram"
+                                       name="ramnum" value="" placeholder="内存
+                                       (MB)"
+                                       data-rule-required="true" data-msg-required='请填写内存大小'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="8196" data-msg-max='内存范围为[512, 8196]'
+                                       data-rule-min="512" data-msg-min='内存范围为[512, 8196]'
+                                       data-rule-flavorAdapter="true"
+                                       style="width:100%"/>
+                        </div>
+                        <div class="form-group disk">
+                            <label for="form-field-8">磁盘(GB)</label>
+                                <input type="text" id="edit_disk"
+                                       name="disknum" value=""
+                                       placeholder="磁盘(GB)"
+                                       data-rule-required="true" data-msg-required='请填写磁盘大小'
+                                       data-rule-isInteger="true" data-msg-isInteger='只能为正整数'
+                                       data-rule-max="512" data-msg-max='磁盘范围为[1, 512]'
+                                       data-rule-min="1" data-msg-min='磁盘范围为[1, 512]'
+                                       data-rule-flavorAdapter="true"
+                                       style="width:100%" />
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="edit_save" class="btn btn-success btn-small" type="button">
+                            <i class="icon-ok"></i>保存
+                        </button>
+                    <button id="edit_close" class="btn btn-danger btn-small" type="button">
+                            <i class="icon-undo"></i>取消
+                        </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除配置</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning
+                    icon-animated-bell bigger-130"></i> 确认删除所选择的桌面配置?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+
+    <script>
+        active_sidebar("#setting", "#flavors");
+        var FLAVOR_ADAPTOR_ERROR_MESSAGE = { "ramnum": "", "disknum": ""};
+        $(function() {
+            //Init JQUERY's data table
+            var table_flavor_list = $('#table_flavor_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{"bSortable": false},
+                    null, null, null, null,
+                    {"bSortable": false}
+                ],
+                "aaSorting": []
+            });
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+            // select all
+            $("#table_flavor_list thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find('tbody td input[type=checkbox]').each(function () {
+                    if (!this.disabled)
+                        this.checked = checked;
+                })
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+            /******** initial edit flavor *******/
+            $.validator.addMethod("flavorAdapter", function(value, element) {
+                var flavorid = $("#edit_id").val();
+                var name = element.name;
+                // first, we just validator ramnum and disknum
+                if (flavorid == undefined || flavorid == null)
+                    return true;
+                if (name != "ramnum" && name != "disknum")
+                    return true;
+
+                var current_value = Number(value);
+                var min_value = null;
+                // second, use ajax to get the min value
+                $.ajax({
+                    url: "{{ url_for('setting.flavor_adaptor') }}",
+                    type: "post",
+                    data: {'flavorid': flavorid},
+                    dataType: "json",
+                    async: false,
+                    global: false,
+                    success: function (data, status) {
+                        if (data["status"] == "success") {
+                            if (name == "ramnum") {
+                                min_value = data["min_ram"];
+                            } else if (name == "disknum") {
+                                min_value = data["min_disk"];
+                            }
+                        } else {
+                            if (name == "ramnum") {
+                                FLAVOR_ADAPTOR_ERROR_MESSAGE.ramnum = "服务器异常";
+                            } else if (name == "disknum") {
+                                FLAVOR_ADAPTOR_ERROR_MESSAGE.disknum = "服务器异常";
+                            }
+                        }
+                    }
+                });
+
+                // last, validate  current value
+                if (min_value == null)
+                    return false;
+                else if (current_value < min_value) {
+                    if (name == "ramnum") {
+                        FLAVOR_ADAPTOR_ERROR_MESSAGE.ramnum = "当前配置内存不得小于" + min_value;
+                    } else if (name == "disknum") {
+                        FLAVOR_ADAPTOR_ERROR_MESSAGE.disknum = "当前配置硬盘不得小于" + min_value;
+                    }
+                    return false;
+                } else {
+                    return true;
+                }
+            }, function (params, element){
+                if (element.name == "ramnum") {
+                    return FLAVOR_ADAPTOR_ERROR_MESSAGE.ramnum;
+                } else if (element.name == "disknum") {
+                    return FLAVOR_ADAPTOR_ERROR_MESSAGE.disknum;
+                }
+            });
+
+            function saveFlavor(){
+                function beforeSubmit(formData, jqForm, options){
+                     if($("#edit_flavor_form").validate()){
+                         $("#edit_flavor_dialog").modal("hide");
+                     }
+                    else
+                     {
+                         return false;
+                     }
+                    return true;
+                };
+
+                function callback(responseText, statusText){
+                    if(responseText["status"]  == "success"){
+                        location.reload();
+                    }
+                    else
+                    {
+                        //操作失败
+                        var content;
+                        $("#edit_flavor_dialog").modal("show");
+                        if( responseText["status"] == "existed" ){
+                            content = "配置名"+responseText['name']+"已存在";
+                        }
+                        else
+                        {
+                            content = "保存失败";
+                        }
+                        $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    url: "{{ url_for('setting.update_flavor') }}",
+                    type: "post",
+                    dataType: "json",        //html(默认), xml, script, json  .接受服务端返回的类型
+                    timeout: 10000           //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                $("#edit_flavor_form").ajaxSubmit(options);
+            }
+
+            $("#edit_save").click(function(){
+                var isvalid = $("#edit_flavor_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                saveFlavor();
+            });
+
+            $("#edit_close").click(function(){
+                $("#edit_flavor_dialog").modal("hide");
+            });
+
+            /******** end initial *******/
+
+            /************initial flavor dialog***************/
+            $("#add_flavor_create").click(function(){
+                var isvalid = $("#new_flavor_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                addFlavor();
+            });
+
+            $("#add_flavor_close").click(function(){
+                $("#new_flavor_dialog").modal("hide");
+            });
+
+            $("#add_flavor").click(function() {
+                $("#new_flavor_form").resetForm(); //重置表单
+                $("label.error").remove(); //重置错误信息
+                $(".template-err").hide();
+                $("#new_flavor_dialog").modal("show");
+            });
+
+            /******** end initial *********/
+
+            /******** initial delete select dialog ***********/
+
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                deleteSelected(selected_flavor);
+            });
+
+            $("#delete_flavor").click(function() {
+                selected_flavor = []
+                $("#table_flavor_list td input[type=checkbox]").each(function
+                        () {
+                    if (this.checked && !this.disabled) {
+                        selected_flavor.push(this.id);
+                    }
+                });
+
+                if (selected_flavor.length > 0){
+                    $("#delete_confirm_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的桌面配置";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+            /******** end initial ***********/
+
+            $(".chzn-select").chosen();
+
+            $(".chzn-select").change(function(){
+                var parent = $(this).parent();
+                var span = parent.find("label.error").parent();
+                if (!span){
+                    return;
+                }
+                if(this.value){
+                    span.hide();
+                    $(".template-err").hide();
+                }
+                else
+                {
+                    span.show();
+                    $(".template-err").show();
+                }
+            });
+        });
+
+        function addFlavor() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                //提交前的回调函数
+                success: callback,
+                //提交后的回调函数
+                url: "{{ url_for('setting.add_flavor') }}",
+                type: "post",
+                dataType: "json", //html(默认), xml, script, json  .接受服务端返回的类型
+                //resetForm: true,         //成功提交后，重置所有表单元素的值
+                timeout: 10000 //限制请求的时间，当请求大于10秒后，跳出请求
+            }
+
+            function beforeSubmit(formData, jqForm, options) {
+                var result = true;
+                if ($("#new_flavor_form").validate() && result) {
+                    $("#new_flavor_dialog").modal("hide");
+                }
+                else
+                {
+                    return false;
+                }
+                return true;
+            };
+
+            function callback(responseText, statusText) {
+                if (responseText["status"]  == "success") {
+                    //成功，刷新页面
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: "创建配置成功",
+                    class_name: 'gritter-success'
+                    });
+                    $("#new_flavor_dialog").modal("hide");
+                    location.reload();
+                }
+                else
+                {
+                    //操作失败
+                    //恢复页面
+                    $("#new_flavor_dialog").modal("hide");
+                    var content = "创建配置失败";
+                    if (responseText["status"]  == "existed") {
+                        content = "配置名"+responseText['name']+"已存在";
+                    }
+                    $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            };
+
+            $("#new_flavor_form").ajaxSubmit(options);
+        };
+        function deleteFlavorById(flavorid, method) {
+            $("#delete_confirm_dialog").modal("show");
+            selected_flavor = [flavorid];
+        }
+
+        function editFlavorById(flavorid){
+            $("#edit_id").val(flavorid);
+            $("#edit_name").val($("#name_"+flavorid).text());
+            $("#edit_cpu").val($("#vcpus_"+flavorid).text());
+            $("#edit_ram").val($("#ram_"+flavorid).text());
+            $("#edit_disk").val($("#disk_"+flavorid).text());
+            $("#edit_flavor_form label.error").remove();
+            $("#edit_flavor_dialog").modal("show");
+        };
+
+        function deleteSelected(selected_flavor) {
+            if (selected_flavor.length > 0) {
+                $.ajax({
+                    url: "{{ url_for('setting.delete_flavor') }}",
+                    type: 'post',
+                    async: false,
+                    data: {
+                        ids: selected_flavor
+                    },
+                    success: function(responseText, status) {
+
+                        if (responseText["status"] == "success") {
+                            //操作成功
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: "删除配置成功",
+                                class_name: 'gritter-success'
+                            });
+                            location.reload();
+                        }
+                        else
+                        {
+                            //操作失败
+                            var content = "删除失败";
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: content,
+                                class_name: 'gritter-error'
+                            });
+                        }
+                    },
+                    error: function(XMLHttpRequest, status, errorThrown) {
+                        //操作失败
+                        var content = "删除失败";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                });
+            }
+        }
+    </script>
+
+{% endblock %}

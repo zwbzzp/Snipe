@@ -1,0 +1,13 @@
+{
+  "name": "phoenix",
+  "description": "Phoenix project",
+  "main": "",
+  "authors": [
+    "Vinzor"
+  ],
+  "homepage": "http://scm.vinzor.org:8080/phoenix",
+  "private": true,
+  "dependencies": {
+    "bootstrap-timepicker": "^0.5.2"
+  }
+}

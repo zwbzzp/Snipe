@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{%- block plugin_styles %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='css/datepicker.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/chosen.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-editable.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/jquery.gritter.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/vinzor-common.css') }}" rel="stylesheet">
+{%- endblock %}
+
+{% block body_attribs %} class="no-skin"{% endblock %}
+
+{%- block navbar %}
+    <div id="navbar" class="navbar navbar-default">
+    <script type="text/javascript">
+        try{ace.settings.check('navbar' , 'fixed')}catch(e){}
+    </script>
+
+    <div class="navbar-container" id="navbar-container">
+        <!-- for sr-only -->
+        <button type="button" class="navbar-toggle menu-toggler pull-left" id="menu-toggler" data-target="#sidebar">
+            <span class="sr-only">Toggle sidebar</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+
+        <!-- brand and logo -->
+        <div class="navbar-header pull-left">
+            <a href="{{ url_for('main.index') }}" class="navbar-brand">
+                <small>
+                    <i class="fa fa-leaf"></i> 云课室
+                </small>
+            </a>
+        </div>
+
+        <!-- user profile and notifications -->
+        <div class="navbar-buttons navbar-header pull-right" role="navigation">
+            <ul class="nav ace-nav">
+                <!-- messages and warnings -->
+                <li class="purple">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <i class="ace-icon fa fa-bell icon-animated-bell"></i>
+                        <span class="badge badge-important">0</span>
+                    </a>
+                    <ul class="dropdown-menu-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-close">
+                        <li class="dropdown-header">
+                            <i class="ace-icon fa fa-exclamation-triangle"></i>
+                            0 通知
+                        </li>
+                        <li class="dropdown-content">
+                        <li class="dropdown-footer">
+                            <a href="#">
+                                查看所有通知
+                                <i class="ace-icon fa fa-arrow-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="green">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <i class="ace-icon fa fa-envelope icon-animated-vertical"></i>
+                        <span class="badge badge-success">0</span>
+                    </a>
+
+                    <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
+                        <li class="dropdown-header">
+                            <i class="ace-icon fa fa-envelope-o"></i>
+                            0 消息
+                        </li>
+                        <li class="dropdown-footer">
+                            <a href="inbox.html">
+                                查看所有消息
+                                <i class="ace-icon fa fa-arrow-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- user profile -->
+                <li class="light-blue">
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <img class="nav-user-photo" src="{{ url_for('static', filename='avatars/avatar2.png') }}" alt="Avater" />
+                            <span class="user-info">
+                                <small>欢迎,</small> {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}客人{% endif %}
+                            </span>
+                        <i class="ace-icon fa fa-caret-down"></i>
+                    </a>
+                    <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+                        {% if current_user.is_authenticated %}
+{#                        <li>#}
+{#                            <a href="#"><i class="ace-icon fa fa-cog"></i> 修改密码 </a>#}
+{#                        </li>#}
+{#                        <li>#}
+{#                            <a href="profile.html"><i class="ace-icon fa fa-user"></i> 个人资料 </a>#}
+{#                        </li>#}
+{#                        <li class="divider"></li>#}
+                        <li>
+                            <a href="{{ url_for('account.userinfo') }}"><i class="ace-icon fa fa-user"></i>个人信息</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.logout') }}"><i class="ace-icon fa fa-power-off"></i> 退出 </a>
+                        </li>
+                        {% else %}
+                            <li><a href="{{ url_for('auth.login') }}"><i class="ace-icon fa fa-user"></i> 登录 </a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div><!-- /.navbar-container -->
+</div>
+{%- endblock %}
+
+{%- block sidebar %}
+    <div id="sidebar" class="sidebar responsive">
+        <script type="text/javascript">
+            try{ace.settings.check('sidebar' , 'fixed')}catch(e){}
+        </script>
+        <!-- sidebar menu -->
+        <ul class="nav nav-list">
+        {% if current_user.is_authenticated %}
+
+            <li id="monitor" class="">
+                <a href="{{ url_for('monitor.host_overview') }}">
+                    <i class="menu-icon fa fa-bar-chart"></i>
+                    <span class="menu-text"> 监控管理 </span>
+                </a>
+                <b class="arrow"></b>
+            </li>
+
+
+            <li id="dashboard" class="">
+                <a href="{{ url_for('main.index') }}">
+                    <i class="menu-icon fa fa-tachometer"></i>
+                    <span class="menu-text"> 我的主页 </span>
+                </a>
+                <b class="arrow"></b>
+            </li>
+
+            {% if current_user.role.name != 'Student' %}
+                <li id="accounts" class="">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-pencil-square-o"></i>
+                        <span class="menu-text"> 用户管理 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        {% if current_user.is_super_administrator()%}
+                            <li id="admin_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Administrator') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 管理员 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+
+                            <li id="teacher_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Teacher') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 教师 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+
+                            <li id="student_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Student') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 学生 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+                        {% elif current_user.is_administrator() %}
+                            <li id="teacher_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Teacher') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 教师 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+
+                            <li id="student_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Student') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 学生 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+                        {% else %}
+                            <li id="student_accounts" class="">
+                                <a href="{{ url_for('account.users', role_name='Student') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 学生 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+                         {% endif %}
+                    </ul>
+                </li>
+            {% endif %}
+
+            <li id="courses" class="">
+                <a href="{{ url_for('edu.courses') }}">
+                    <i class="menu-icon fa fa-desktop"></i>
+                    <span class="menu-text"> 课程管理 </span>
+                </a>
+                <b class="arrow"></b>
+            </li>
+
+            <li id="desktops" class="">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-list"></i>
+                    <span class="menu-text"> 桌面管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+                <b class="arrow"></b>
+                <ul class="submenu">
+                    <li id="course_desktops" class="">
+                        <a href="{{ url_for('desktop.course_desktop') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span> 课程桌面 </span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+
+                    <li id="static_desktops" class="">
+                        <a href="{{ url_for('desktop.static_desktop') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span> 固定桌面 </span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+                </ul>
+            </li>
+
+            {% if current_user.role.name != 'Student' %}
+                <li id="images" class="">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-film"></i>
+                        <span class="menu-text"> 镜像管理 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="image_list" class="">
+                            <a href="{{ url_for('image.image_list') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 镜像列表 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+
+                        <li id="image_generator" class="">
+                            <a href="{{ url_for('image.image_generator') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 镜像制作 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+
+                <li id="storages" class="">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-cloud"></i>
+                        <span class="menu-text"> 存储管理 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="share_servers" class="">
+                            <a href="{{ url_for('storage.share') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 共享文件服务器 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+
+                        <li id="share_accounts" class="">
+                            <a href="{{ url_for('storage.share_account') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 共享文件夹账号 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+
+                        {% if current_user.is_super_administrator() or current_user.is_administrator() %}
+                        <li id="personal_servers" class="">
+                            <a href="{{ url_for('storage.personal') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 个人文件服务器 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+
+                        <li id="personal_accounts" class="">
+                            <a href="{{ url_for('storage.personal_account') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 个人文件夹账号 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+                </li>
+            {% endif %}
+
+
+            {% if current_user.is_super_administrator() %}
+                <li id="networks" class="">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="menu-icon fa  fa-wifi"></i>
+                        <span class="menu-text"> 网络管理 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        {% if is_neutron_network %}
+                            <li class="">
+                                <a href="{{ url_for('network.network_topology') }}">
+                                    <i class="menu-icon fa fa-caret-right"></i>
+                                    <span> 网络拓扑 </span>
+                                </a>
+                                <b class="arrow"></b>
+                            </li>
+
+{#                            <li class="">#}
+{#                                <a href="{{ url_for('network.networks') }}">#}
+{#                                    <i class="menu-icon fa fa-caret-right"></i>#}
+{#                                    <span> 网络 </span>#}
+{#                                </a>#}
+{#                                <b class="arrow"></b>#}
+{#                            </li>#}
+{#                            #}
+{#                            <li class="">#}
+{#                                <a href="{{ url_for('network.routers') }}">#}
+{#                                    <i class="menu-icon fa fa-caret-right"></i>#}
+{#                                    <span> 路由 </span>#}
+{#                                </a>#}
+{#                                <b class="arrow"></b>#}
+{#                            </li>#}
+                        {% endif %}
+                        <li id="floatingips" class="">
+                            <a href="{{ url_for('network.floatingips') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 浮动IP </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li id="security_groups" class="">
+                            <a href="{{ url_for('network.security_groups') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 安全组 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if current_user.is_administrator() %}
+                <li id="schedule" class="">
+                    <a href="widgets.html" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-list-alt"></i>
+                        <span class="menu-text"> 任务调度 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="tasks" class="">
+                            <a href="{{ url_for('schedule.tasks') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 任务概况 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+
+                <li id="setting" class="">
+                    <a href="" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-calendar"></i>
+                        <span class="menu-text"> 系统配置 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="timetable" class="">
+                            <a href="{{ url_for('setting.timetable') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 课程时间表 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li id="flavors" class="">
+                            <a href="{{ url_for('setting.flavor') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 桌面配置 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li id="parameters" class="">
+                            <a href="{{ url_for('setting.parameters') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 系统参数 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li id="policies" class="">
+                            <a href="{{ url_for('setting.system_policy') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 外设策略 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li class="">
+                            <a href="{{ url_for('setting.about') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 许可证   </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+
+                <li id="terminal" class="">
+                    <a href="gallery.html" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-picture-o"></i>
+                        <span class="menu-text"> 终端管理 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="places-management" class="">
+                            <a href="{{ url_for('terminal.places') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 课室/终端组 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                        <li id="terminal-registration" class="">
+                            <a href="{{ url_for('terminal.registration') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                <span> 终端注册 </span>
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+
+                <li id="logs" class="">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="menu-icon fa fa-book"></i>
+                        <span class="menu-text"> 系统日志 </span>
+                        <b class="arrow fa fa-angle-down"></b>
+                    </a>
+                    <b class="arrow"></b>
+                    <ul class="submenu">
+                        <li id="user_operations" class="">
+                            <a href="{{ url_for('log.user_action_logs') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                用户操作日志
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+
+                        <li id="system_operations" class="">
+                            <a href="{{ url_for('log.system_running_logs') }}">
+                                <i class="menu-icon fa fa-caret-right"></i>
+                                系统运行日志
+                            </a>
+                            <b class="arrow"></b>
+                        </li>
+                    </ul>
+                </li>
+
+            {% endif %}
+            <li id="userinfo" class="">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-user"></i>
+                    <span class="menu-text"> 用户中心 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+                <b class="arrow"></b>
+                <ul class="submenu">
+                    <li class="" id="user_info">
+                        <a href="{{ url_for('account.userinfo') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span>个人信息</span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+                </ul>
+            </li>
+        {% endif %}
+
+            {% if is_vmotion_enable %}
+            <li id="vmotion" class="">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-exchange"></i>
+                    <span class="menu-text"> 迁移管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+                <b class="arrow"></b>
+                <ul class="submenu">
+                    <li class="" id="host_info">
+                        <a href="{{ url_for('vmotion.hostinfo') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span>主机信息</span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+                    <li class="" id="desktop_migration">
+                        <a href="{{ url_for('vmotion.desktop_migration') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span>桌面迁移</span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+                    <li class="" id="migrate_task">
+                        <a href="{{ url_for('vmotion.migrate_task') }}">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            <span>迁移调度</span>
+                        </a>
+                        <b class="arrow"></b>
+                    </li>
+                </ul>
+            </li>
+            {% endif %}
+        </ul> <!-- /.nav-list -->
+
+        <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+            <i class="ace-icon fa fa-angle-double-left" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+        </div>
+
+        <script type="text/javascript">
+            try{ace.settings.check('sidebar' , 'collapsed')}catch(e){}
+        </script>
+    </div>
+{%- endblock %}
+
+{%- block main %}
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div class="page-content">
+                {% block page_content %}
+                    <div class="page-header"><h1>Page header</h1></div>
+                {% endblock %}
+            </div> <!-- /.page-content -->
+        </div>
+    </div>
+{%- endblock %}
+
+{%- block footer %}
+    <div class="footer">
+        <div class="footer-inner">
+            <div class="footer-content">
+                <span class="bigger-120">
+                    <span class="blue bolder">云课室</span> © 2013-2016 广州云晫信息科技有限公司
+                </span>
+            </div>
+        </div>
+    </div>
+{%- endblock %}
+
+{%- block plugin_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-editable.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='i18n/bootstrap-datepicker.zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.tableTools.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.colVis.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.custom.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.ui.touch-punch.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.easypiechart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.sparkline.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.pie.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.resize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chosen.jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-editable.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ace-editable.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='i18n/select2.zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.validate.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='i18n/jquery.validate.zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vinzor-validate.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.form.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.json.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-timepicker.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='i18n/bootstrap-datetimepicker.zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='i18n/ace-file-input.zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.gritter.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+
+{%- endblock %}
+
+{%- block inline_scripts %}
+    {{ super() }}
+    <script>
+        {% with messages = get_flashed_messages(category_filter=["info"]) %}
+            {% if messages %}
+                {% for message in messages %}
+                    $.gritter.add({
+                        text: "{{ message }}",
+                        class_name: 'gritter-success'
+                    });
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% with messages = get_flashed_messages(category_filter=["error"]) %}
+            {% if messages %}
+                {% for message in messages %}
+                    $.gritter.add({
+                        text: "{{ message }}",
+                        class_name: 'gritter-error'
+                    });
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+{%- endblock %}

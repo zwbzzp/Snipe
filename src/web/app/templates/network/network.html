@@ -1,0 +1,732 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}网络{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-update {
+            width: 350px;
+        }
+        
+        textarea.form-control {
+            height: 50px !important;
+        }
+        
+        body .modal-open {
+            overflow: visible;
+        }
+        
+        
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>网络</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">网络列表</h4>
+        </div>
+        
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="create_network" title="创建网络" href="#"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                创建网络 </a>
+                            <a id="batch_delete_networks" class="red" href="#"
+                               title="删除网络"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除网络
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table id="network_list"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                </th>
+                <th>名称</th>
+                <th>子网已连接</th>
+                <th>共享的</th>
+                <th>状态</th>
+                <th>管理员状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for network in networks %}
+                <tr id="network_tr_{{ network.id }}">
+                    <td class='center' style="vertical-align:middle">
+                        <label><input type='checkbox' id="{{ network.id }}" class="ace"/><span class="lbl"></span></label>
+                    </td>
+                    <td style="vertical-align:middle">
+                        <a href="{{ url_for('network.network_detail', id=network.id) }}" title="查看网络详情" id="name_{{ network.id }}" value="{{ network.name }}">{{ network.name or ("(" + network.id + ")") }}</a>
+                    </td>
+                    <td id="subnets_{{ network.id }}" style="vertical-align:middle">
+                        {% for subnet in network.subnets %}
+                            {% if subnet.name %}
+                                <b>{{ subnet.name }}</b> &nbsp; 
+                            {% endif %} 
+                            {{ subnet.cidr }}
+                            {% if not loop.last%}
+                                <br/>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td id="shared_{{ network.id }}" style="vertical-align:middle">{{ network.shared }}</td>
+                    <td id="status_{{ network.id }}" style="vertical-align:middle">{{ network.status }}</td>
+                    <td id="admin_state_up_{{ network.id }}" style="vertical-align:middle" value="{{network.admin_state_up}}">{% if network.admin_state_up %}UP{% else %}DOWN{% endif %}</td>
+                    <td style="vertical-align:middle">
+                        <div class="action-buttons">
+                            <a href="javascript:void(0)" title="编辑网络" onclick="on_update_click('{{ network.id }}')"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                            <a href="javascript:void(0)" class="red" title="删除网络" onclick="on_delete_click('{{ network.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="network_update_dialog" class="modal fade">
+        <div class="modal-dialog modal-update">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">编辑网络</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="network_update_form" action="{{ url_for('network.update_network') }}" method="post">
+                        {{ network_update_form.hidden_tag() }}
+                        <div class="form-group">
+                            <label for="form-field-8">网络名称</label>
+                            <div class="">
+                                {{ network_update_form.name(id="network_update_form_name", class_='form-control', type='text', placeholder='网络名称') }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-field-8">网络ID</label>
+                            <div class="">
+                                {{ network_update_form.ID(id="network_update_form_id", class_='form-control', type='text', placeholder='网络ID', readonly="readonly") }}
+                            </div>
+                        </div>
+                        <div class="form-group-sm">
+                            <label for="form-field-8">管理员状态</label>
+                            <div class="">
+                                <label class="pos-rel">{{ network_update_form.admin_state_up(id="network_update_form_admin_state_up", class_='ace') }}<span class="lbl"></span></label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="update_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="network_delete_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除网络</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="network_delete_dialog_reminder"> 确定删除所选择的网络吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="delete_confirm" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="network_create_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content wizard" data-initialize="wizard" id="network_create_wizard">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建网络</h4>
+                </div>
+                
+                <div class="steps-container">
+                    <ul class="steps">
+                        <li data-step="1" data-name="network" class="active">
+                            <span class="badge">1</span>网络
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-step="2" data-name="subnet">
+                            <span class="badge">2</span>子网*
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-step="3" data-name="subnet-info">
+                            <span class="badge">3</span>子网详情
+                            <span class="chevron"></span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="modal-body step-content">
+                    <form id="network_create_form" action="#" method="post">
+                        {{ network_create_form.hidden_tag() }}
+                        <div class="step-pane active sample-pane" data-step="1">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">网络名称</label>
+                                        <div class="">
+                                            {{ network_create_form.name(id="network_create_form_name", class_='form-control', type='text', placeholder='网络名称') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">管理员状态</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ network_create_form.admin_state_up(id="network_create_form_admin_state_up", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                         <p></p><p>新建网络.<br />在下个页面新建其子网.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-pane sample-pane" data-step="2">
+                             <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">创建子网</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ network_create_form.create_subnet(id="network_create_form_create_subnet", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">子网名称</label>
+                                        <div class="">
+                                            {{ network_create_form.subnet_name(id="network_create_form_subnet_name", class_='form-control', type='text', placeholder='子网名称') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">CIDR网络地址</label>
+                                        <div class="">
+                                            {{ network_create_form.subnet_cidr(id="network_create_form_subnet_cidr", class_='form-control', type='text', placeholder='CIDR网络地址') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">IP版本</label>
+                                        <div class="">
+                                            {{ network_create_form.ip_version(id="network_create_form_subnet_ip_version", class_='select2', placeholder='请选择', style="width:100%") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">网关IP*</label>
+                                        <div class="">
+                                            {{ network_create_form.gateway_ip(id="network_create_form_subnet_gateway_ip", class_='form-control', type='text', placeholder='网关IP') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">禁用网关</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ network_create_form.disable_gateway(id="network_create_form_subnet_disable_gateway", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <p></p><p>给新建网络建立子网时需要指定"网络地址".<br />如果不需要子网,请取消"建立子网"选项</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-pane sample-pane" data-step="3">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">激活DHCP</label>
+                                        <div class="">
+                                            <label class="pos-rel">{{ network_create_form.enable_dhcp(id="network_create_form_subnet_enable_dhcp", class_='ace') }}<span class="lbl"></span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">分配地址池</label>
+                                        <div class="">
+                                            {{ network_create_form.allocation_pools(id="network_create_form_subnet_allocation_pools", class_='form-control', type='text', placeholder="IP地址池,'<start_ip>,<end_ip>',每行一个") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">DNS域名解析服务</label>
+                                        <div class="">
+                                            {{ network_create_form.dns_nameservers(id="network_create_form_subnet_dns_nameservers", class_='form-control', type='text', placeholder='该子网的DNS服务器ip地址列表,每行一个') }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group-sm">
+                                        <label for="form-field-8">主机路由</label>
+                                        <div class="">
+                                            {{ network_create_form.host_routes(id="network_create_form_subnet_host_routes", class_='form-control', type='text', placeholder="向主机宣布的附加路由,'<destination_cidr>,<nexthop>',每行一个") }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <p></p><p>为子网指定额外的属性</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer wizard-actions">
+                    <button class="btn btn-success btn-sm btn-next" data-last="创建">
+                            下一步
+                        <i class="ace-icon fa fa-arrow-right icon-on-right"></i>
+                    </button>
+
+                    <button class="btn btn-danger btn-sm btn-prev pull-left">
+                        <i class="ace-icon fa fa-arrow-left"></i>
+                            返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fuelux.wizard.min.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks");
+
+        var selected_networks = [];
+        var network_table = null;
+
+
+        $(function() {
+            //init JQuery's data table
+            network_table = $('#network_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    {"bSortable": false}, {"bSortable": false}, 
+                    {"bSortable": false}, {"bSortable": false, "bSearchable": false}]
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    this.checked = that.checked;
+                    $(this).closest('tr').toggleClass('selected');
+                });
+            });
+            
+            
+            $(".select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+            
+            $('[data-rel=tooltip]').tooltip();
+            
+            network_update_form_validator = $("#network_update_form").validate({
+                rules:{
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                    },
+                    ID: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "请输入网络名称",
+                        maxlength: "长度不能超过64个字符",
+                    },
+                    ID: {
+                        required: "网络ID不能为空"
+                    }
+                }
+            });
+            
+            network_create_form_validator = $("#network_create_form").validate({
+                ignore: ":hidden", //忽略对隐藏元素的验证
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 64,
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "请输入网络名称",
+                        maxlength: "长度不能超过64个字符",
+                    }
+                }
+            });
+            
+            $.validator.addMethod('cidr', function(value, element) {
+                if (this.optional(element))
+                    return true;
+                var ip = null, mask = null;
+                var ip_mask = value.split('/');
+                if (ip_mask.length != 2)
+                    return false;
+                else {
+                    if (!ip_mask[1])
+                        return false; // '0.0.0.0/ not allowed'
+                    ip = ip_mask[0];
+                    temp = parseInt(ip_mask[1], 10);
+                    if (temp != ip_mask[1]) // '0.0.0.0/<int>'
+                        return false;
+                    mask = temp;
+                }
+                
+                var checkers = {
+                    '4': {
+                        'regex': /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+                        'mask_min': 0,
+                        'mask_max': 32
+                    },
+                    '6': {
+                        // FIXME: i am not sure whether this ipv6 regex works well.
+                        'regex': /^((([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(([0-9A-Fa-f]{1,4}:){0,5}:((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(::([0-9A-Fa-f]{1,4}:){0,5}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))$/,
+                        'mask_min': 0,
+                        'mask_max': 128
+                    }
+                };
+                var ip_version = $('#network_create_form_subnet_ip_version').val();
+                var checker = checkers[ip_version];
+                if (checker.regex.test(ip)) {
+                    if (mask >= checker.mask_min && mask <= checker.mask_max)
+                        return true;
+                    else
+                        return false;
+                } else {
+                    return false;
+                }
+            }, 'CIDR网络地址格式不正确');
+            
+            $.validator.addMethod('ip', function(value, element) {
+                if (this.optional(element))
+                    return true;
+                var checkers = {
+                    '4': {
+                        'regex': /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+                    },
+                    '6': {
+                        // FIXME: i am not sure whether this ipv6 regex works well.
+                        'regex': /^((([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(([0-9A-Fa-f]{1,4}:){0,5}:((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(::([0-9A-Fa-f]{1,4}:){0,5}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))$/,
+                    }
+                };
+                var ip_version = $('#network_create_form_subnet_ip_version').val();
+                var checker = checkers[ip_version];
+                
+                if (checker.regex.test(value))
+                    return true;
+                else
+                    return false;
+            }, 'IP地址格式不正确');
+            
+            network_create_form_optional_rules = {
+                "network_create_form_subnet_name": {
+                    required: true,
+                    maxlength: 64,
+                    messages: {
+                        required: "请输入子网名称",
+                        maxlength: "长度不能超过64个字符",
+                    }
+                },
+                "network_create_form_subnet_cidr": {
+                    required: true,
+                    maxlength: 256,
+                    cidr: true,
+                    messages: {
+                        required: "请输入CIDR网络地址",
+                        maxlength: "长度不能超过256个字符",
+                        cidr: "CIDR网络地址格式不正确"
+                    }
+                },
+                "network_create_form_subnet_gateway_ip": {
+                    maxlength: 256,
+                    ip: true,
+                    messages: {
+                        maxlength: "长度不能超过256个字符",
+                        ip: "请输入正确的IP地址",
+                    }
+                },
+            }
+            
+            //页面第一次加载, 我们就要调整一下network_create_form的可选规则
+            network_create_form_adjust_optional_rules();
+            
+            $("#network_create_form_create_subnet").on("click", function() {
+                network_create_form_adjust_optional_rules();
+            });
+            
+            $("#network_create_wizard").on("actionclicked.fu.wizard", function(event, data){
+                // if the direction is next, we valid the form and if invalid we won't go next
+                if (data.direction == "next" && !$("#network_create_form").valid())
+                    event.preventDefault();
+            });
+            
+            $("#network_create_wizard").on("finished.fu.wizard", function(e, data){
+                // create network here
+                create_network();
+            });
+            
+            $("#update_confirm").click(function() {
+                update_network();
+            });
+            
+            $("#delete_confirm").click(function() {
+                delete_networks();
+            });
+
+            $("#batch_delete_networks").click(function(e) {
+                selected_networks = [];
+                $("#network_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_networks.push(this.id);
+                });
+                
+                if (selected_networks.length > 0) {
+                    $("#network_delete_dialog_reminder").text("确定删除所选择的网络吗?");
+                    $("#network_delete_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的网络";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+                
+                return false;
+            });
+            
+            $("#create_network").click(function() {
+                $("#network_create_dialog").modal("show");
+                
+                return false;
+            });
+            
+        });
+
+
+        function network_create_form_adjust_optional_rules() {
+            // 只在创建子网的情况下, 才验证这些元素
+            if ($("#network_create_form_create_subnet").is(':checked')) {
+                for (var element in network_create_form_optional_rules) {
+                    $("#" + element).rules("add", network_create_form_optional_rules[element]);
+                }
+            } else {
+                for (var element in network_create_form_optional_rules) {
+                    $("#" + element).rules("remove");
+                }
+            }
+        }
+
+
+        function on_update_click(network_id) {
+            network_update_form_validator.resetForm();
+            $("#network_update_form_name").val($("#name_" + network_id).attr("value"));
+            $("#network_update_form_id").val(network_id);
+            if ($("#admin_state_up_" + network_id).attr("value") == "True")
+                $("#network_update_form_admin_state_up").attr("checked", "checked");
+            else
+                $("#network_update_form_admin_state_up").removeAttr("checked");
+            
+            $("#network_update_dialog").modal("show");
+            
+        }
+
+
+        function on_delete_click(network_id) {
+            // clear selected networks
+            selected_networks = [];
+            selected_networks.push(network_id);
+            
+            var reminder = "确定删除网络'" + $("#name_" + network_id).text() + "'吗?";
+            $("#network_delete_dialog_reminder").text(reminder);
+            $("#network_delete_dialog").modal("show");
+        }
+
+
+        function update_network() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.update_network') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#network_update_form").valid()) {
+                    $("#network_update_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "编辑成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "编辑失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#network_update_form").ajaxSubmit(options);
+        }
+
+        
+        function delete_networks() {
+            $("#network_delete_dialog").modal("hide");
+            if (selected_networks.length <= 0)
+                return;
+            
+            function on_delete_networks_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var network_name = $("#name_" + success_list[i]).text();
+                        if (network_name)
+                            success_text += "网络&nbsp;" + network_name + "&nbsp;删除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var network_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var network_name = $("#name_" + network_id).text();
+                        if (network_name)
+                            fail_text += "网络&nbsp;" + network_name + "&nbsp;删除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    // 更新table network_list
+                    for (var i in success_list) {
+                        network_table.row($("#network_tr_" + success_list[i])).remove();
+                    }
+                    network_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+            
+            function on_delete_networks_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+            
+            $.ajax({
+                url: "{{ url_for('network.delete_networks') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_networks),
+                success: on_delete_networks_success,
+                error: on_delete_networks_error
+            });
+        }
+
+
+        function create_network() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.create_network') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#network_create_form").valid()) {
+                    $("#network_create_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "创建网络成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "创建网络失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#network_create_form").ajaxSubmit(options);
+        }
+    </script>
+
+{% endblock %}

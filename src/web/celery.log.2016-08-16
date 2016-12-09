@@ -1,0 +1,245 @@
+2016-08-17 11:01:22,351 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:01:22,391 INFO celery Scheduling start lesson tasks
+2016-08-17 11:01:22,474 WARNING celery.redirected 2016-08-17 11:01:22,474 INFO sqlalchemy.engine.base.Engine SHOW VARIABLES LIKE 'sql_mode'
+2016-08-17 11:01:22,475 WARNING celery.redirected 2016-08-17 11:01:22,475 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,477 WARNING celery.redirected 2016-08-17 11:01:22,476 INFO sqlalchemy.engine.base.Engine SELECT DATABASE()
+2016-08-17 11:01:22,477 WARNING celery.redirected 2016-08-17 11:01:22,477 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,478 WARNING celery.redirected 2016-08-17 11:01:22,478 INFO sqlalchemy.engine.base.Engine show collation where `Charset` = 'utf8' and `Collation` = 'utf8_bin'
+2016-08-17 11:01:22,479 WARNING celery.redirected 2016-08-17 11:01:22,479 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,482 WARNING celery.redirected 2016-08-17 11:01:22,482 INFO sqlalchemy.engine.base.Engine SELECT CAST('test plain returns' AS CHAR(60)) AS anon_1
+2016-08-17 11:01:22,483 WARNING celery.redirected 2016-08-17 11:01:22,483 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,484 WARNING celery.redirected 2016-08-17 11:01:22,484 INFO sqlalchemy.engine.base.Engine SELECT CAST('test unicode returns' AS CHAR(60)) AS anon_1
+2016-08-17 11:01:22,484 WARNING celery.redirected 2016-08-17 11:01:22,484 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,486 WARNING celery.redirected 2016-08-17 11:01:22,485 INFO sqlalchemy.engine.base.Engine SELECT CAST('test collated returns' AS CHAR CHARACTER SET utf8) COLLATE utf8_bin AS anon_1
+2016-08-17 11:01:22,486 WARNING celery.redirected 2016-08-17 11:01:22,486 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:01:22,488 WARNING celery.redirected 2016-08-17 11:01:22,487 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:01:22,489 WARNING celery.redirected 2016-08-17 11:01:22,489 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:01:22,490 WARNING celery.redirected 2016-08-17 11:01:22,489 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_ahead'}
+2016-08-17 11:01:22,495 WARNING celery.redirected 2016-08-17 11:01:22,495 INFO sqlalchemy.engine.base.Engine SELECT lessons.start_time AS lessons_start_time, lessons.end_time AS lessons_end_time, lessons.id AS lessons_id, lessons.created_at AS lessons_created_at, lessons.updated_at AS lessons_updated_at, lessons.course_id AS lessons_course_id, lessons.start_date AS lessons_start_date, lessons.start_period_id AS lessons_start_period_id, lessons.end_date AS lessons_end_date, lessons.end_period_id AS lessons_end_period_id, lessons.scheduled AS lessons_scheduled, lessons.scheduled_at AS lessons_scheduled_at, lessons.started AS lessons_started 
+FROM lessons 
+WHERE lessons.scheduled = false AND (lessons.start_date < %(start_date_1)s OR lessons.start_date = %(start_date_2)s AND lessons.start_time < %(start_time_1)s) AND (lessons.end_date > %(end_date_1)s OR lessons.end_date = %(end_date_2)s AND lessons.end_time > %(end_time_1)s) AND lessons.course_id IS NOT NULL
+2016-08-17 11:01:22,496 WARNING celery.redirected 2016-08-17 11:01:22,495 INFO sqlalchemy.engine.base.Engine {'start_date_1': datetime.date(2016, 8, 17), 'end_date_2': datetime.date(2016, 8, 17), 'end_date_1': datetime.date(2016, 8, 17), 'start_date_2': datetime.date(2016, 8, 17), 'end_time_1': datetime.time(11, 1, 22, 491779), 'start_time_1': datetime.time(11, 11, 22, 491779)}
+2016-08-17 11:01:22,499 WARNING celery.redirected 2016-08-17 11:01:22,499 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:01:22,500 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:02:29,701 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:02:29,704 WARNING celery.redirected 2016-08-17 11:02:29,703 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:02:29,705 WARNING celery.redirected 2016-08-17 11:02:29,705 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(id_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:02:29,706 WARNING celery.redirected 2016-08-17 11:02:29,705 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'id_1': 4}
+2016-08-17 11:02:29,710 WARNING celery.redirected 2016-08-17 11:02:29,709 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:02:29,711 WARNING celery.redirected 2016-08-17 11:02:29,710 INFO sqlalchemy.engine.base.Engine {'param_1': 4}
+2016-08-17 11:02:29,717 WARNING celery.redirected 2016-08-17 11:02:29,716 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.id = %(id_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:02:29,718 WARNING celery.redirected 2016-08-17 11:02:29,717 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'id_1': 1}
+2016-08-17 11:02:29,720 WARNING celery Could not set desktop state for <DesktopTask 4>, desktop not exists
+2016-08-17 11:02:29,720 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:02:29,720 WARNING celery.redirected 2016-08-17 11:02:29,720 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:33,349 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:04:33,350 INFO celery Scheduling start lesson tasks
+2016-08-17 11:04:33,353 WARNING celery.redirected 2016-08-17 11:04:33,353 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:33,355 WARNING celery.redirected 2016-08-17 11:04:33,354 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:04:33,355 WARNING celery.redirected 2016-08-17 11:04:33,355 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_ahead'}
+2016-08-17 11:04:33,360 WARNING celery.redirected 2016-08-17 11:04:33,360 INFO sqlalchemy.engine.base.Engine SELECT lessons.start_time AS lessons_start_time, lessons.end_time AS lessons_end_time, lessons.id AS lessons_id, lessons.created_at AS lessons_created_at, lessons.updated_at AS lessons_updated_at, lessons.course_id AS lessons_course_id, lessons.start_date AS lessons_start_date, lessons.start_period_id AS lessons_start_period_id, lessons.end_date AS lessons_end_date, lessons.end_period_id AS lessons_end_period_id, lessons.scheduled AS lessons_scheduled, lessons.scheduled_at AS lessons_scheduled_at, lessons.started AS lessons_started 
+FROM lessons 
+WHERE lessons.scheduled = false AND (lessons.start_date < %(start_date_1)s OR lessons.start_date = %(start_date_2)s AND lessons.start_time < %(start_time_1)s) AND (lessons.end_date > %(end_date_1)s OR lessons.end_date = %(end_date_2)s AND lessons.end_time > %(end_time_1)s) AND lessons.course_id IS NOT NULL
+2016-08-17 11:04:33,361 WARNING celery.redirected 2016-08-17 11:04:33,361 INFO sqlalchemy.engine.base.Engine {'start_date_1': datetime.date(2016, 8, 17), 'end_date_2': datetime.date(2016, 8, 17), 'end_time_1': datetime.time(11, 4, 33, 358586), 'start_date_2': datetime.date(2016, 8, 17), 'end_date_1': datetime.date(2016, 8, 17), 'start_time_1': datetime.time(11, 14, 33, 358586)}
+2016-08-17 11:04:33,367 WARNING celery.redirected 2016-08-17 11:04:33,367 INFO sqlalchemy.engine.base.Engine SELECT courses.id AS courses_id, courses.created_at AS courses_created_at, courses.updated_at AS courses_updated_at, courses.name AS courses_name, courses.start_date AS courses_start_date, courses.end_date AS courses_end_date, courses.capacity AS courses_capacity, courses.image_ref AS courses_image_ref, courses.flavor_ref AS courses_flavor_ref, courses.network_ref AS courses_network_ref, courses.protocol AS courses_protocol, courses.owner_id AS courses_owner_id 
+FROM courses 
+WHERE courses.id = %(param_1)s
+2016-08-17 11:04:33,368 WARNING celery.redirected 2016-08-17 11:04:33,368 INFO sqlalchemy.engine.base.Engine {'param_1': 2}
+2016-08-17 11:04:33,373 INFO celery Scheduling <Course 2 'teacher-lll'>
+2016-08-17 11:04:33,376 WARNING celery.redirected 2016-08-17 11:04:33,375 INFO sqlalchemy.engine.base.Engine SELECT periods.id AS periods_id, periods.created_at AS periods_created_at, periods.updated_at AS periods_updated_at, periods.name AS periods_name, periods.start_time AS periods_start_time, periods.end_time AS periods_end_time 
+FROM periods 
+WHERE periods.id = %(param_1)s
+2016-08-17 11:04:33,377 WARNING celery.redirected 2016-08-17 11:04:33,377 INFO sqlalchemy.engine.base.Engine {'param_1': 21}
+2016-08-17 11:04:33,382 WARNING celery.redirected 2016-08-17 11:04:33,382 INFO sqlalchemy.engine.base.Engine UPDATE desktops SET updated_at=%(updated_at)s, end_datetime=%(end_datetime)s WHERE desktops.course_id = %(course_id_1)s AND desktops.end_datetime <= %(end_datetime_1)s
+2016-08-17 11:04:33,383 WARNING celery.redirected 2016-08-17 11:04:33,382 INFO sqlalchemy.engine.base.Engine {'course_id_1': 2, 'end_datetime': datetime.datetime(2016, 8, 17, 20, 0), 'end_datetime_1': datetime.datetime(2016, 8, 17, 20, 0), 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 33, 382219)}
+2016-08-17 11:04:33,383 INFO celery Update end datetime of 0 desktops in course <Course 2 'teacher-lll'> to 2016-08-17 20:00:00
+2016-08-17 11:04:33,391 WARNING celery.redirected 2016-08-17 11:04:33,391 INFO sqlalchemy.engine.base.Engine SELECT count(*) AS count_1 
+FROM (SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE %(param_1)s = desktops.course_id) AS anon_1
+2016-08-17 11:04:33,392 WARNING celery.redirected 2016-08-17 11:04:33,392 INFO sqlalchemy.engine.base.Engine {'param_1': 2}
+2016-08-17 11:04:33,602 WARNING celery.redirected 2016-08-17 11:04:33,601 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops
+2016-08-17 11:04:33,602 WARNING celery.redirected 2016-08-17 11:04:33,602 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:04:33,605 WARNING celery.redirected 2016-08-17 11:04:33,605 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops
+2016-08-17 11:04:33,606 WARNING celery.redirected 2016-08-17 11:04:33,606 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:04:33,609 WARNING celery.redirected 2016-08-17 11:04:33,609 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops
+2016-08-17 11:04:33,609 WARNING celery.redirected 2016-08-17 11:04:33,609 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:04:33,612 WARNING celery.redirected 2016-08-17 11:04:33,612 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops
+2016-08-17 11:04:33,612 WARNING celery.redirected 2016-08-17 11:04:33,612 INFO sqlalchemy.engine.base.Engine {}
+2016-08-17 11:04:33,618 WARNING celery.redirected 2016-08-17 11:04:33,618 INFO sqlalchemy.engine.base.Engine SELECT periods.id AS periods_id, periods.created_at AS periods_created_at, periods.updated_at AS periods_updated_at, periods.name AS periods_name, periods.start_time AS periods_start_time, periods.end_time AS periods_end_time 
+FROM periods 
+WHERE periods.id = %(param_1)s
+2016-08-17 11:04:33,619 WARNING celery.redirected 2016-08-17 11:04:33,619 INFO sqlalchemy.engine.base.Engine {'param_1': 1}
+2016-08-17 11:04:33,624 WARNING celery.redirected 2016-08-17 11:04:33,624 INFO sqlalchemy.engine.base.Engine INSERT INTO desktop_tasks (created_at, updated_at, action, state, result, stage, stage_chain, retries, enabled, context) VALUES (%(created_at)s, %(updated_at)s, %(action)s, %(state)s, %(result)s, %(stage)s, %(stage_chain)s, %(retries)s, %(enabled)s, %(context)s)
+2016-08-17 11:04:33,625 WARNING celery.redirected 2016-08-17 11:04:33,625 INFO sqlalchemy.engine.base.Engine {'context': '{"image": "8f5f2a12-c078-4be2-b75c-a27bace232ef", "course_name": "teacher-lll", "subnet": null, "course": 2, "serial": 0, "network": "3f7ff60f-cbb5-4972-bf64-f84c01ae9a6e", "detect_timeout": 30, "wait_state": "ACTIVE", "port": null, "desktop_type": "COURSE", "flavor": "f4cb92aa-65f4-450b-a7ed-50c85f5bfc68", "disk": null, "start_datetime": "2016-08-17T06:00:00", "end_datetime": "2016-08-17T20:00:00", "desktop_state_map": {"ERROR": "ERROR", "SUCCESS": "ACTIVE"}, "wait_timeout": 600, "detect_method": "PING", "floating_action": "ASSIGN"}', 'stage': 'BUILD', 'enabled': 1, 'created_at': datetime.datetime(2016, 8, 17, 11, 4, 33, 624379), 'result': '', 'stage_chain': '["BUILD", "WAIT", "FLOATING", "DETECT"]', 'retries': 0, 'action': 'CREATE', 'state': 'PENDING', 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 33, 624440)}
+2016-08-17 11:04:33,627 WARNING celery.redirected 2016-08-17 11:04:33,627 INFO sqlalchemy.engine.base.Engine UPDATE lessons SET updated_at=%(updated_at)s, scheduled=%(scheduled)s, scheduled_at=%(scheduled_at)s WHERE lessons.id = %(lessons_id)s
+2016-08-17 11:04:33,628 WARNING celery.redirected 2016-08-17 11:04:33,628 INFO sqlalchemy.engine.base.Engine {'scheduled': 1, 'lessons_id': 9, 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 33, 627655), 'scheduled_at': datetime.datetime(2016, 8, 17, 11, 4, 33, 622467)}
+2016-08-17 11:04:33,630 WARNING celery.redirected 2016-08-17 11:04:33,630 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:33,633 WARNING celery.redirected 2016-08-17 11:04:33,632 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:33,634 WARNING celery.redirected 2016-08-17 11:04:33,633 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:04:33,634 WARNING celery.redirected 2016-08-17 11:04:33,634 INFO sqlalchemy.engine.base.Engine {'param_1': 5}
+2016-08-17 11:04:33,637 WARNING celery.redirected 2016-08-17 11:04:33,637 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(id_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:04:33,637 WARNING celery.redirected 2016-08-17 11:04:33,637 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'id_1': 5}
+2016-08-17 11:04:33,739 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:04:33,739 WARNING celery.redirected 2016-08-17 11:04:33,739 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:49,934 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:04:49,936 WARNING celery.redirected 2016-08-17 11:04:49,936 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:49,937 WARNING celery.redirected 2016-08-17 11:04:49,937 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(id_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:04:49,939 WARNING celery.redirected 2016-08-17 11:04:49,938 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'id_1': 5}
+2016-08-17 11:04:49,941 WARNING celery.redirected 2016-08-17 11:04:49,941 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:04:49,942 WARNING celery.redirected 2016-08-17 11:04:49,942 INFO sqlalchemy.engine.base.Engine {'param_1': 5}
+2016-08-17 11:04:49,943 INFO celery Floating for <DesktopTask 5>
+2016-08-17 11:04:50,608 WARNING celery.redirected 2016-08-17 11:04:50,608 INFO sqlalchemy.engine.base.Engine UPDATE desktop_tasks SET updated_at=%(updated_at)s, context=%(context)s WHERE desktop_tasks.id = %(desktop_tasks_id)s
+2016-08-17 11:04:50,608 WARNING celery.redirected 2016-08-17 11:04:50,608 INFO sqlalchemy.engine.base.Engine {'desktop_tasks_id': 5, 'context': '{"detect_timeout": 30, "course": 2, "flavor": "f4cb92aa-65f4-450b-a7ed-50c85f5bfc68", "port": null, "desktop_type": "COURSE", "floating_ip": "172.18.231.140", "disk": null, "desktop": 2, "end_datetime": "2016-08-17T20:00:00", "wait_timeout": 600, "detect_method": "PING", "floating_action": "ASSIGN", "course_name": "teacher-lll", "subnet": null, "image": "8f5f2a12-c078-4be2-b75c-a27bace232ef", "network": "3f7ff60f-cbb5-4972-bf64-f84c01ae9a6e", "wait_started_at": "2016-08-17T11:04:38.351308", "wait_state": "ACTIVE", "serial": 0, "vm": "6639577f-360f-4e52-b68d-8ed67dab83a9", "start_datetime": "2016-08-17T06:00:00", "desktop_state_map": {"ERROR": "ERROR", "SUCCESS": "ACTIVE"}}', 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 50, 607895)}
+2016-08-17 11:04:50,611 WARNING celery.redirected 2016-08-17 11:04:50,611 INFO sqlalchemy.engine.base.Engine INSERT INTO stage_results (created_at, updated_at, task_id, stage, success, detail, context) VALUES (%(created_at)s, %(updated_at)s, %(task_id)s, %(stage)s, %(success)s, %(detail)s, %(context)s)
+2016-08-17 11:04:50,611 WARNING celery.redirected 2016-08-17 11:04:50,611 INFO sqlalchemy.engine.base.Engine {'success': 1, 'context': '{"detect_timeout": 30, "course": 2, "flavor": "f4cb92aa-65f4-450b-a7ed-50c85f5bfc68", "port": null, "desktop_type": "COURSE", "floating_ip": "172.18.231.140", "disk": null, "desktop": 2, "end_datetime": "2016-08-17T20:00:00", "wait_timeout": 600, "detect_method": "PING", "floating_action": "ASSIGN", "course_name": "teacher-lll", "subnet": null, "image": "8f5f2a12-c078-4be2-b75c-a27bace232ef", "network": "3f7ff60f-cbb5-4972-bf64-f84c01ae9a6e", "wait_started_at": "2016-08-17T11:04:38.351308", "wait_state": "ACTIVE", "serial": 0, "vm": "6639577f-360f-4e52-b68d-8ed67dab83a9", "start_datetime": "2016-08-17T06:00:00", "desktop_state_map": {"ERROR": "ERROR", "SUCCESS": "ACTIVE"}}', 'detail': '', 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 50, 610867), 'task_id': 5, 'created_at': datetime.datetime(2016, 8, 17, 11, 4, 50, 610796), 'stage': 'FLOATING'}
+2016-08-17 11:04:50,613 WARNING celery.redirected 2016-08-17 11:04:50,613 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:50,616 WARNING celery.redirected 2016-08-17 11:04:50,615 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:50,617 WARNING celery.redirected 2016-08-17 11:04:50,616 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:04:50,617 WARNING celery.redirected 2016-08-17 11:04:50,617 INFO sqlalchemy.engine.base.Engine {'param_1': 5}
+2016-08-17 11:04:50,620 WARNING celery.redirected 2016-08-17 11:04:50,619 INFO sqlalchemy.engine.base.Engine UPDATE desktop_tasks SET updated_at=%(updated_at)s, stage=%(stage)s WHERE desktop_tasks.id = %(desktop_tasks_id)s
+2016-08-17 11:04:50,620 WARNING celery.redirected 2016-08-17 11:04:50,620 INFO sqlalchemy.engine.base.Engine {'desktop_tasks_id': 5, 'stage': 'DETECT', 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 50, 619836)}
+2016-08-17 11:04:50,622 WARNING celery.redirected 2016-08-17 11:04:50,621 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:50,624 WARNING celery.redirected 2016-08-17 11:04:50,624 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:50,625 WARNING celery.redirected 2016-08-17 11:04:50,625 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:04:50,625 WARNING celery.redirected 2016-08-17 11:04:50,625 INFO sqlalchemy.engine.base.Engine {'param_1': 5}
+2016-08-17 11:04:50,628 WARNING celery.redirected 2016-08-17 11:04:50,628 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.id = %(id_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:04:50,628 WARNING celery.redirected 2016-08-17 11:04:50,628 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'id_1': 2}
+2016-08-17 11:04:50,632 WARNING celery.redirected 2016-08-17 11:04:50,631 INFO sqlalchemy.engine.base.Engine UPDATE desktops SET updated_at=%(updated_at)s, floating_ip=%(floating_ip)s, need_floating=%(need_floating)s WHERE desktops.id = %(desktops_id)s
+2016-08-17 11:04:50,632 WARNING celery.redirected 2016-08-17 11:04:50,632 INFO sqlalchemy.engine.base.Engine {'need_floating': 0, 'floating_ip': '172.18.231.140', 'updated_at': datetime.datetime(2016, 8, 17, 11, 4, 50, 631716), 'desktops_id': 2}
+2016-08-17 11:04:50,633 WARNING celery.redirected 2016-08-17 11:04:50,633 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:04:50,635 INFO celery Associate floating ip success, instance id: 6639577f-360f-4e52-b68d-8ed67dab83a9
+2016-08-17 11:04:50,636 WARNING celery.redirected 2016-08-17 11:04:50,635 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:04:50,637 WARNING celery.redirected 2016-08-17 11:04:50,636 INFO sqlalchemy.engine.base.Engine SELECT desktop_tasks.id AS desktop_tasks_id, desktop_tasks.created_at AS desktop_tasks_created_at, desktop_tasks.updated_at AS desktop_tasks_updated_at, desktop_tasks.action AS desktop_tasks_action, desktop_tasks.state AS desktop_tasks_state, desktop_tasks.result AS desktop_tasks_result, desktop_tasks.stage AS desktop_tasks_stage, desktop_tasks.stage_chain AS desktop_tasks_stage_chain, desktop_tasks.retries AS desktop_tasks_retries, desktop_tasks.enabled AS desktop_tasks_enabled, desktop_tasks.context AS desktop_tasks_context 
+FROM desktop_tasks 
+WHERE desktop_tasks.id = %(param_1)s
+2016-08-17 11:04:50,637 WARNING celery.redirected 2016-08-17 11:04:50,637 INFO sqlalchemy.engine.base.Engine {'param_1': 5}
+2016-08-17 11:04:50,640 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:04:50,640 WARNING celery.redirected 2016-08-17 11:04:50,640 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:05:32,633 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:05:32,633 INFO celery Scheduling start lesson tasks
+2016-08-17 11:05:32,634 WARNING celery.redirected 2016-08-17 11:05:32,634 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:05:32,635 WARNING celery.redirected 2016-08-17 11:05:32,635 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:05:32,636 WARNING celery.redirected 2016-08-17 11:05:32,636 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_ahead'}
+2016-08-17 11:05:32,640 WARNING celery.redirected 2016-08-17 11:05:32,640 INFO sqlalchemy.engine.base.Engine SELECT lessons.start_time AS lessons_start_time, lessons.end_time AS lessons_end_time, lessons.id AS lessons_id, lessons.created_at AS lessons_created_at, lessons.updated_at AS lessons_updated_at, lessons.course_id AS lessons_course_id, lessons.start_date AS lessons_start_date, lessons.start_period_id AS lessons_start_period_id, lessons.end_date AS lessons_end_date, lessons.end_period_id AS lessons_end_period_id, lessons.scheduled AS lessons_scheduled, lessons.scheduled_at AS lessons_scheduled_at, lessons.started AS lessons_started 
+FROM lessons 
+WHERE lessons.scheduled = false AND (lessons.start_date < %(start_date_1)s OR lessons.start_date = %(start_date_2)s AND lessons.start_time < %(start_time_1)s) AND (lessons.end_date > %(end_date_1)s OR lessons.end_date = %(end_date_2)s AND lessons.end_time > %(end_time_1)s) AND lessons.course_id IS NOT NULL
+2016-08-17 11:05:32,641 WARNING celery.redirected 2016-08-17 11:05:32,641 INFO sqlalchemy.engine.base.Engine {'start_date_1': datetime.date(2016, 8, 17), 'end_date_2': datetime.date(2016, 8, 17), 'end_time_1': datetime.time(11, 5, 32, 637767), 'start_time_1': datetime.time(11, 15, 32, 637767), 'end_date_1': datetime.date(2016, 8, 17), 'start_date_2': datetime.date(2016, 8, 17)}
+2016-08-17 11:05:32,643 WARNING celery.redirected 2016-08-17 11:05:32,643 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:05:32,644 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:06:32,318 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:06:32,320 WARNING celery.redirected 2016-08-17 11:06:32,320 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:06:32,322 WARNING celery.redirected 2016-08-17 11:06:32,322 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:06:32,323 WARNING celery.redirected 2016-08-17 11:06:32,323 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:06:32,329 WARNING celery.redirected 2016-08-17 11:06:32,329 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:06:32,330 WARNING celery.redirected 2016-08-17 11:06:32,330 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 5, 32, 319380), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:06:32,333 WARNING celery.redirected 2016-08-17 11:06:32,333 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:06:32,335 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:08:32,810 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:08:32,811 WARNING celery.redirected 2016-08-17 11:08:32,811 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:08:32,813 WARNING celery.redirected 2016-08-17 11:08:32,813 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:08:32,814 WARNING celery.redirected 2016-08-17 11:08:32,814 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:08:32,821 WARNING celery.redirected 2016-08-17 11:08:32,821 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:08:32,822 WARNING celery.redirected 2016-08-17 11:08:32,822 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 7, 32, 810956), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:08:32,824 WARNING celery.redirected 2016-08-17 11:08:32,824 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:08:32,825 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:10:43,144 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:10:43,147 WARNING celery.redirected 2016-08-17 11:10:43,147 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:10:43,149 WARNING celery.redirected 2016-08-17 11:10:43,148 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:10:43,149 WARNING celery.redirected 2016-08-17 11:10:43,149 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:10:43,158 WARNING celery.redirected 2016-08-17 11:10:43,158 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:10:43,159 WARNING celery.redirected 2016-08-17 11:10:43,159 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 9, 43, 145989), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:10:43,165 WARNING celery.redirected 2016-08-17 11:10:43,165 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:10:43,166 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:12:44,699 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:12:44,700 WARNING celery.redirected 2016-08-17 11:12:44,700 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:12:44,701 WARNING celery.redirected 2016-08-17 11:12:44,701 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:12:44,702 WARNING celery.redirected 2016-08-17 11:12:44,702 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:12:44,706 WARNING celery.redirected 2016-08-17 11:12:44,706 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:12:44,710 WARNING celery.redirected 2016-08-17 11:12:44,709 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 11, 44, 700007), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:12:44,713 WARNING celery.redirected 2016-08-17 11:12:44,713 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:12:44,715 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:14:49,657 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:14:49,659 WARNING celery.redirected 2016-08-17 11:14:49,658 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:14:49,660 WARNING celery.redirected 2016-08-17 11:14:49,659 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:14:49,660 WARNING celery.redirected 2016-08-17 11:14:49,660 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:14:49,664 WARNING celery.redirected 2016-08-17 11:14:49,663 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:14:49,664 WARNING celery.redirected 2016-08-17 11:14:49,664 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 13, 49, 658097), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:14:49,667 WARNING celery.redirected 2016-08-17 11:14:49,667 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:14:49,668 WARNING celery.redirected ***** teardown appcontext *****
+2016-08-17 11:16:58,858 WARNING celery.redirected ***** flask app context injected *****
+2016-08-17 11:16:58,860 WARNING celery.redirected 2016-08-17 11:16:58,860 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2016-08-17 11:16:58,862 WARNING celery.redirected 2016-08-17 11:16:58,862 INFO sqlalchemy.engine.base.Engine SELECT parameters.id AS parameters_id, parameters.created_at AS parameters_created_at, parameters.updated_at AS parameters_updated_at, parameters.name AS parameters_name, parameters.value AS parameters_value, parameters.type AS parameters_type, parameters.`group` AS parameters_group, parameters.description AS parameters_description 
+FROM parameters 
+WHERE parameters.name = %(name_1)s 
+ LIMIT %(param_1)s
+2016-08-17 11:16:58,862 WARNING celery.redirected 2016-08-17 11:16:58,862 INFO sqlalchemy.engine.base.Engine {'param_1': 1, 'name_1': 'course_schedule_latency'}
+2016-08-17 11:16:58,866 WARNING celery.redirected 2016-08-17 11:16:58,866 INFO sqlalchemy.engine.base.Engine SELECT desktops.id AS desktops_id, desktops.created_at AS desktops_created_at, desktops.updated_at AS desktops_updated_at, desktops.name AS desktops_name, desktops.course_id AS desktops_course_id, desktops.vm_ref AS desktops_vm_ref, desktops.vm_state AS desktops_vm_state, desktops.os_state AS desktops_os_state, desktops.desktop_state AS desktops_desktop_state, desktops.desktop_type AS desktops_desktop_type, desktops.image_ref AS desktops_image_ref, desktops.flavor_ref AS desktops_flavor_ref, desktops.floating_ip AS desktops_floating_ip, desktops.fixed_ip AS desktops_fixed_ip, desktops.owner_id AS desktops_owner_id, desktops.need_floating AS desktops_need_floating, desktops.start_datetime AS desktops_start_datetime, desktops.end_datetime AS desktops_end_datetime 
+FROM desktops 
+WHERE desktops.end_datetime < %(end_datetime_1)s AND desktops.desktop_state != %(desktop_state_1)s AND desktops.desktop_state != %(desktop_state_2)s
+2016-08-17 11:16:58,867 WARNING celery.redirected 2016-08-17 11:16:58,866 INFO sqlalchemy.engine.base.Engine {'desktop_state_2': 'DELETED', 'end_datetime_1': datetime.datetime(2016, 8, 17, 11, 15, 58, 859450), 'desktop_state_1': 'DELETING'}
+2016-08-17 11:16:58,869 WARNING celery.redirected 2016-08-17 11:16:58,869 INFO sqlalchemy.engine.base.Engine COMMIT
+2016-08-17 11:16:58,870 WARNING celery.redirected ***** teardown appcontext *****

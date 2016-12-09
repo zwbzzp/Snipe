@@ -1,0 +1,74 @@
+<table class="table table-striped table-bordered schedule_table text-center ">
+    <tbody>
+    <tr>
+        <th></th>
+        <th>星期一</th>
+        <th>星期二</th>
+        <th>星期三</th>
+        <th>星期四</th>
+        <th>星期五</th>
+        <th>星期六</th>
+        <th>星期天</th>
+    </tr>
+    {% for item in timetable -%}
+        <tr class="{{ loop.cycle('schedule_tr_even', 'schedule_tr_odd') }}">
+            <td id='period_{{ item[0].id }}'>第{{ item[0].name }}节&nbsp;{{ item[0].start_time|time_format }}-{{ item[0].end_time|time_format }}</td>
+            {% for j in range(0, 7) -%}
+                {% if item[1][j] %}
+                    <td id="{{ item[0].name }}_{{ j }}" class="saved_item select_item schedule_item {{ loop.cycle('schedule_td_even', 'schedule_td_odd') }}"></td>
+                {% else %}
+                    <td id="{{ item[0].name }}_{{ j }}"  class="schedule_item {{ loop.cycle('schedule_td_even', 'schedule_td_odd') }}"></td>
+                {% endif %}
+            {%- endfor %}
+        </tr>
+    {%- endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    var is_editing = true;
+
+    if ($("#week_timetable").hasClass("edit_schedule_table")) {
+        is_editing = true;
+    }
+    else{
+        is_editing = false;
+    }
+    if(!is_editing)
+        $(".schedule_table .schedule_item").unbind();
+    else{
+        $(".schedule_table .schedule_item").hover(
+            function() {
+                this.style.backgroundColor = "#ABCFE7";
+            },
+            function() {
+                if($(this).hasClass("select_item")){
+                    this.style.backgroundColor = "#2283C5"
+                }
+                else{
+                    this.style.backgroundColor = ''
+                }
+            }
+        );
+
+        $(".schedule_table .schedule_item").click(function(){
+            if($(this).hasClass("select_item")){
+                $(this).removeClass("select_item");
+                lessons_lists[$("#hidden_start_date").val()][this.id] = false;
+                if($(this).hasClass("saved_item"))
+                    change_lessons_lists["delete_lessons_lists"][$("#hidden_start_date").val()][this.id] = this.id;
+                else
+                    delete change_lessons_lists["add_lessons_lists"][$("#hidden_start_date").val()][this.id];
+            }
+            else{
+                $(this).addClass("select_item");
+                lessons_lists[$("#hidden_start_date").val()][this.id] = true;
+                if(! $(this).hasClass("saved_item"))
+                    change_lessons_lists["add_lessons_lists"][$("#hidden_start_date").val()][this.id] = this.id;
+                else
+                    delete change_lessons_lists["delete_lessons_lists"][$("#hidden_start_date").val()][this.id];
+            }
+        });
+    }
+</script>
+

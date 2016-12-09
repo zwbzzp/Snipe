@@ -1,0 +1,221 @@
+{% extends "layout.html" %}
+
+{% block title %}系统运行日志{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+{#    <link rel="stylesheet" href="{{ url_for('static', filename='css/vinzor.css') }}">#}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/datepicker.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker.css') }}">
+
+    <style type="text/css">
+        .user_operation div {
+            display: inline;
+            margin-right: 10px;
+        }
+
+        .user_operation label {
+            display: inline;
+        }
+
+        .user_operation .tips {
+            display: block;
+            color: red;
+            font-size: 0.8em;
+        }
+
+        .daterangepicker .calendar {
+            display: block
+        }
+
+        #id-date-range-picker {
+            width: 200px;
+        }
+
+        #search-btn {
+            margin-left: 20px;
+            position: relative;
+            top: -5px;
+        }
+
+        #log-content {
+            width: 85%;
+            height: 600px;
+            resize: none;
+            overflow: auto;
+            background-color: white;
+            border: inset;
+            border-width: 2px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>系统运行日志</h1></div>
+
+    <div class="user_operation">
+        <div class="tips">*不选择日期则查询当天的日志</div>
+    </div>
+    <div class="widget-box">
+        <table id="sr_log_table" class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th style="width: 200px">时间</th>
+                <th>系统活动</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div id="time-range" style="display:none;"></div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <!--<script src="{{ url_for('static', filename='js/bootstrap-datepicker.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bootstrap-timepicker.min.js') }}"></script>-->
+    <!-- <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>-->
+    <!--<script src="{{ url_for('static', filename='js/jquery.dataTables.bootstrap.js') }}"></script>-->
+    <script src="{{ url_for('static', filename='js/date.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/daterangepicker.min.js') }}"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+            active_sidebar("#logs", "#system_operations");
+            /*var table = $('#sr_log_table').dataTable({
+             "language": {
+             "url": "
+            {{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+             },
+             "aoColumns": [
+             { "bSortable": true },
+             { "bSortable": true },
+             { "bSortable": false }
+             ],
+             "aaSorting": [],
+             });*/
+
+            var dTable = $('#sr_log_table').dataTable({
+                "fnServerParams": function (aoData) {
+                    //aoData.push({"name":"date_range", "value": $("#id-date-range-picker").val()});
+                    aoData.push({"name": "date_range", "value": $("#time-range").text()});
+                },
+                "bServerSide": true,
+                "sAjaxSource": "{{ url_for('log.system_running_log_table') }}",
+                "oLanguage": {
+                    "sSearch": "" +
+                    "<label>搜索：&nbsp;</label>" +
+                    "<span class='add-on'> _INPUT_ </span>" +
+                    "<label for='id-date-range-picker'>日期选择：&nbsp;</label>" +
+                    "<span class='add-on'><input  type='text' name='date_range' id='id-date-range-picker' /> </span>" +
+                    "<button id='filter_button'>查询</button>",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "上页",
+                        "sNext": "下页",
+                        "sLast": "末页"
+                    },
+                    "sProcessing": "处理中...",
+                    "sLengthMenu": "显示_MENU_项结果",
+                    "sZeroRecords": "没有匹配结果",
+                    "sInfo": "显示第_START_至_END_项结果，共_TOTAL_项",
+                    "sInfoEmpty": "显示第0至0项结果，共0项",
+                    "sInfoFiltered": "(由_MAX_项结果过滤)",
+                    "sInfoPostFix": "",
+                    "sEmptyTable": "表中数据为空",
+                    "sLoadingRecords": "载入中...",
+                    "sInfoThousands": ",",
+                    "oAria": {
+                        "sSortAscending": ":以升序排列此列",
+                        "sSortDescending": ":以降序排列此列"
+                    }
+
+                    //"sUrl": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "fnDrawCallback": function (oSettings) {
+                    $('table th input:checkbox').prop('checked', false);
+                },
+                "aoColumns": [
+                    {"mData": "created_at"},
+                    {"mData": "message"},
+                ],
+                "aaSorting": [[0, 'desc']],
+                "iDisplayLength": 25
+            });
+
+            $("#search-btn").click(function () {
+                $("#time-range").html($("#id-date-range-picker").val());
+            });
+
+            $('div#sr_log_table_filter input').unbind();
+            $('#filter_button').click(function () {
+                $.ajax({
+                    url: '/log/test_session',
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        location.reload();
+                    }
+                })
+                filter_str = $('div#sr_log_table_filter input').val();
+                var temp = $("#id-date-range-picker").val();
+                $("#time-range").html(temp);
+                dTable.fnFilter(filter_str);
+                $("#id-date-range-picker").val(temp);
+            })
+
+
+            var daterange_option = {
+                "locale": {
+                    "separator": " - ",
+                    "applyLabel": "确定",
+                    "cancelLabel": "取消",
+                    "fromLabel": "从",
+                    "toLabel": "到",
+                    "customRangeLabel": "Custom",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "六"
+                    ],
+                    "monthNames": [
+                        "一月",
+                        "二月",
+                        "三月",
+                        "四月",
+                        "五月",
+                        "六月",
+                        "七月",
+                        "八月",
+                        "九月",
+                        "十月",
+                        "十一月",
+                        "十二月"
+                    ],
+                    "firstDay": 1
+                },
+                opens: 'left'
+            }
+            
+            $('#id-date-range-picker').daterangepicker(daterange_option).on('apply.daterangepicker', function (ev, picker) {
+                console.log("Now showing anything?")
+                console.log("apply event fired, start/end dates are "
+                        + picker.startDate.format('MMMM D, YYYY')
+                        + " to "
+                        + picker.endDate.format('MMMM D, YYYY')
+                );
+            });
+            $('#id-date-range-picker').on('show.daterangepicker', function () {
+                console.log("show event fired");
+            });
+            $('#id-date-range-picker').on('hide.daterangepicker', function () {
+                console.log("hide event fired");
+            });
+        });
+    </script>
+
+{% endblock %}

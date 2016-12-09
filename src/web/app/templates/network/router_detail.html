@@ -1,0 +1,502 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}路由详情{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-add {
+            width: 350px;
+        }
+        body .profile-info-value {
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        body .modal-delete {
+            width: 350px;
+        }
+        body .modal-detail {
+            width: 450px;
+        }
+        
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>路由详情:{{ router_info.name or ("(" + router_info.id + ")") }}</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">路由概览</h4>
+        </div>
+        <div class="widget-main no-padding">
+        <table id="network_info"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>ID</th>
+                <th>状态</th>
+                {% if router_info.get("external_network") %}
+                <th>外部网关信息</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th id="current_network_name" style="vertical-align:middle">{{ router_info.name or "无" }}</th>
+                    <th id="current_network_id" style="vertical-align:middle">{{ router_info.id }}</th>
+                    <th style="vertical-align:middle">{{ router_info.status }}</th>
+                    {% if router_info.get("external_network") %}
+                    <th>已连接至外部网络: {{ router_info.get("external_network") }}</th>
+                    {% endif %}
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+
+    <div class="page-header"></div>
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">接口列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="add_interface" href="javascript:void(0)" title="增加接口"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                增加接口 </a>
+                            <a id="batch_delete_interfaces" class="red" href="javascript:void(0)"
+                               title="删除接口"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除接口
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="widget-main no-padding">
+            <table id="interface_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>名称</th>
+                    <th>固定IP</th>
+                    <th>状态</th>
+                    <th>类型</th>
+                    <th>管理员状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for interface in interface_list %}
+                    <tr id="interface_tr_{{interface.id}}">
+                        <td class='center'>
+                            <label><input type='checkbox' id="{{ interface.id }}" class="ace"
+                                {% if interface.device_owner == "network:router_gateway" %}
+                                    disabled
+                                {% endif %}
+                            /><span class="lbl"></span></label>
+                            <input id="interface_mac_address_{{interface.id}}" type="hidden" value="{{ interface.mac_address }}">
+                            <input id="interface_device_id_{{interface.id}}" type="hidden" value="{{ interface.device_id }}">
+                            <input id="interface_device_owner_{{interface.id}}" type="hidden" value="{{ interface.device_owner}}">
+                        </td>
+                        <td>
+                            <a href="#" title="查看端口详情" id="interface_name_{{interface.id}}" value="{{ interface.name }}" onclick="on_interface_detail_click('{{interface.id}}')">{{ interface.name or ("(" + interface.id + ")") }}</a>
+                        </td>
+                        <td>
+                            {% for fixed_ip in interface.fixed_ips %}
+                                {{ fixed_ip.ip_address }}
+                                {% if not loop.last %}
+                                    <br/>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ interface.status }}</td>
+                        <td>
+                            {% if interface.device_owner == "network:router_gateway" %}
+                                外部网关
+                            {% elif interface.device_owner == "network:router_interface" %}
+                                内部接口
+                            {% else %}
+                                未知
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if interface.admin_state_up %}
+                                UP
+                            {% else %}
+                                DOWN
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if interface.device_owner != "network:router_gateway" %}
+                                    <a href="javascript:void(0)" class="red" title="删除接口" onclick="on_interface_remove_click('{{ interface.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="interface_remove_dialog" class="modal fade">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除接口</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="interface_remove_dialog_reminder"> 确定删除所选择的接口吗?</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="interface_remove_confirm" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="router_add_interface_dialog" class="modal fade">
+        <div class="modal-dialog modal-add">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">增加接口</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="router_add_interface_form" action="#" method="post">
+                        {{ router_add_interface_form.hidden_tag() }}
+                        <div class="form-group">
+                                <label for="form-field-8">路由ID</label>
+                                <div class="">
+                                    {{ router_add_interface_form.router_id(id="router_add_interface_form_router_id", class_='form-control', type='text', placeholder='路由ID', readonly="readonly") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">路由名称</label>
+                                <div class="">
+                                    <input type="text" id="router_add_interface_form_router_name" value="" class="form-control" disabled/>
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">子网</label>
+                                <div class="">
+                                    {{ router_add_interface_form.subnet_id(id="router_add_interface_form_subnet_id", class_='select2', placeholder='请选择', style="width:100%") }}
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="form-field-8">IP地址(可选)</label>
+                                <div class="">
+                                    {{ router_add_interface_form.ip_address(id="router_add_interface_form_ip_address", class_='form-control', type='text', placeholder='IP地址') }}
+                                </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="router_add_interface_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="interface_detail_dialog" class="modal fade">
+        <div class="modal-dialog modal-detail">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">端口详情</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-user-info profile-user-info-striped">
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 名称 </div>
+                                <div class="profile-info-value">
+                                    <span id="interface_detail_name"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> ID </div>
+                                <div class="profile-info-value">
+                                    <span id="interface_detail_id"></span>
+                                </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> MAC地址 </div>
+                            <div class="profile-info-value">
+                                <span id="interface_detail_mac_address"></span>
+                            </div>
+                        </div>
+                        <div class="profile-info-row">
+                            <div class="profile-info-name"> 连接设备 </div>
+                            <div class="profile-info-value">
+                                <span id="interface_detail_device"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.blockUI.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fuelux.wizard.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-editable.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ace-editable.min.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks");
+        
+        var selected_interfaces = [];
+
+        $(function() {
+            interface_table = $('#interface_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    {"bSortable": false}, {"bSortable": false}, 
+                    {"bSortable": false}, {"bSortable": false, "bSearchable": false}]
+            });
+            
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+            
+            $(".select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+            
+            router_add_interface_form_validator = $("#router_add_interface_form").validate({
+                ignore:[],
+                rules: {
+                    subnet_id: {
+                        required: true,
+                    },
+                    ip_address: {
+                        checkip: true,
+                    }
+                },
+                messages: {
+                    subnet_id: {
+                        required: "请选择子网",
+                    },
+                    ip_address: {
+                        checkip: "请输入所选子网的一个IP地址"
+                    }
+                }
+            });
+            
+            $("#add_interface").click(function() {
+                router_add_interface_form_validator.resetForm();
+                $("#router_add_interface_form_router_id").val("{{router_info.id}}");
+                $("#router_add_interface_form_router_name").val("{{router_info.name}}");
+                $("#router_add_interface_form_subnet_id").select2("val","");
+                $("#router_add_interface_dialog").modal("show");
+            });
+            
+            $("#router_add_interface_confirm").click(function() {
+                add_interface_router();
+            });
+
+            $("#interface_remove_confirm").click(function() {
+                remove_interface_routers();
+            });
+            
+            $("#batch_delete_interfaces").click(function() {
+                selected_interfaces = [];
+                $("#interface_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_interfaces.push(this.id);
+                });
+                
+                if (selected_interfaces.length > 0) {
+                    $("#interface_remove_dialog_reminder").text("确定删除所选择的接口吗?");
+                    $("#interface_remove_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的接口";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+        });
+
+
+        function on_interface_detail_click(interface_id) {
+            var interface_name = $("#interface_name_" + interface_id).attr("value");
+            interface_name = interface_name? interface_name: "无";
+            var interface_mac_address = $("#interface_mac_address_" + interface_id).val();
+            var interface_device_owner = $("#interface_device_owner_" + interface_id).val();
+            var interface_device_id = $("#interface_device_id_" + interface_id).val();
+            var interface_device = "设备属主:" + interface_device_owner + "  设备ID:" + interface_device_id;
+            
+            $("#interface_detail_name").text(interface_name);
+            $("#interface_detail_id").text(interface_id);
+            $("#interface_detail_mac_address").text(interface_mac_address);
+            $("#interface_detail_device").text(interface_device);
+            $("#interface_detail_dialog").modal("show");
+        }
+
+
+        function on_interface_remove_click(interface_id) {
+            selected_interfaces = [];
+            selected_interfaces.push(interface_id);
+            
+            var interface_name = $("#interface_name_" + interface_id).text();
+            var reminder = "确定删除接口'" + interface_name + "'吗?";
+            $("#interface_remove_dialog_reminder").text(reminder);
+            $("#interface_remove_dialog").modal("show");
+        }
+
+
+        function remove_interface_routers() {
+            $("#interface_remove_dialog").modal("hide");
+            if (selected_interfaces.length <= 0)
+                return;
+            
+            function on_remove_interface_routers_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var interface_name = $("#interface_name_" + success_list[i]).text();
+                        if (interface_name)
+                            success_text += "接口&nbsp;" + interface_name + "&nbsp;删除成功</br>";
+                    }
+                    
+                    for (var i in fail_list) {
+                        var interface_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var interface_name = $("#interface_name_" + interface_id).text();
+                        if (interface_name)
+                            fail_text += "接口&nbsp;" + interface_name + "&nbsp;删除失败:&nbsp;" + reason + "</br>";
+                    }
+                    
+                    // 更新table interface_list
+                    for (var i in success_list) {
+                        interface_table.row($("#interface_tr_" + success_list[i])).remove();
+                    }
+                    interface_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+            
+            function on_remove_interface_routers_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除接口过程出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+            
+            $.ajax({
+                url: "{{ url_for('network.remove_interface_routers') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON({"router_id": '{{router_info.id}}', "interface_ids": selected_interfaces}),
+                success: on_remove_interface_routers_success,
+                error: on_remove_interface_routers_error
+            });
+        }
+
+
+        function add_interface_router() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.add_interface_router') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#router_add_interface_form").valid()) {
+                    $("#router_add_interface_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "增加接口成功";
+                    location.reload();
+                } else {
+                    success = false;
+                    content = "增加接口失败: ";
+                    content += result_json['data']? result_json['data']: result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#router_add_interface_form").ajaxSubmit(options);
+        }
+    </script>
+
+{% endblock %}

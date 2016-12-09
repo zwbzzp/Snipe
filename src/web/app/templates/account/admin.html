@@ -1,0 +1,556 @@
+{% extends 'layout.html' %}
+{% block title %}管理员{% endblock %}
+{% block inline_styles %}
+    <style type="text/css">
+        body .modal-user {
+            width: 500px;
+        }
+
+        input[type=checkbox].ace.ace-switch.ace-switch-4 + .lbl::before {
+            text-indent: -4px !important;
+        }
+        input[type=checkbox].ace.ace-switch.ace-switch-4:checked + .lbl::before {
+            text-indent: 7px !important;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+    <div class="page-header"><h1>管理员</h1></div>
+    <div class="widget-box">
+        <div class="widget-header">
+            <h4 class="widget-title">管理员列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a id="create_user" href="javascript:void(0)"><i class="ace-icon fa fa-plus-circle"></i> 创建用户 </a>
+                    <a id="delete_users" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 删除所选用户 </a>
+                </div>
+            </div>
+            <div class="widget-main no-padding">
+                <table id="user_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                        <th>账号</th>
+                        <th>姓名</th>
+                        <th>邮箱</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr id="user_tr_{{ user.id }}">
+                            {% if user.username != 'admin' %}
+                                <td class="center"><label class="pos-rel"><input type="checkbox" id="user_{{ user.id }}" class="ace"><span class="lbl"></span></label></td>
+                            {% else %}
+                                <td class="center"><label class="pos-rel"><span class="lbl"></span></label></td>
+                            {% endif %}
+                            <td id="username_{{ user.id }}">{{ user.username }}</td>
+                            <td id="fullname_{{ user.id }}">{{ user.fullname }}</td>
+                            <td id="email_{{ user.id }}">{{ user.email }}</td>
+                            <td id="status_{{ user.id }}">
+                                {% if not user.is_super_administrator() %}
+                                    {% if user.is_active %}
+                                        <label>
+                                            <input id="status_btn" checked type="checkbox" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="激活 禁用" onclick="on_status_change_click({{ user.id }}, false)"/>
+                                        </label>
+                                    {% else %}
+                                        <label>
+                                            <input id="status_btn" type="checkbox" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="激活 禁用" onclick="on_status_change_click({{ user.id }}, true)"/>
+                                        </label>
+                                    {% endif %}
+                                {% else %}
+                                    {% if user.is_active %}
+                                        <label>
+                                            <input id="status_btn" checked type="checkbox" disabled="disabled" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="激活 禁用"/>
+                                        </label>
+                                    {% else %}
+                                        <label>
+                                            <input id="status_btn" type="checkbox" disabled="disabled" class="ace ace-switch ace-switch-4" /><span class="lbl" data-lbl="激活 禁用"/>
+                                        </label>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="javascript:void(0)" title="编辑用户" onclick="on_update_click({{ user.id }})"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                                    {% if not user.is_super_administrator() %}
+                                        <a class="red" title="删除用户" onclick="on_delete_click({{ user.id }})"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="user_dialog" class="modal fade">
+        <div class="modal-dialog modal-user">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="user_dialog_title">创建用户</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="user_form" role="form" action="{{ url_for('account.create_user') }}" method="post">
+
+                        {{ form.csrf_token }}
+                        <input type="hidden" name="role" value="{{ role }}">
+                        <div class="form-group">
+                            <label for="form-field-8">用户名</label>
+                            <div class="">
+                                <input class="form-control" id="username" name="username" placeholder="用户名" type="text" data-rule-required='true' data-msg-required='请输入用户名' data-rule-maxlength='64' data-msg-maxlength='长度不超过64个字'>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">姓名</label>
+                            <div class="">
+                                <input class="form-control" id="fullname" name="fullname" placeholder="姓名" type="text" data-rule-required='true' data-msg-required='请输入姓名' data-rule-maxlength='64' data-msg-maxlength='长度不超过64个字'>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">邮箱</label>
+                            <div class="">
+                                <input class="form-control" id="email" name="email" placeholder="邮箱" value="" type="email" data-rule-required='true' data-msg-required='请输入邮件地址' data-rule-rangelength='1,64' data-msg-rangelength='长度1-64个字'>
+                            </div>
+                        </div>
+
+                        <div class="form-group password">
+                            <label for="form-field-8">密码</label>
+                            <div class="">
+                                <input class="form-control" id="password" name="password" placeholder="密码" value="" type="password" data-rule-required='true' data-msg-required='请输入用户密码' data-rule-rangelength='5,64' data-msg-rangelength='长度5-64个字'>
+                            </div>
+                        </div>
+
+                        <div class="form-group password">
+                            <label for="form-field-8">确认密码</label>
+                            <div class="">
+                                <input class="form-control" id="confirm" name="confirm" placeholder="确认密码" value="" type="password" data-rule-required='true' data-msg-required='请输入用户密码' data-rule-rangelength='5,64' data-msg-rangelength='长度5-64个字' data-rule-equalTo='#password' data-msg-equalTo='确认密码不一致'>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="confirm_action" type="button" class="btn btn-success"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- delete user confirmation dialog -->
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除用户</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的用户?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#accounts", "#admin_accounts");
+
+        var selected_user = [];
+
+        // record user status
+        var user_status = true;
+
+        // dialog mode switch
+        var user_dialog_mode = "create";
+
+        $(document).ready(function() {
+
+            $(document).ajaxStart(function(){
+                $.blockUI({
+                    message: "<h3>请等待...</h3>",
+                    css: {
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+            });
+            $(document).ajaxStop($.unblockUI);
+
+            // convert table to jquery dataTable
+            // dataTable will return a jQuery object, while DataTable returns a DataTables API instance.
+            var user_table = $("#user_table").DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    { "bSortable": false },
+                    null, null, null, null,
+                    { "bSortable": false }
+                ],
+                "aaSorting": []
+            });
+
+            /**
+             * Below are create and update user related code
+             */
+
+            // create user button click
+            $("#create_user").click(function () {
+                // reset form from update user mode
+                user_dialog_mode = "create";
+                $("#username").prop("readonly", false);
+                $("#user_dialog, .password").show();
+                $("#user_dialog_title").text("创建用户");
+                $("#user_form").validate().resetForm();
+
+                $("#user_dialog").modal("show");
+            });
+
+            // user form validation
+            var $validator = $("#user_form").validate({
+            });
+
+            // create/update user
+            $("#confirm_action").click(function () {
+                var isvalid = $("#user_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                if (user_dialog_mode == "create") {
+                    $.ajax({
+                        url: "{{ url_for('account.create_user') }}",
+                        type: "POST",
+                        data: $("#user_form").serialize(),
+                        success: on_create_user_success,
+                        error: on_create_user_error
+                    });
+                } else {
+                    var url_template = "{{ url_for('account.update_user', id=0) }}";
+                    url = url_template.replace('0', selected_user[0]);
+                    $.ajax({
+                        url: url,
+                        type: "PUT",
+                        data: $("#user_form").serialize(),
+                        success: on_update_user_success,
+                        error: on_update_user_error
+                    });
+                }
+            });
+
+            function on_create_user_success(request, msg, e) {
+                var json_result = $.parseJSON(e.responseText);
+                if (json_result) {
+                    var status = json_result.status;
+                    var data = json_result.data;
+                    switch (status) {
+                        case "success":
+                            $("#user_dialog").modal("hide");
+                            // 更新user_table
+                            var tr = "<tr id='user_tr_"+data.id+"'>"+
+                                        (data.username != 'admin'?
+                                        "<td class='center'><label class='pos-rel'><input type='checkbox' id='user_"+data.id+"' class='ace'><span class='lbl'></span></label></td>":
+                                        "<td class='center'><label class='pos-rel'><span class='lbl'></span></label></td>")+
+                                        "<td id='username_"+data.id+"'>"+data.username+"</td>"+
+                                        "<td id='fullname_"+data.id+"'>"+data.fullname+"</td>"+
+                                        "<td id='email_"+data.id+"'>"+data.email+"</td>"+
+                                        "<td id='status_"+data.id+"'>"+
+                                        // to fix: after create, it can still update the status, it's a bug
+                                        "<label><input id='status_btn' " + (data.is_active?"checked ":"")+"type='checkbox' " + " class='ace ace-switch ace-switch-4'/><span class='lbl' data-lbl='激活 禁用' onclick='on_status_change_click("+data.id+(data.is_active?",false":",true")+")'/></label>"+
+                                        "</td>"+
+                                        "<td>"+
+                                            "<div class='action-buttons'>"+
+                                                '<a href="javascript:void(0)" title="编辑用户" onclick="on_update_click('+data.id+')"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>\n'+
+                                                (data.username != 'admin'?
+                                                '<a class="red" title="删除用户" onclick="on_delete_click('+data.id+')"><i class="acxse-icon fa fa-trash-o bigger-130"></i></a>': "") +
+                                            "</div>"+
+                                        "</td>"+
+                                    "</tr>";
+                            $("#user_table tbody ").append(tr);
+                            var new_row = $("#user_tr_"+data.id);
+                            user_table.row.add(new_row);
+                            // 显示提示信息
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '用户&nbsp;'+data.username+'&nbsp;创建成功',
+                                class_name: 'gritter-success'
+                            });
+                            break;
+                        case "fail":
+                            // display server side form error messages
+                            var form_errors = data['form_errors'];
+                            var errors = null;
+                            if (form_errors['username']
+                                    && form_errors['username'][0] == '用户名已经存在') {
+                                errors = { username: "用户名已经存在" };
+                                $validator.showErrors(errors);
+                            }
+                            if (form_errors['email']
+                                    && form_errors['email'][0] == '邮件地址已被使用') {
+                                errors = { email: "邮件地址已被使用" };
+                                $validator.showErrors(errors);
+                            }
+                            break;
+                        default:
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '服务器异常',
+                                class_name: 'gritter-error'
+                            });
+                    }
+                }
+            }
+
+            function on_create_user_error(response) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '用户创建过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function on_update_user_success(request, msg, e) {
+                var json_result = $.parseJSON(e.responseText);
+                if (json_result) {
+                    var status = json_result.status;
+                    var data = json_result.data;
+                    switch (status) {
+                        case "success":
+                            $("#user_dialog").modal("hide");
+                            // 修改user_table
+                            $("#fullname_"+data.id).text(data.fullname);
+                            $("#email_"+data.id).text(data.email);
+                            // 显示提示信息
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '用户&nbsp;'+data.username+'&nbsp;信息修改成功',
+                                class_name: 'gritter-success'
+                            });
+                            break;
+                        case "fail":
+                            // display server side form error messages
+                            var form_errors = data['form_errors'];
+                            var errors = null;
+                            if (form_errors['email']
+                                    && form_errors['email'][0] == '邮件地址已被使用') {
+                                errors = { email: "邮件地址已被使用" };
+                                $validator.showErrors(errors);
+                            }
+                            break;
+                        default:
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '服务器异常',
+                                class_name: 'gritter-error'
+                            });
+                    }
+                }
+            }
+
+            function on_update_user_error(response) {
+                $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '修改过程中出现错误',
+                                class_name: 'gritter-error'
+                            });
+            }
+
+            /**
+             * Below are delete user related code
+             */
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox][id!='status_btn']").prop('checked', false);
+
+            // select all
+            $("#user_table thead th input[type=checkbox]").eq(0).click(function () {
+                var checked = this.checked;
+                $(this).closest('table').find("tbody td input[type=checkbox][id!='status_btn']").each(function () {
+                    this.checked = checked;
+                })
+            });
+
+            // delete users
+            $("#delete_users").click(function () {
+                selected_user = [];
+                $("#user_table td input[type=checkbox][id!='status_btn']").each(function () {
+                    if (this.checked) {
+                        var user_id = this.id.split("_")[1];
+                        selected_user.push(user_id);
+                    }
+                });
+                if (selected_user.length > 0) {
+                    $("#delete_confirm_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的用户";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            function on_delete_users_success(responseJson) {
+                var success_text = "";
+                var fail_text = "";
+                var success_list = responseJson.data.success_list;
+                var fail_list = responseJson.data.fail_list;
+
+                // 显示提示信息
+                for (var i in success_list) {
+                    var username = success_list[i].username;
+                    if (username == undefined) {
+                        username = $("#username_" + success_list[i].id).html();
+                    }
+                    if (username != undefined && username != null)
+                        success_text += "用户&nbsp;"+username+"&nbsp;删除成功</br>";
+                }
+                for (var i in fail_list) {
+                    fail_text += "用户&nbsp;"+(fail_list[i].username)+"&nbsp;删除失败</br>";
+                }
+
+                // 更新user_table
+                for (var i in success_list) {
+                    user_table.row($("#user_tr_"+success_list[i].id)).remove();
+                }
+                user_table.draw(false);
+
+                if (success_text.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: success_text,
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (fail_text.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: fail_text,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            function on_delete_users_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '删除过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            // confirm delete
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                $.ajax({
+                    url: "{{ url_for('account.delete_users') }}",
+                    type: "DELETE",
+                    contentType: "application/json",
+                    data: $.toJSON(selected_user),
+                    success: on_delete_users_success,
+                    error: on_delete_users_error
+                });
+            });
+        });
+
+        /**
+         * Below code for specific user operation
+         */
+
+        function on_delete_click(user_id) {
+            selected_user = [];
+            selected_user.push(user_id);
+            if (selected_user.length > 0) {
+                $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+        function on_status_change_click(user_id, status) {
+            selected_user = [];
+            selected_user.push(user_id);
+            user_status = status;
+            if (selected_user.length > 0) {
+                var url_template = "{{ url_for('account.update_user_status', id=0) }}";
+                url = url_template.replace('0', selected_user[0]);
+                $.ajax({
+                    url: url,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: $.toJSON(user_status),
+                    success: on_change_user_status_success,
+                    error: on_change_user_status_error
+                });
+            }
+
+            function on_change_user_status_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '修改用户状态过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function on_change_user_status_success(responseJson) {
+                var data = responseJson.data;
+                if (data.is_active) {
+                    $("#status_"+data.id)
+                            .html('<label><input id="status_btn" checked type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="激活 禁用" onclick="on_status_change_click('+data.id+',false)"/></label>')
+                    text = "用户&nbsp;"+data.username+"&nbsp;激活成功"
+                } else {
+                    $("#status_"+data.id)
+                            .html('<label><input id="status_btn" type="checkbox" ' + 'class="ace ace-switch ace-switch-4"/><span class="lbl" data-lbl="激活 禁用" onclick="on_status_change_click('+data.id+',true)"/></label>')
+                    text = "用户&nbsp;"+data.username+"&nbsp;禁用成功"
+                }
+
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: text,
+                    class_name: 'gritter-success'
+                });
+            }
+
+        }
+
+        function on_update_click(user_id) {
+            selected_user = [];
+            selected_user.push(user_id);
+            if (selected_user.length > 0) {
+                // reset form from create user mode
+                user_dialog_mode = "update";
+                $("#user_form").validate().resetForm();
+                $("#user_dialog, .password").hide();
+                $("#user_dialog_title").text("更新用户");
+                $("#username").val($("#username_" + user_id).text()).prop("readonly", true);
+                $("#fullname").val($("#fullname_" + user_id).text());
+                $("#email").val($("#email_" + user_id).text());
+
+                $("#user_dialog").modal("show");
+            }
+        }
+    </script>
+{% endblock %}
+

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}云晫License管理系统{% endblock %}
+{% block template_styles %}
+    {{ super() }}
+    <!-- vinzor style -->
+    <link href="{{ url_for('static', filename='css/vinzor.css') }}" rel="stylesheet">
+{% endblock %}
+{% block plugin_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jquery.validate.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vinzor-validate.js') }}"></script>
+{% endblock %}
+{% block inline_scripts %}
+<!-- page javascript -->
+<script type="text/javascript">
+    {{ super() }}
+    $(function() {
+        $("#login_form").validate({
+            rules: {
+                username_email: {
+                    required: true,
+                    rangelength: [1, 64]
+                },
+                password: {
+                    required: true,
+                    rangelength: [5, 64]
+                }
+            },
+            messages: {
+                username_email: {
+                    required: '用户名不能为空',
+                    rangelength: '用户名长度为1～64个字'
+                },
+                password: {
+                    required: '密码不能为空',
+                    rangelength: '密码长度为5～64个字'
+                }
+            }
+        })
+    });
+
+    function detectCapsLock(event) {
+        var e = event||window.event;
+        var keyCode = e.keyCode||e.which; // 按键的keyCode
+        var isShift = e.shiftKey ||(keyCode == 16 ) || false ; // shift键是否按住
+
+        if ((keyCode >= 65 && keyCode <= 90 ) && !isShift){
+            // Caps Lock 打开，且没有按住shift键
+            $("#login_state").html("键盘大写锁定打开，请注意大小写");
+            $("#login_state").show()
+        }
+        else if (((keyCode >= 65 && keyCode <= 90 ) && isShift)
+        ){
+            // Caps Lock 关闭，且按住shift键
+            $("#login_state").html("Shift键输入大写，请注意大小写");
+            $("#login_state").show();
+        }
+        else{
+          $("#login_state").hide()
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+  <body id="login_body">
+    <div id="header">
+    </div>
+    <div id="content">
+        <div id="login_box">
+            <div id="login_box_title" class="input_group">
+              <p>云晫License管理系统</p>
+            </div>
+            <form method="POST" id="login_form">
+                {{ form.hidden_tag() }}
+                <div class="input_group">
+                    {{ form.username_email(placeholder="用户名") }}
+                </div>
+                <div class="input_group">
+                    {{ form.password(placeholder="密 码", onkeypress='detectCapsLock(event)') }}
+                </div>
+                <div class="input_group">
+                    {{ form.submit(class='login_btn btn-primary') }}
+                </div>
+            </form>
+            <div class="input_group">
+              <a href="{{ url_for('account.password_reset_request') }}" id="reset_password">忘记密码?</a>
+                <div id="login_state">
+				    {{ get_flashed_messages()[0] }}
+              </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+          <p>&copy; 云晫信息科技 2013-{{ year }} | 帮助中心 | 问题反馈 </p>
+    </div>
+  </body>
+{% endblock %}

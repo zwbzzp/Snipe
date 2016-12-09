@@ -1,0 +1,540 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}管理安全组规则{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+        body .modal-allocate {
+            width: 600px;
+        }
+        textarea.form-control {
+            height: 60px !important;
+            resize: none;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>管理安全组规则:{{ secgroup.name or '-' }}</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">安全组规则列表</h4>
+        </div>
+        
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="create_security_group_rule" href="javascript:void(0)" title="添加规则"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                添加规则 </a>
+                            <a id="delete_security_group_rules" class="red" href="javascript:void(0)"
+                               title="删除规则"><i
+                                    class="ace-icon fa fa-trash"></i>
+                                删除规则
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="widget-main no-padding">
+            <table id="secgroup_rule_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th class="center">
+                            <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                        </th>
+                        <th>方向</th>
+                        <th>输入类型</th>
+                        <th>IP协议</th>
+                        <th>端口范围</th>
+                        <th>远程</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in secgroup.rules %}
+                        <tr id="rule_tr_{{ rule.id }}">
+                            <td class='center' style="vertical-align:middle">
+                                <label><input type='checkbox' id="{{ rule.id }}" class="ace"/><span class="lbl"></span></label>
+                            </td>
+                            <td id="rule_direction_{{rule.id}}" val="{{rule.direction}}">{% if rule.direction == 'ingress' %}入口{% elif rule.direction == 'egress' %}出口{% endif %}</td>
+                            <td id="rule_ethertype_{{rule.id}}" val="{{rule.ethertype or ''}}">{{ rule.ethertype or '-' }}</td>
+                            <td id="rule_ip_protocol_{{rule.id}}" val="{{rule.ip_protocol or ''}}">{{ rule.ip_protocol|upper or '任何' }}</td>
+                            <td id="rule_port_range_{{rule.id}}" val="{{rule.port_range}}">{{ rule.port_range }}</td>
+                            <td id="rule_remote_{{rule.id}}" val="{% if 'cidr' in rule.ip_range %}{% if not rule.ip_range.cidr %}{% if rule.ethertype == 'IPv6' %}::/0{% else %}0.0.0.0/0{% endif%}{% else %}{{ rule.ip_range.cidr }}{% endif %}{% elif 'name' in rule.group %}{{ rule.group.name or '' }}{% else %}{{ '' }}{% endif %}">
+                                {% if 'cidr' in rule.ip_range %}
+                                    {% if not rule.ip_range.cidr %}
+                                        {% if rule.ethertype == 'IPv6' %}
+                                            ::/0 (CIDR)
+                                        {% else %}
+                                            0.0.0.0/0 (CIDR)
+                                        {% endif %}
+                                    {% else %}
+                                        {{ rule.ip_range.cidr }} (CIDR)
+                                    {% endif %}
+                                {% elif 'name' in rule.group %}
+                                    {{ rule.group.name or '' }}
+                                {% else %}
+                                    {{ '' }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="javascript:void(0)" class="red" title="删除规则" onclick="on_sgr_delete_click('{{ rule.id }}')"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    
+    <div id="sgr_create_dialog" class="modal fade">
+        <div class="modal-dialog modal-create">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">添加规则</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="sgr_create_form" action="#" method="post">
+                        {{ sgr_create_form.csrf_token() }}
+                        {{ sgr_create_form.ID(id="sgr_create_form_id", class_='form-control', value=secgroup.id) }}
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    {{ sgr_create_form.rule_menu.label }}
+                                    {{ sgr_create_form.rule_menu(id="sgr_create_form_rule_menu", type='text', placeholder='规则', style="width:100%") }}
+                                </div>
+                                {% if sgr_create_form.direction %}
+                                <div class="form-group">
+                                    {{ sgr_create_form.direction.label }}
+                                    {{ sgr_create_form.direction(id="sgr_create_form_direction", type='text', placeholder='方向', style="width:100%") }}
+                                </div>
+                                {% endif %}
+                                {% if sgr_create_form.ip_protocol %}
+                                <div class="form-group">
+                                    {{ sgr_create_form.ip_protocol.label }}
+                                    {{ sgr_create_form.ip_protocol(id="sgr_create_form_ip_protocol", class_='form-control', type='text', title=sgr_create_form.ip_protocol.description, data_rel="tooltip", data_placement="left", placeholder='IP协议', style="width:100%") }}
+                                </div>
+                                {% endif %}
+                                <div class="form-group">
+                                    {{ sgr_create_form.port_or_range.label }}
+                                    {{ sgr_create_form.port_or_range(id="sgr_create_form_port_or_range", type='text', placeholder='端口范围', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.port.label }}
+                                    {{ sgr_create_form.port(id="sgr_create_form_port", class_='form-control', type='text', title=sgr_create_form.port.description, data_rel="tooltip", data_placement="left", placeholder='端口', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.from_port.label }}
+                                    {{ sgr_create_form.from_port(id="sgr_create_form_from_port", class_='form-control', type='text', title=sgr_create_form.from_port.description, data_rel="tooltip", data_placement="left", placeholder='起始端口号', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.to_port.label }}
+                                    {{ sgr_create_form.to_port(id="sgr_create_form_to_port", class_='form-control', type='text', title=sgr_create_form.to_port.description, data_rel="tooltip", data_placement="left", placeholder='终止端口号', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.icmp_type.label }}
+                                    {{ sgr_create_form.icmp_type(id="sgr_create_form_icmp_type", class_='form-control', type='text', title=sgr_create_form.icmp_type.description, data_rel="tooltip", data_placement="left", placeholder='ICMP类型', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.icmp_code.label }}
+                                    {{ sgr_create_form.icmp_code(id="sgr_create_form_icmp_code", class_='form-control', type='text', title=sgr_create_form.icmp_code.description, data_rel="tooltip", data_placement="left", placeholder='ICMP编码', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.remote.label }}
+                                    {{ sgr_create_form.remote(id="sgr_create_form_remote", class_='select2', type='text', title=sgr_create_form.remote.description, data_rel="tooltip", data_placement="left", placeholder='远程', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.cidr.label }}
+                                    {{ sgr_create_form.cidr(id="sgr_create_form_cidr", class_='form-control', title=sgr_create_form.cidr.description, data_rel="tooltip", data_placement="left", type='text', style="width:100%") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ sgr_create_form.security_group.label }}
+                                    {{ sgr_create_form.security_group(id="sgr_create_form_security_group", class_='select2', type='text', placeholder='安全组', style="width:100%") }}
+                                </div>
+                                {% if sgr_create_form.ethertype %}
+                                <div class="form-group">
+                                    {{ sgr_create_form.ethertype.label }}
+                                    {{ sgr_create_form.ethertype(id="sgr_create_form_ethertype", class_='select2', type='text', placeholder='以太网类型', style="width:100%") }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-sm-6">
+                                <div class="form-group-sm">
+                                    <h3>描述:</h3>
+                                    <p>安全组定义哪些通过规则可以访问云桌面.安全组由一下三个组要组件组成:</p>
+                                    <p><strong>规则</strong>: 你可以指定期望的规则模板或者使用定制规则，选项有定制TCP规则、定制UDP规则或定制ICMP规则。</p>
+                                    <p><strong>打开端口/端口范围</strong>: 你选择的TCP和UDP规则可能会打开一个或一组端口.选择"端口范围"将为你提供开始和结束端口的范围.对于ICMP规则你需要指定ICMP类型和所提供的空间里面的代码.</p>
+                                    <p><strong>远程</strong>: 你必须指定允许通过该规则的源.可以通过一下两种方式实现ip黑名单形式(CIDR)或者通过源地址组(安全组).作为源地址选择一个安全组允许该安全组中的任何云主机使用该规则访问任何云主机.</p>
+                                </div>
+                            </div>
+                        </div>
+                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="sgr_create_confirm" type="button" class="btn btn-success btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="sgr_delete_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除规则</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red">
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i>
+                        <span id="sgr_delete_dialog_reminder"> 确定删除安全组规则吗？</span>
+                    </span>
+                </div>
+                <div class="modal-footer">
+                    <button id="sgr_delete_confirm" type="button" class="btn btn-danger btn-sm"> 
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>确定 
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"> 
+                        <i class="ace-icon fa fa-undo"></i>取消 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/vinzor-forms.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks", "#security_groups");
+        var selected_secgroup_rules = [];
+        $(function() {
+            //init JQuery's data table
+            secgroup_rule_table = $('#secgroup_rule_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    null, null, 
+                    null, {"bSortable": false, "bSearchable": false}]
+            });
+            
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+            
+            $(".select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+            
+            $('[data-rel=tooltip]').tooltip();
+            
+            sgr_create_form_validator = $('#sgr_create_form').validate({
+                ignore: ":hidden", //忽略对隐藏元素的验证
+                rules: {
+                    'port': {
+                        required: true,
+                        digits: true,
+                        min: 1,
+                        max: 65535
+                    },
+                    'from_port': {
+                        required: true,
+                        digits: true,
+                        min: 1,
+                        max: 65535
+                    },
+                    'to_port': {
+                        required: true,
+                        digits: true,
+                        min: 1,
+                        max: 65535,
+                        notLessThan: '#sgr_create_form_from_port'
+                    },
+                    'cidr': {
+                        required: true,
+                        cidr: true
+                    },
+                    'ip_protocol': {
+                        integer: true,
+                        min: -1,
+                        max: 255,
+                    },
+                    'icmp_type': {
+                        required: true,
+                        integer: true,
+                        min: -1,
+                        max: 255,
+                    },
+                    'icmp_code': {
+                        required: true,
+                        integer: true,
+                        min: -1,
+                        max: 255,
+                    },
+                    'security_group': {
+                        required: true,
+                    }
+                    
+                },
+                messages: {
+                    'port': {
+                        required: '请输入端口',
+                        digits: '请输入整数',
+                        min: '端口号范围[1,65535]',
+                        max: '端口号范围[1,65535]'
+                    },
+                    'from_port': {
+                        required: '请输入起始端口号',
+                        digits: '请输入整数',
+                        min: '端口号范围[1,65535]',
+                        max: '端口号范围[1,65535]'
+                    },
+                    'to_port': {
+                        required: '请输入终止端口号',
+                        digits: '请输入整数',
+                        min: '端口号范围[1,65535]',
+                        max: '端口号范围[1,65535]',
+                        notLessThan: '终止端口号不能小于起始端口号',
+                    },
+                    'cidr': {
+                        required: '请输入CIDR',
+                        cidr: 'CIDR地址格式不正确'
+                    },
+                    'ip_protocol': {
+                        integer: '请输入整数',
+                        min: 'IP协议号范围[-1,255]',
+                        max: 'IP协议号范围[-1,255]'
+                    },
+                    'icmp_type': {
+                        required: '请输入ICMP类型',
+                        integer: '请输入整数',
+                        min: 'ICMP类型范围[-1,255]',
+                        max: 'ICMP类型范围[-1,255]'
+                    },
+                    'icmp_code': {
+                        required: '请输入ICMP编码',
+                        integer: '请输入整数',
+                        min: 'ICMP编码范围[-1,255]',
+                        max: 'ICMP编码范围[-1,255]',
+                    },
+                    'security_group': {
+                        required: '请选择安全组',
+                    }
+                }
+            });
+            
+            
+            $('#create_security_group_rule').click(function() {
+                sgr_create_form_validator.resetForm();
+                $('#sgr_create_dialog').modal('show');
+            });
+            
+            $('#sgr_create_confirm').click(function() {
+                create_secgroup_rule();
+            });
+            
+            $('#sgr_create_dialog').on('shown.bs.modal', function() {
+                $('#sgr_create_dialog').find('select.switchable').trigger('change');
+            });
+            
+            $('#sgr_delete_confirm').click(function() {
+                delete_secgroup_rules();
+            });
+            
+            $('#delete_security_group_rules').click(function() {
+                selected_secgroup_rules = [];
+                $("#secgroup_rule_list tbody td input[type=checkbox]").each(function() {
+                    if (this.checked)
+                        selected_secgroup_rules.push(this.id);
+                });
+                
+                if (selected_secgroup_rules.length > 0) {
+                    $("#sgr_delete_dialog_reminder").text("确定删除所选择的安全组规则吗?");
+                    $("#sgr_delete_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的安全组规则";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+            
+        });
+        
+        
+        function create_secgroup_rule() {
+            var options = {
+                beforeSubmit: beforeSubmit,
+                success: callback,
+                url: "{{ url_for('network.create_secgroup_rule') }}",
+                type: "PUT",
+                dataType: "json"
+            };
+            function beforeSubmit(formData, jqForm, options) {
+                if ($("#sgr_create_form").valid()) {
+                    $("#sgr_create_dialog").modal("hide");
+                } else {
+                    return false;
+                }
+            }
+            function callback(result_json, statusText) {
+                var success = true, content = null;
+                if (result_json['status'] == "success") {
+                    content = "安全组规则添加成功";
+                    setTimeout(function(){
+                        location.reload();
+                    }, 2000);
+                } else {
+                    success = false;
+                    content = "安全组规则添加失败: ";
+                    content += result_json['data'] || result_json["message"];
+                } 
+                
+                $.gritter.add({
+                    text: content,
+                    class_name: (success? 'gritter-success': 'gritter-error') 
+                });
+            }
+
+            $("#sgr_create_form").ajaxSubmit(options);
+        }
+        
+        
+        function get_sgr_name(sgr_id) {
+            var name = '允许 ';
+            var ethertype = $('#rule_ethertype_' + sgr_id).attr('val');
+            if (ethertype)
+                name += ethertype + ' ';
+            var ip_protocol = $('#rule_ip_protocol_' + sgr_id).attr('val');
+            var port_range = $('#rule_port_range_' + sgr_id).attr('val');
+            if (ip_protocol) {
+                var temp = port_range + '/' + ip_protocol + ' ';
+                name += temp;
+            }
+            var direction = $('#rule_direction_' + sgr_id).attr('val');
+            var direction_dict = {ingress: 'from', egress: 'to'};
+            if (direction)
+                name += direction_dict[direction] + ' ';
+            var remote = $('#rule_remote_' + sgr_id).attr('val');
+            if (remote)
+                name += remote;
+                
+            return name;
+        }
+        
+        function on_sgr_delete_click(sgr_id) {
+            selected_secgroup_rules = [];
+            selected_secgroup_rules.push(sgr_id);
+            
+            var sgr_name = get_sgr_name(sgr_id);
+            var reminder = '确认删除安全组规则"' + sgr_name + '"吗?';
+            $('#sgr_delete_dialog_reminder').text(reminder);
+            $('#sgr_delete_dialog').modal('show');
+        }
+        
+        function delete_secgroup_rules() {
+            $("#sgr_delete_dialog").modal("hide");
+            $('table th input:checkbox').removeAttr('checked');
+            if (selected_secgroup_rules.length <= 0)
+                return;
+            
+            function on_delete_secgroup_rules_success(responseJson) {
+                var success_text = "", fail_text = "";
+                if (responseJson["status"] == "success") {
+                    var success_list = responseJson["data"]["success_list"];
+                    var fail_list = responseJson["data"]["fail_list"];
+                    
+                    for (var i in success_list) {
+                        var sgr_name = get_sgr_name(success_list[i]);
+                        if (sgr_name)
+                            success_text += '安全组规则"' + sgr_name + '"删除成功</br>';
+                    }
+                    
+                    for (var i in fail_list) {
+                        var sgr_id = fail_list[i]["id"];
+                        var reason = fail_list[i]["reason"];
+                        var sgr_name = get_sgr_name(sgr_id);
+                        if (sgr_name)
+                            fail_text += '安全组规则"' + sgr_name + '"删除失败:&nbsp;' + reason + '</br>';
+                    }
+                    
+                    // update table secgroup_rule_list
+                    for (var i in success_list) {
+                        secgroup_rule_table.row($("#rule_tr_" + success_list[i])).remove();
+                    }
+                    secgroup_rule_table.draw(false);
+                    
+                    if (success_text) {
+                        $.gritter.add({
+                            text: success_text,
+                            class_name: 'gritter-success'
+                        });
+                    }
+                    if (fail_text) {
+                        $.gritter.add({
+                            text: fail_text,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            }
+            
+            function on_delete_secgroup_rules_error(request, msg, e) {
+                $.gritter.add({
+                    text: '删除安全组规则过程中出现未知错误',
+                    class_name: 'gritter-error'
+                });
+            }
+            
+            $.ajax({
+                url: "{{ url_for('network.delete_secgroup_rules') }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_secgroup_rules),
+                success: on_delete_secgroup_rules_success,
+                error: on_delete_secgroup_rules_error
+            });
+        }
+        
+    </script>
+
+{% endblock %}

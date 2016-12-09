@@ -1,0 +1,48 @@
+迁移配置
+===================================
+
+
+一.热迁移配置
+-----------------------------------
+
+详见 `迁移文档/OpenStack热迁移.rst`
+
+
+二.ZooKeeper部署
+-----------------------------------
+
+详见 `迁移文档/ZooKeeper部署.rst`
+
+
+三.ZooAgent安装
+-----------------------------------
+
+详见 `迁移文档/ZooAgent安装.rst`
+
+
+四.管理系统配置
+-----------------------------------
+
+1. 编辑 src/etc/phoenix.ini 配置文件 ::
+
+    [vmotion]
+    enable = true                         # 使能迁移功能, 默认是不开启的
+    zookeeper = '1.0.0.0:2181'            # ZooKeeper服务器地址, 多个地址以逗号分隔
+    ext_network_znode = '/monitor/ext'    # 监控外部网络所用Znode, 要与ZooAgent配置的一致
+    mgmt_network_znode = '/monitor/mgmt'  # 监控管理网络所用Znode, 要与ZooAgent配置的一致
+    service_state_refresh_interval = 30   # 刷新计算服务状态的间隔时间, 默认30s
+
+    [openstack]
+    admin_username = admin                # OpenStack管理员账号, 迁移功能只能在管理员账号下使用
+    admin_password = admin123             # OpenStack管理员密码
+
+2. 重启管理系统, 并运行vmotion_backend ::
+
+    python manage.py run_vmotion
+
+3. 默认情况下, 当计算节点出现故障, 我们会通过邮件进行通知; 一旦计算节点无法提供服务, 我们会进行自动撤离, 要关闭此功能或者设置邮箱, 可在系统参数界面进行修改, 修改后即生效
+
+
+
+
+

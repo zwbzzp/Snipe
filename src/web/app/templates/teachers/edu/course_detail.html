@@ -1,0 +1,1007 @@
+{% extends 'teachers/layout.html' %}
+
+{% block title %}云课室 - 课程详情{% endblock %}
+
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>课程信息 - {{ course.name }}</h1>
+    </div>
+
+    <div class="row">
+        <div id="base_info" class="col-xs-12 col-sm-12 widget-container-col ui-sortable">
+            <div class="widget-box ui-sortable-handle">
+                <div class="widget-header">
+                    <h5 class="widget-title">基本信息</h5>
+                    {% if not course %}
+                        <i class="ace-icon icon-animated-vertical fa fa-warning red"></i>
+                    {% endif %}
+                    <div class="widget-toolbar">
+                        <div class="action-buttons">
+                            <a id="save_course" href="javascript:void(0)" title="保存"><i class="ace-icon fa fa-save bigger-130"></i> </a>
+                            <a id="reset_course" class="red2" href="#" title="刷新"><i
+                                    class="ace-icon fa fa-refresh bigger-130"></i> </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="widget-body">
+                    <div class="widget-main">
+                        <input type="text" hidden="hidden" id="course_id" value="{{ course.id }}"/>
+                        <form id="course_form" class="form-horizontal no-padding" role="form" method="post">
+                            {{ form.csrf_token }}
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_name">课程名称：</label>
+
+                                        <div class="">
+                                            <input class="form-control" id="course_name" name="name" placeholder="课程名称" type="text" value={{form.name.data}} data-rule-required='true' data-msg-required='请输入课程名称' data-rule-maxlength="64" data-msg-maxlength='长度不超过64个字'>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_owner">授课老师：</label>
+
+                                        <div class="">
+                                            <input id="course_owner" name="owner_id" type="text" value="{{ current_user.id }}" style="display: none">
+                                            <input style="width:100%" type="text" value="{{ current_user.username }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_start_date">开始日期：</label>
+
+                                        <div class="">
+                                            <div class="input-group">
+                                                <input class="form-control date-picker" id="course_start_date" name="start_date" placeholder="开始日期" type="text" value={{form.start_date.data}} data-date-format="yyyy-mm-dd" data-rule-required='true' data-msg-required='请选择开始时间'>
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar bigger-110"></i>
+                                            </span>
+                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_end_date">结束日期：</label>
+
+                                        <div class="">
+                                            <div class="input-group">
+                                                <input class="form-control date-picker" id="course_end_date" name="end_date" placeholder="结束日期" type="text" value={{form.end_date.data}} data-date-format="yyyy-mm-dd" data-rule-required='true' data-msg-required='请选择结束时间'>
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar bigger-110"></i>
+                                            </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_image">课程镜像：</label>
+
+                                        <div class="">
+                                            <select class="select2" data-placeholder="课程镜像" id="course_image" name="image_ref" style="width:100%" data-rule-required='true' data-msg-required='请选择课程镜像'>
+                                            {% for choice in form.image_ref.choices %}
+                                                {% if form.image_ref.coerce(choice[0]) not in form.image_ref.data %}
+                                                    <option value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% else %}
+                                                    <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% endif %}
+                                            {% endfor %}</select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_flavor">配置类型：</label>
+
+                                        <div class="">
+                                            <select class="select2" data-placeholder="配置类型" id="course_flavor" name="flavor_ref" style="width:100%" data-rule-required='true' data-msg-required='请选择配置类型'>
+                                            {% for choice in form.flavor_ref.choices %}
+                                                {% if form.flavor_ref.coerce(choice[0]) not in form.flavor_ref.data %}
+                                                    <option value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% else %}
+                                                    <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% endif %}
+                                            {% endfor %}</select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_capacity">桌面数量：</label>
+
+                                        <div class="">
+                                            <input class="form-control" id="course_capacity" name="capacity" placeholder="上课人数" type="digits" value={{form.capacity.data}} aria-required="true" data-rule-required='true' data-msg-required='请输入桌面数量' data-rule-min="0" data-msg-min='请输入非负整数'>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_places">指定教室：</label>
+
+                                        <div class="">
+                                            <select class="select2" data-placeholder="指定课室" id="course_places" multiple name="places" style="width:100%">
+                                            {% for choice in form.places.choices %}
+                                                {% if form.places.coerce(choice[0]) not in form.places.data %}
+                                                    <option value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% else %}
+                                                    <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                                                {% endif %}
+                                            {% endfor %}</select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_network">虚拟内网：</label>
+                                        <select class="select2" data-placeholder="虚拟内网" id="course_network" name="network_ref" style="width:100%">
+                                        {% for choice in form.network_ref.choices %}
+                                            {% if form.network_ref.coerce(choice[0]) not in form.network_ref.data %}
+                                                <option value={{choice[0]}}>{{choice[1]}}</option>
+                                            {% else %}
+                                                <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                                            {% endif %}
+                                        {% endfor %}</select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group-sm">
+                                        <label class="control-label" for="course_protocol">客户端连接协议：</label>
+                                        <select class="select2" data-placeholder="客户端连接协议" id="course_protocol" name="protocol" style="width:100%">
+                                        {% for choice in form.protocol.choices %}
+                                            {% if form.protocol.coerce(choice[0]) != form.protocol.data %}
+                                                <option value={{choice[0]}}>{{choice[1]}}</option>
+                                            {% else %}
+                                                <option selected value={{choice[0]}}>{{choice[1]}}</option>
+                                            {% endif %}
+                                        {% endfor %}</select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="space-10"></div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <!-- PAGE CONTENT BEGINS -->
+            <div class="row">
+                <div>
+                    <div class="tabbable">
+                        <ul class="nav nav-tabs" id="myTab">
+                            <li class="active">
+                                <a data-toggle="tab" href="#week_lessons">本周课表</a>
+                            </li>
+
+                            <li>
+                                <a data-toggle="tab" href="#all_lessons">全部课表</a>
+                            </li>
+
+                            <li>
+                                <a data-toggle="tab" href="#students">选课名单</a>
+                            </li>
+
+                            <li>
+                                <a data-toggle="tab" href="#course_desktop">课程桌面</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- lessons -->
+                            <div id="week_lessons" class="tab-pane fade in active ui-sortable">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <h5 class="widget-title">（{{ week_date[0]|date_format('yyyy年MM月dd日') }}
+                                            ~ {{ week_date[1]|date_format('yyyy年MM月dd日') }}）</h5>
+                                    </div>
+                                    <div class="widget-body">
+                                        <div class="widget-main no-padding">
+                                            <table class="table table-striped table-bordered schedule_table text-center">
+                                                <tbody>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>星期一</th>
+                                                    <th>星期二</th>
+                                                    <th>星期三</th>
+                                                    <th>星期四</th>
+                                                    <th>星期五</th>
+                                                    <th>星期六</th>
+                                                    <th>星期天</th>
+                                                </tr>
+                                                {% for item in timetable -%}
+                                                    <tr class="{{ loop.cycle('schedule_tr_even', 'schedule_tr_odd') }}">
+                                                        <td>第{{ item[0].name }}节&nbsp;{{ item[0].start_time|time_format }}-{{ item[0].end_time|time_format }}</td>
+                                                        {% for j in range(0, 7) -%}
+                                                            {% if item[1][j] %}
+                                                                <td style="background-color: rgb(34, 131, 197);" class="schedule_item {{ loop.cycle('schedule_item_even', 'schedule_item_odd') }}"></td>
+                                                            {% else %}
+                                                                <td class="schedule_item {{ loop.cycle('schedule_item_even', 'schedule_item_odd') }}"></td>
+                                                            {% endif %}
+                                                        {%- endfor %}
+                                                    </tr>
+                                                {%- endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="all_lessons" class="tab-pane fade ui-sortable">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <div class="widget-toolbar">
+                                            <div class="action-buttons">
+                                                <a id="edit_lesson" href="{{ url_for('teachers_edu.create_lesson', id=course.id) }}"
+                                                   title="修改上课时间"><i class="ace-icon fa fa-edit bigger-130"> </i> </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-body">
+                                        <div class="widget-main no-padding">
+                                            <table id="lessons_table" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th>开始时间</th>
+                                                    <th>结束时间</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% if course %}
+                                                    {% for lesson in course.lessons.order_by('start_date', 'start_time') %}
+                                                        <tr>
+                                                            <td>{{ lesson.start_datetime | datetime_format }}{% if lesson.start_period %}&nbsp;(第{{ lesson.start_period.name }}节){% endif %}</td>
+                                                            <td>{{ lesson.end_datetime | datetime_format }}{% if lesson.end_period %}&nbsp;(第{{ lesson.end_period.name }}节){% endif %}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                </tbody>
+                                            </table>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="students" class="tab-pane fade ui-sortable">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <div class="widget-toolbar">
+                                            <div class="action-buttons">
+                                                <a id="edit_student" href="{{ url_for('teachers_edu.upload_students', id=course.id) }}"
+                                                   title="修改学生名单"><i class="ace-icon fa fa-edit bigger-130"> </i> </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-body">
+                                        <div class="widget-main no-padding">
+                                            <table id="students_table" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th>学生编号</th>
+                                                    <th>学生姓名</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% if course %}
+                                                    {% for student in course.students %}
+                                                        <tr>
+                                                            <td>{{ student.username }}</td>
+                                                            <td>{{ student.fullname }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- desktops -->
+                            <div id="course_desktop" class="tab-pane fade ui-sortable">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <div class="widget-toolbar">
+                                            <div class="action-buttons">
+                                                {% if course.find_current_lesson() %}
+                                                    <a id="supply_desktop" title="补充桌面">
+                                                        <i class="ace-icon fa fa-plus-circle"> </i> 补充桌面
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="widget-body">
+                                        <div class="widget-main no-padding">
+                                            <table id="desktops_table" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <!--<th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span-->
+                                                            <!--class="lbl"></span></label></th>-->
+                                                    <th>桌面名称</th>
+                                                    <th>电源状态</th>
+                                                    <th>系统状态</th>
+                                                    <th>回收时间</th>
+                                                    <th>使用者</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% if course %}
+                                                    {% for desktop in course.desktops %}
+                                                        <tr id="{{ desktop.id }}">
+                                                            <td id="desktop_name_{{ desktop.id }}"><a href="{{ url_for('teachers_desktop.desktop_console', id=desktop.vm_ref) }}">{{ desktop.name }}</a></td>
+                                                            <td id="desktop_vmstate_{{ desktop.id }}">{{ desktop.vm_state }}</td>
+                                                            <td id="desktop_osstate_{{ desktop.id }}">{{ desktop.os_state }}</td>
+                                                            <td id="desktop_enddatetime_{{ desktop.id }}">{{ desktop.end_datetime }}</td>
+                                                            <td id="desktop_owner_{{ desktop.id }}">
+                                                                {% if desktop.owner %}
+                                                                    {{ desktop.owner.username }}
+                                                                    <span style="float: right">
+                                                                        <a href="#" id="owner-unbunding"  onclick="on_unbunding_click({{ desktop.id }})">解绑</a>
+                                                                        {# <a  href="#" title="修改用户"><i class="ace-icon fa fa-pencil-square-o bigger-130"></i></a> #}
+                                                                    </span>
+                                                                {% else %}
+                                                                    无人占用
+                                                                    <span style="float: right">
+                                                                        <a href="#" id="owner-binding"  onclick="on_binding_click({{ desktop.id }})">绑定</a>
+                                                                    </span>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- supply desktop confirmation dialog -->
+    <div id="supply_confirm_dialog" class="modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">补充桌面</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="supply_desktop_form">
+                        <input class="form-control supply_desktops_number" type="text" id="desktop_count" placeholder="请输入桌面数量(个)" >
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_supply" type="button" class="btn btn-success"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div style="display:none;" id="image-storage">
+        {% for image in image_list %}
+            <div id="image-storage-{{image.id}}" style="display:none;">
+                <span id="image-storage-{{image.id}}-ram">{{image.min_ram}}</span>
+                <span id="image-storage-{{image.id}}-disk">{{image.min_disk}}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="binding_dialog" class="modal fade">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">绑定用户</h4>
+                </div>
+                <div class="modal-body" style="padding-left: 24px;padding-right: 24px">
+                    <div class="red alert alert-danger" id="error-info" style="display: none">
+                        <button id="error-info-close" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 请选择需要进行绑定的学生用户
+                    </div>
+                    <span style="padding-left: 20px;padding-right: 15px"><label for="binding_student_select2">请选择学生用户:</label></span>
+                    <input class="select2" id="binding_student_select2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                    <button id="confirm_binding" type="button" class="btn btn-danger"> 绑定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="unbunding_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">解除绑定</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认所选择的桌面与使用者之间的绑定关系?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                    <button id="confirm_unbunding" type="button" class="btn btn-danger"> 解除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#courses");
+
+        var selected_students = [];
+        var selected_lessons = [];
+
+        var student_select2 = null;
+
+        var binding_student_select2 = null;
+
+        var courseID = $('#course_id').val();
+        var url_binding_template = "{{ url_for('teachers_edu.binding_students', id=0) }}";
+        var url_binding = url_binding_template.replace('0', courseID);
+
+        $(document).ready(function () {
+
+            /*
+             *  supply desktops number validator
+             */
+            jQuery.validator.addClassRules("supply_desktops_number", {
+                required: true,
+                positiveinteger: true
+            });
+
+            $("#supply_desktop_form").validate();
+
+            // date-picker plugins
+            // show datepicker when clicking on the icon
+            $(".date-picker").datepicker({
+                language: "zh-CN",
+                format: "yyyy-mm-dd",
+                autoclose: true,
+                todayHighlight: true
+            }).attr("data-date-format", "yyyy-mm-dd")
+                    .on('changeDate', function (ev) {
+                        if ($(ev.target).attr('id') == 'course_start_date') {
+                            $('#course_end_date').datepicker('setStartDate', ev.date);
+                        } else {
+                            $('#course_start_date').datepicker('setEndDate', ev.date);
+                        }
+                    })
+                    .next().on(ace.click_event, function () {
+                        $(this).prev().focus();
+                    });
+
+            $('#course_end_date').datepicker('setStartDate', $('#course_start_date').val());
+            $('#course_start_date').datepicker('setEndDate', $('#course_end_date').val());
+
+
+            $('._timepicker').timepicker({
+                minuteStep: 1,
+                showSeconds: false
+            });
+
+            // select2
+            $("#base_info select.select2").select2({
+                language: "zh-CN",
+                allowClear: true
+            });
+
+
+            student_select2 = $("#student_select").select2({
+                width: "100%",
+                language: "zh-CN",
+                allowClear: true,
+                multiple: true,
+                separator: ",",
+                placeholder: "搜索学生",
+                minimumInputLength: 2,
+                ajax: {
+                    url: "{{ url_for('teachers_edu.students') }}",
+                    dataType: 'json',
+                    quietMillis: 300,
+                    data: function (term, page) { // page is the one-based page number tracked by Select2
+                        return {
+                            q: term, //search term
+                            page: page // page number
+                        };
+                    },
+                    results: function (data, page) {
+                        var result = data.data;
+                        var more = page < result.pages; // whether or not there are more results available
+                        // notice we return the value of more so Select2 knows if more results can be loaded
+                        return {results: result.items, more: more};
+                    },
+                    cache: true
+                },
+                formatResult: function (obj) {
+                    return obj.username + "-" + obj.fullname;
+                },
+                formatSelection: function (obj) {
+                    return obj.username;
+                },
+                id: function (obj) {
+                    return obj.id;
+                }
+            });
+
+
+            binding_student_select2 = $("#binding_student_select2").select2({
+                width: "60%",
+                language: "zh-CN",
+                allowClear: true,
+                placeholder: "搜索学生",
+                ajax: {
+                    url: url_binding,
+                    dataType: 'json',
+                    quietMillis: 300,
+                    data: function (term, page) { // page is the one-based page number tracked by Select2
+                        return {
+                            q: term, //search term
+                            page: page // page number
+                        };
+                    },
+                    results: function (data, page) {
+                        var result = data.data;
+                        var more = page < result.pages; // whether or not there are more results available
+                        // notice we return the value of more so Select2 knows if more results can be loaded
+                        return {results: result.items, more: more};
+                    },
+                    cache: true
+                },
+                formatResult: function (obj) {
+                    return obj.username + "-" + obj.fullname;
+                },
+                formatSelection: function (obj) {
+                    return obj.username;
+                },
+                id: function (obj) {
+                    return obj.id;
+                }
+            });
+
+            $("#course_owner").val(null);
+            teacher_select2 = $("#course_owner").select2({
+                width: "100%",
+                language: "zh-CN",
+                allowClear: true,
+                minimumInputLength: 2,
+                placeholder: "{{ course.owner.fullname }}",
+                ajax: {
+                    url: "{{ url_for('teachers_edu.teachers') }}",
+                    dataType: 'json',
+                    quietMillis: 300,
+                    data: function (term, page) { // page is the one-based page number tracked by Select2
+                        return {
+                            q: term, //search term
+                            page: page // page number
+                        };
+                    },
+                    results: function (data, page) {
+                        var result = data.data;
+                        var more = page < result.pages; // whether or not there are more results available
+                        // notice we return the value of more so Select2 knows if more results can be loaded
+                        return {results: result.items, more: more};
+                    },
+                    cache: true
+                },
+                formatResult: function (obj) {
+                    return obj.username + "-" + obj.fullname;
+                },
+                formatSelection: function (obj) {
+                    return obj.fullname;
+                },
+                id: function (obj) {
+                    return obj.id;
+                }
+            });
+            $("#course_owner").val({{ course.owner.id }});
+            // dataTable
+            $("table th input[type=checkbox]").change(function () {
+                var checked = this.checked;
+                $(this).closest("table").find("td input[type=checkbox]").each(function () {
+                    this.checked = checked;
+                });
+            });
+
+            // datetime picker
+            $(".datetimepicker").datetimepicker({
+                language: "zh-CN",
+                format: "yyyy-mm-dd hh:ii:ss",
+                autoclose: true,
+                minuteStep: 5
+            });
+
+            // students table
+            $("#students_table").dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    //{ "bSortable": false },
+                    null, null
+                ],
+                "aaSorting": []
+            });
+
+            // lessons table
+            $("#lessons_table").dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    //{ "bSortable": false },
+                    null, null
+                ],
+                "aaSorting": []
+            });
+
+            // students table
+
+            $("#desktops_table").dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    // {"bSortable": false},
+                    null, null, null, null, null
+                ],
+                "aaSorting": []
+            });
+
+            // course form
+            $("#course_form").validate({
+                errorPlacement: function (error, element) {
+                    // Append error within linked label
+                    $(element)
+                            .closest("form")
+                            .find("label[for='" + element.attr("id") + "']")
+                            .append(error);
+                },
+                errorElement: "span",
+                ignore:''
+            });
+
+            // reload the page
+            $("#reset_course").click(function () {
+                location.reload();
+            });
+
+            // save course
+            $("#save_course").click(function () {
+                $("#course_form").submit();
+            });
+
+            $('#supply_desktop').click(function() {
+                $("#supply_confirm_dialog").modal("show");
+            });
+
+            // confirm supply
+            $("#confirm_supply").click(function () {
+                if ($("#supply_desktop_form").valid()) {
+                    $("#supply_confirm_dialog").modal('hide');
+                    var course_id = $('#course_id').val();
+                    var count_text = $('#desktop_count').val();
+                    var count = Number(count_text);
+
+                    var param = new Object();
+                    param.course_id = course_id;
+                    param.count = count;
+                    tmp = JSON.stringify(param);
+                    $.ajax({
+                        url: "{{ url_for('teachers_desktop.supply_desktop') }}",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(param),
+                        success: on_supply_desktop_success,
+                        error: on_supply_desktop_error
+                    });
+                }
+            });
+
+
+            // 设置课程镜像的change事件
+            $("#course_image").change(function(evt, param){
+                filter_flavor("course_image", true);
+            });
+
+            // 页面第一次加载也要完成一次过滤, 否则可以选到不合要求的flavor
+            filter_flavor("course_image", false);
+
+            function reset_flavor_list(id) {
+                // 恢复隐藏的option
+                $("#" + id).children("span").each(function(){
+                    $(this).children().clone().replaceAll($(this));
+                });
+            }
+
+            // select_first_one:当过滤完成后是否选中第一个合乎要求的flavor
+            function filter_flavor(id, select_first_one) {
+                reset_flavor_list('course_flavor');
+                image_id = $("#" + id).val();
+                min_ram = Number($("#image-storage-" + image_id + "-ram").html());
+                min_disk = Number($("#image-storage-" + image_id + "-disk").html());
+                flavors = $("#course_flavor").children();
+                first = null; // use to record the first option which meet damand
+                for (var i=0; i<flavors.length; i++) {
+                    description = $(flavors[i]).html();
+                    description = description.split("-");
+                    flavor_info = description[description.length - 1];
+                    flavor_info = $.trim(flavor_info);
+                    flavor_info = flavor_info.split("|");
+                    if (flavor_info.length != 3)
+                        continue;
+                    ram = Number(flavor_info[1].substr(0, flavor_info[1].length-2));
+                    disk = Number(flavor_info[2].substr(0, flavor_info[2].length-2));
+                    if (ram < min_ram || disk < min_disk)
+                        $(flavors[i]).wrap("<span style='display:none'></span>");
+                    else {
+                        if (first == null) {
+                            first = $(flavors[i]);
+                        }
+                    }
+                }
+                // make select2 to select the specified option
+                if (select_first_one && first != null)
+                    $("#course_flavor").select2('data', {id: first.val(), text: first.html()});
+
+                $("#course_flavor").trigger("liszt:updated");
+            }
+
+            function on_supply_desktop_success(responseJson) {
+                var status = responseJson.status;
+                var data = responseJson.data;
+                switch (status) {
+                    case "success":
+                        $.gritter.add({
+                            text: "补充课程桌面成功！",
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        if (data == "no current lesson") {
+                            $.gritter.add({
+                                text: "补充课程桌面失败，当前课程不在上课时段!",
+                                class_name: 'gritter-warning'
+                            });
+
+                        } else if (data == "course not exist") {
+                            $.gritter.add({
+                                text: "补充课程桌面失败，课程不存在!",
+                                class_name: 'gritter-warning'
+                            });
+                        } else if (data == "resource exceed system limit") {
+                            $.gritter.add({
+                                text: "补充课程桌面失败，资源使用超出系统上限!",
+                                class_name: 'gritter-error'
+                            });
+                        } else if (data.msg == "part exceed system limit") {
+                            var actual_count = data.actual_count
+                            $.gritter.add({
+                                text: "由于资源限制，只能补充" + actual_count + "个桌面!",
+                                class_name: 'gritter-warning'
+                            });
+                        } else if (data == "parameter format error") {
+                            $.gritter.add({
+                                text: "桌面数量格式不正确，请输入正整数!",
+                                class_name: 'gritter-error'
+                            });
+                        }
+                        break;
+                    case "error":
+                        if (data == "server error") {
+                            $.gritter.add({
+                                text: "补充课程桌面失败，处理出错!",
+                                class_name: 'gritter-error'
+                            });
+                        }
+                        break;
+                }
+            }
+
+            function on_supply_desktop_error(responseJson) {
+                $.gritter.add({
+                    text: "补充课程桌面失败，处理出错!",
+                    class_name: 'gritter-error'
+                });
+            }
+
+            {#
+            $("#owner-unbunding").click(function() {
+                $("#unbunding_dialog").modal("show");
+            });
+
+            $("#confirm_unbunding").click(function() {
+                var desktop_id = $("#owner-unbunding").parent().parent().parent().attr("id");
+                doUnbunding(desktop_id);
+                $("#unbunding_dialog").modal("hide");
+            });
+             #}
+
+        });
+
+        var desktopid;
+
+        function on_unbunding_click(desktop_id){
+            desktopid = desktop_id;
+            $("#unbunding_dialog").modal("show");
+        }
+
+        $("#confirm_unbunding").click(function() {
+            doUnbunding(desktopid);
+            $("#unbunding_dialog").modal("hide");
+        });
+
+        function doUnbunding(desktop_id){
+            var url_template = "{{ url_for('teachers_desktop.unbunding_desktop', id=0) }}";
+            url = url_template.replace('0', desktop_id);
+            $.ajax({
+                url:  url,
+                type: "POST",
+                success: on_unbunding_success,
+                error: on_unbunding_error
+            });
+        }
+
+        function on_unbunding_success(request, msg, e) {
+            var json_result = $.parseJSON(e.responseText);
+            if (json_result) {
+                var status = json_result.status;
+                var successdata = json_result.data.success_id;
+                var faildata = json_result.data.fail_id;
+                switch (status) {
+                    case "success":
+                        // 修改user_table
+
+                        $("#desktop_owner_"+successdata)
+                            .html('无人占用 <span style="float: right"><a href="#" id="owner-binding"  onclick="on_binding_click('+ successdata +')">绑定</a></span>')
+                      // 显示提示信息
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '桌面&nbsp;'+ $("#desktop_name_"+ successdata).text() +'&nbsp;信息修改成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        // display server side form error messages
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                }
+            }
+        }
+
+        function on_unbunding_error(response) {
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: '解除绑定过程中出现错误',
+                class_name: 'gritter-error'
+            });
+        }
+
+        $("#error-info-close").click(function(){
+            $("#error-info").hide();
+        });
+
+        function on_binding_click(desktop_id){
+            desktopid = desktop_id;
+            $("#binding_dialog").modal("show");
+            $("#binding_student_select2").select2("val", "");
+            $("#error-info").hide();
+        }
+
+
+        $("#confirm_binding").click(function() {
+            if ($("#binding_student_select2").val() == "" ){
+                $("#error-info").show();
+            }
+            else{
+                dobinding(desktopid);
+                $("#binding_dialog").modal("hide");
+            }
+
+        });
+
+        function dobinding(desktop_id){
+            var studentbinding = $("#binding_student_select2").val();
+            var url_template = "{{ url_for('teachers_desktop.binding_desktop', id=0) }}";
+            url = url_template.replace('0', desktop_id);
+            $.ajax({
+                url:  url,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(studentbinding),
+                success: on_binding_success,
+                error: on_binding_error
+            });
+        }
+
+        function on_binding_success(request, msg, e) {
+            var json_result = $.parseJSON(e.responseText);
+            if (json_result) {
+                var status = json_result.status;
+                var successdata = json_result.data.success_id;
+                var faildata = json_result.data.fail_id;
+                var successname = json_result.data.success_name;
+                switch (status) {
+                    case "success":
+                        // 修改user_table
+
+                        $("#desktop_owner_"+successdata)
+                            .html(successname + ' <span style="float: right"> <a href="#" id="owner-unbunding"  onclick="on_unbunding_click('+ successdata +')">解绑</a></span>')
+                      // 显示提示信息
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '桌面&nbsp;'+ $("#desktop_name_"+ successdata).text() +'&nbsp;信息修改成功',
+                            class_name: 'gritter-success'
+                        });
+                        break;
+                    case "fail":
+                        // display server side form error messages
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                        break;
+                    default:
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '服务器异常',
+                            class_name: 'gritter-error'
+                        });
+                }
+            }
+        }
+        function on_binding_error(response) {
+            $.gritter.add({
+                // (string | mandatory) the text inside the notification
+                text: '用户绑定过程中出现错误',
+                class_name: 'gritter-error'
+            });
+        }
+    </script>
+{% endblock %}

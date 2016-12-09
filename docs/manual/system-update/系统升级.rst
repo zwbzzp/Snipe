@@ -1,0 +1,158 @@
+系统升级
+================
+
+以下假设旧系统和新系统都安装在/srv/www/vinzor目录下
+
+1.导出旧系统数据
+--------------------
+* 用户账号
+    用户密码采用hash算法进行加密存储, 而新系统与旧系统的hash算法不一致, 所以用户密码无法迁移, 只能重置
+* 用户桌面
+* 个人存储
+    迁移不了, 还是由于新旧系统的密码加密算法不一致导致
+
+* 导出方法 ::
+
+    1. 导出脚本为当前目录下的tools/export_data.py, 复制该脚本到旧系统的根目录下 ::
+
+        sudo cp tools/export_data.py /srv/www/vinzor
+
+    2. 切换到旧系统根目录下并运行脚本, 执行完毕会发现目录下出现db目录, 里面存放着导出数据 ::
+
+        cd /srv/www/vinzor; sudo python3 export_data.py
+
+
+2.卸载旧系统
+--------------------
+* 做好备份恢复工作, 旧系统数据库用的Postgresql, 新系统用的Mysql, 所以Postgresql数据库可以保留
+
+* 对OpenStack使用的Mysql数据进行备份 ::
+
+    cd <备份目录>; 
+    mysqldump -uroot -p<密码> glance --opt> glance.sql;
+    mysqldump -uroot -p<密码> keystone --opt> keystone.sql;
+    mysqldump -uroot -p<密码> nova --opt> nova.sql;
+
+* 旧系统代码进行备份 ::
+    
+    mv /srv/www/vinzor /srv/www/vinzor-backup
+
+* 新旧系统都使用了Nginx, 担心有冲突, 所以卸载了 ::
+
+    service nginx stop && rm -rf /usr/local/nginx && mv /etc/init.d/nginx /etc/init.d/nginx.backup
+
+* 旧系统的Uwsgi服务停止, 可能出现端口被占用的问题, 不要卸载 ::
+
+    killall -9 uwsgi
+    ps -ef | grep startScheduler.py; # 找到pid
+    kill -9 <上面的pid>
+
+* 旧系统使用的Python3.3, 新系统用的Python3.4, 需要让Python3软链接指向Python3.4 ::
+
+    mv /usr/local/bin/python3 /usr/local/bin/python3.3.ln && 
+    ln -s /usr/bin/python3.4 /usr/local/bin/python3
+
+3.部署新系统
+--------------------
+* 旧系统的OpenStack和新系统都使用了Mysql/Rabbitmq/Crudini，, 为避免部署脚本对OpenStack造成影响, 修改部署脚本跳过Mysql/Rabbitmq/Crudini的安装 ::
+
+    如果想创建另外的Mysql和Rabbitmq用户, 可以注释掉安装的代码, 创建用户的部分保留
+
+* 新系统默认使用8000端口, 可以修改部署脚本目录下conf/mgmt_nginx.conf ::
+
+    将 listen 8000; 修改为listen 80;
+    将 server_name localhost; 修改为server_name <PUBLIC IP>;
+
+* 发现的问题 ::
+
+    * 在运行make_source.sh时会报错, 需要执行pip3 install -U setuptools后再次运行
+
+    * 代码默认以195的OpenStack作为Backend, 修改localrc的OS_AUTH_URL后, 
+        OpenStack未改变, 需要手动修改代码并重启相关服务
+
+    * 固定桌面相关视图和模板有一个小Bug
+
+    * 目前新系统未记录云桌面的登录用户名和密码
+
+4.导入旧系统数据
+--------------------
+
+* 将导出的旧系统数据导入至新系统数据库 ::
+    
+    1. 导入脚本为当前目录下的tools/import_data.py, 复制该脚本和之前导出的db文件到新系统的manage.py所在目录下 ::
+
+        sudo cp tools/import_data.py /srv/www/vinzor/phoenix/src/web/;
+        sudo cp -r db /srv/www/vinzor/phoenix/src/web/
+
+    2. 切换到新系统根目录下并执行以下命令 ::
+
+        cd /srv/www/vinzor; sudo source venv/bin/activate; python3 phoenix/src/web/import_data.py
+
+
+5.安装补丁
+--------------------
+
+**凡是安装了nova-compute节点, 都要进行以下操作**
+
+注: patch-linux_net.sh 只在nova-network网络下才需要运行, neutron网络下不要管
+
+* 为OpenStack打上补丁 ::
+
+    在OpenStack部署脚本的patches目录中存放着所有的补丁,后缀为diff的是补丁, 每个补丁都有一个与之对应的sh脚本用来进行安装;通过bash -x <.sh脚本>运行所有的脚本, 并观察输出, 如果补丁之前已经装过, 输出中会出现Reversed patch detected等字眼, 那么停止脚本的运行;如果出现FAILED等字眼, 则意味着补丁与现有OpenStack代码不匹配, 这种情况下可以手动将diff中的内容编辑到对应的代码文件中, 建议进行反馈再做决定; 如果出现patching file <>并且脚本成功运行, 那么意味着补丁安装成功, 建议通过diff的内容对已经修改的代码进行确认
+
+
+6.安装Nova-Spiceproxy
+---------------------
+
+**凡是安装了nova-compute并且具备外部可访问的IP的节点, 都要进行以下操作**
+
+* 安装Nova-Spiceproxy ::
+    
+    cd /etc/apt; 
+    mv sources.list sources.list.backup; #对源文件做备份
+
+    #将源替换为本地源, /root/openstack/archives/12.04为本地源路径, 实际过程需要做相应的替换
+    #ubuntu为14.04时, 也要改为/root/openstack/archives/14.04
+    echo "deb file:///root/openstack/archives/12.04 ./" > sources.list;
+    apt-get update;
+    apt-get install -y --force-yes nova-spiceproxy; #安装nova-spiceproxy
+    service nova-spiceproxy status; #检验nova-spiceproxy是否在运行之中
+    mv sources.list.backup sources.list; #恢复源
+
+* 修改配置文件/etc/nova/nova.conf ::
+
+    crudini --set /etc/nova/nova.conf DEFAULT vnc_enabled False
+    crudini --set /etc/nova/nova.conf spice html5proxy_base_url http://<本机Public IP>:6082/spice_auto.html
+    crudini --set /etc/nova/nova.conf spice enabled True
+    crudini --set /etc/nova/nova.conf spice agent_enabled True
+    crudini --set /etc/nova/nova.conf spice keymap en-us
+    crudini --set /etc/nova/nova.conf spice server_listen 127.0.0.1
+    crudini --set /etc/nova/nova.conf spice server_proxyclient_address 127.0.0.1
+
+* 重启服务 ::
+
+    service nova-compute restart
+    service nova-novncproxy stop #这句可能报错, 找不到服务, 意味着本机未安装nova-novncproxy, 就可以跳过了
+
+7.其它
+
+**凡是安装了nova-compute的节点, 都要进行以下操作**
+
+* 修改/etc/default/qemu-kvm ::
+
+    KSM_ENABLED=0
+    KVM_HUGEPAGES=1
+
+* 修改/etc/crontab ::
+
+    注释掉带有drop caches的行, 没有就跳过
+
+* 修改/etc/nova/nova.conf ::
+
+    reclaim_instance_interval = 0
+    network_allocate_retries = 3 # 在nova-network网络下才需要新增此行
+
+8.重启服务器
+
+    reboot
+

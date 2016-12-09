@@ -1,0 +1,845 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}迁移管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <link ref="stylesheet" href="{{ url_for('static', filename='css/chosen.css') }}" />
+    <style type="text/css">
+        .chzn-select-div p{
+            display: inline-block;
+        }
+
+        .chzn-select-div .error{
+            left: 10px !important;
+            bottom: 0 !important;
+        }
+
+        #delete_content, #edit_template_select{
+            word-wrap: break-word;
+            word-break: break-all;
+            color: gray;
+        }
+
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>桌面迁移</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">桌面列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="migrate_selected_desktops" href="javascript:void(0)" title="迁移"><i class="ace-icon fa fa-exchange"></i>
+                                批量迁移 </a>
+                            <a id="reset_selected_desktops" href="javascript:void(0)" title="重置"><i class="ace-icon fa fa-refresh"></i>
+                                批量重置 </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-main no-padding">
+            <table id="table_migration_desktop_list"
+                   class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th class="center">
+                        <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+                    </th>
+                    <th>桌面名称</th>
+                    <th>使用者</th>
+                    <th>配置</th>
+                    <th>所在主机</th>
+                    <th>IP地址</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div id="host_infos" >
+        {% for host in host_list %}
+        <input type="hidden" id="id_{{ host.host_name }}" host_name="{{ host.host_name }}" free_mem="{{ host.mem|int - host.mem_used|int}}" vms="{{ host.vms }}" running_vms="{{ host.running_vms }}" />
+        {% endfor %}
+    </div>
+
+    <div>
+        <input type="hidden" id="selected_vm_list" />
+        <input type="hidden" id="selected_dest_host_list" />
+    </div>   
+
+    <div id="migrate_dialog" class="modal fade">
+        <div class="modal-dialog modal-user">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="generate_dialog_title">桌面迁移</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form id="migrate_form" role="form"
+                          action="{{ url_for('vmotion.migrate_desktop') }}"
+                          method="post">
+
+                        <div class="form-group desktop_vm_ref">
+                            <label for="form-field-8">桌面ID</label>
+                            <input type="text" id="desktop_vm_ref"
+                                   name="desktop_vm_ref" value=""
+                                   placeholder="桌面ID"
+                                   style="width:100%" readonly/>
+                        </div>
+
+                        <div class="form-group desktop_name">
+                            <label for="form-field-8">桌面名称</label>
+                            <input type="text" id="desktop_name"
+                                   name="desktop_name" value=""
+                                   placeholder="桌面名称"
+                                   style="width:100%" readonly/>
+                        </div>
+
+                        <div class="form-group desktop_flavor">
+                            <label for="form-field-8">桌面配置</label>
+                            <input type="text" id="desktop_flavor"
+                                   name="desktop_flavor" value=""
+                                   placeholder="桌面配置"
+                                   style="width:100%" readonly/>
+                        </div>
+
+                        <div class="form-group desktop_srchost">
+                            <label for="form-field-8">所在主机</label>
+                            <input type="text" id="desktop_srchost"
+                                   name="desktop_srchost" value=""
+                                   placeholder="所在主机"
+                                   style="width:100%" readonly/>
+                        </div>
+
+                        <div class="form-group desktop_desthost">
+                            <label for="form-field-8">目标主机</label>
+                            <select id="desktop_desthost"
+                                    name="desktop_desthost"
+                                    class="select2"
+                                    style="width:100%"
+                                    data-placeholder="请选择"
+                                    data-rule-required="true" data-msg-required='请选择目标主机'>
+                                <option value=""></option>
+                                {% for host in host_list %}
+                                    <option id="option_{{host.host_name}}" value="{{ host.host_name }}" >{{ host.host_name }} - 当前可用内存：{{ host.mem|int - host.mem_used|int}}MB</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                    <input type="text" id="selected_host" name="" value="" style="display:none">
+                </div>
+
+                <div class="modal-footer">
+                    <button id="confirm_migrate" class="btn btn-success btn-sm"
+                            type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>迁移
+                    </button>
+                    <button id="cancel_migrate" class="btn btn-danger btn-sm instance_reset" type="button">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reset_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">重置桌面状态</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认重置桌面状态?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_reset" type="button"
+                            class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                    <input id="reset_desktop_name" type="hidden" />
+                    <input id="reset_desktop_vm_ref" type="hidden" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="batch_reset_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">重置桌面状态</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认重置桌面状态?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_batch_reset" type="button"
+                            class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">身份认证</h4>
+                </div>
+                <div class="modal-body">
+                   <form id="auth_form" method="post" action="{{ url_for('account.auth_user')}}">
+                        <div class="form-group admin_ID">
+                            <label for="form-field-8">管理员ID</label>
+                                <input type="text" id="adminID"
+                                       name="adminID" value=""
+                                       placeholder="管理员ID" style="width:
+                                       100%" data-rule-required='true' data-msg-required='请输入管理员ID'/>
+                        </div>
+                        <div class="form-group admin_passwd">
+                            <label for="form-field-8">管理员密码</label>
+                                <input type="password" id="admin_password"
+                                       name="admin_password" value=""
+                                       placeholder="管理员密码" style="width:
+                                       100%" data-rule-required='true' data-msg-required='请输入管理员密码'/>
+                        </div>
+                        <div class="form-group user_passwd">
+                            <label for="form-field-8">用户密码</label>
+                                <input type="password" id="user_password"
+                                       name="user_password" value=""
+                                       placeholder="用户密码" style="width: 100%" data-rule-required='true' data-msg-required='请输入用户密码'/>
+                                <input type="hidden" id="user_id" name="user_id" value="" />
+                        </div>
+                    </form>
+                    <input type="hidden" id="console_url" name="console_url" value="" />
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_auth" class="btn btn-success btn-small" type="button">
+                        <i class="icon-ok"></i>确定
+                    </button>
+                    <button id="auth_close" class="btn btn-danger btn-small" type="button">
+                        <i class="icon-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="batch_migrate_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">请选择迁移目的主机</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="memory_needed"></div>
+                    <div id="memory_selected"></div>
+                    <div>
+                        <table id="host_brief_info_table" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <!--<th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>-->
+                                    <th></th>
+                                    <th>主机名</th>
+                                    <th>当前可用内存(MB)</th>
+                                    <th>运行/总桌面</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button id="start_migrate" type="button" class="btn btn-info" data-dismiss="modal"> 迁  移 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="no_vm_selected_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">提示</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning
+                    icon-animated-bell bigger-130"></i> 请至少选择一个桌面!</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal"> 关闭 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="no_available_host_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">提示</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning
+                    icon-animated-bell bigger-130"></i> 没有剩余的主机可以作为迁移的目的地!</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal"> 关闭 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="migrate_success_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">迁移任务创建结果</h4>
+                </div>
+                <div class="modal-body">
+                    <span id="success_tips"></span>
+                </div>
+                <div class="modal-footer">
+                    <button id="check_migrate_tasks" type="button" class="btn btn-info" data-dismiss="modal"> 查看任务 </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+    <script>
+        active_sidebar("#vmotion", "#desktop_migration");
+
+        $(function() {
+            //init JQuery's data table
+
+            var dTable = $('#table_migration_desktop_list').dataTable({
+                "bServerSide": true,
+                "bProcessing": true,
+                "sAjaxSource": "{{ url_for('vmotion.migrate_desktop_table') }}",
+                "iDisplayLength": 10,//每页显示10条数据
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "oLanguage":{
+                    //"sSearch": "搜索",
+                    "sSearch": "" +
+                        "<label>搜索：&nbsp;</label>" +
+                        "<span class='add-on'> _INPUT_ </span>" +
+                        "<button id='filter_button'>查询</button>",
+                    "sLengthMenu": "每页显示 _MENU_ 条记录",
+                    "sZeroRecords": "没有检索到数据",
+                    "sInfo": "显示 _START_ 至 _END_ 条 &nbsp;&nbsp;共 _TOTAL_ 条",
+                    "sInfoFiltered": "(筛选自 _MAX_ 条数据)",
+                    "sInfoEmpty": "显示第0至0项结果，共0项",
+                    "sProcessing": "正在加载数据...",
+                    "sInfoPostFix": "",
+                    "sEmptyTable": "表中数据为空",
+                    "sLoadingRecords": "载入中...",
+                    "sInfoThousands": ",",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "上页",
+                        "sNext": "下页",
+                        "sLast": "末页"
+                    },
+                    "oAria": {
+                        "sSortAscending": ":以升序排列此列",
+                        "sSortDescending": ":以降序排列此列"
+                    }
+                },
+                "fnDrawCallback": function (oSettings) {
+                    $('table th input:checkbox').prop('checked', false);
+                },
+                "aoColumns": [
+                    {"mData": "id", "sClass": "center", "bSearchable": false, "bSortable": false, "mRender": function ( data, type, full ){
+                        return '<label class="pos-rel"><input type="checkbox" id="'+data+'" class="desktop-checkbox"/><span class="lbl"></span></label>';
+                    }},
+                    {"mData": "name","mRender": function (data, type, full) {
+                            return '<a href="javascript:void(0)" onclick="authDialog(' +
+                             "'{{
+                            url_for('desktop.desktop_console') }}?id="+data
+                            .vmid  + "', '"+ data.owner_id +"'" + ')"'+">"+
+                            data.name+"</a>"
+                        }
+                    },
+                    {"mData": "owner_id"},
+                    {"mData": "size","bSearchable": false, "bSortable": false,},
+                    {"mData": "host_name"},
+                    {"mData": "ip"},
+                    {"mData": "status_chs","bSearchable": false, "bSortable": false,},
+                    {"mData": "operation","bSearchable": false, "bSortable":
+                    false, "mRender": function (data, type, full) {
+
+                            return '<div>'
+                            + (data.can_migrate_or_evacuate?(
+                                "<button class='btn btn-mini btn-info'" +
+                                ' title="迁移桌面"' + ' onclick="migrateDesktopById(' + "'" +data.name+"', "+ "'" + data.vmid +"', "+"'" +data.size +"', "+ "'" + data.host_name+ "')"+ '"' + ">"+
+                                 "<i class='ace-icon fa fa-exchange'></i>"+
+                                "</button>"
+                            ):(
+                                "<button class='btn btn-mini btn-info'" +
+                                ' title="该状态的桌面无法迁移" disabled>' +
+                                     "<i class='ace-icon fa fa-exchange'></i></button>"
+                            ))
+                            + (data.can_migrate_or_evacuate?(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="该桌面无需重置状态" disabled>' +
+                                     "<i class='ace-icon fa fa-refresh'></i></button>"
+                            ):(
+                                "<button class='btn btn-mini btn-danger'" +
+                                ' title="重置桌面状态"' + ' onclick="resetDesktopById(' + "'"
+                                +data.name+"', "+ "'" + data.vmid + "'" + ")"+
+                                 '"' + ">"+
+                                 "<i class='ace-icon fa fa-refresh'></i>"+
+                                "</button>"
+                            ))
+                            + '</div>';
+                        }
+                    }
+                    ],
+                "aaSorting": []
+            });
+
+            $('div#table_migration_desktop_list_filter input').unbind();
+            $('#filter_button').click(function () {
+                $.ajax({
+                    url: '{{ url_for('log.test_session') }}',
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        location.reload();
+                    }
+                })
+                var filter_str = $('div#table_migration_desktop_list_filter input').val();
+                dTable.fnFilter(filter_str);
+            })
+
+            $('div#table_migration_desktop_list_filter input').change(function(){
+                var filter_str = $('div#table_migration_desktop_list_filter input').val();
+                if(filter_str==null || filter_str=="")
+                    dTable.fnFilter(filter_str);
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click' , function(){
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function(){
+                    if($(this).prop("disabled")==false)
+                    {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+
+
+            function doAuth(){
+                var console_url = $("#console_url").val();
+                var options = {
+                    success: callback,
+                    //提交后的回调函数
+                    url: "{{ url_for('account.auth_user')}}",
+                    type: "post",
+                    dataType: "json",
+                    //html(默认), xml, script, json...接受服务端返回的类型
+                    timeout: 10000 //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                function callback(responseText, statusText) {
+                    if (responseText["status"] == "success") {
+                        //成功，刷新页面
+                        location.href=(console_url);
+                    } else {
+                        //操作失败
+                        var content = "创建用户失败";
+                        if (responseText["status"]  == "user_fail"){
+                            content = "用户认证失败";
+                        } else {
+                            content = "管理员认证失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+                $("#auth_form").ajaxSubmit(options);
+            }
+
+            $("#confirm_auth").click(function () {
+                var isvalid = $("#auth_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                doAuth();
+            });
+
+            $("#auth_close").click(function () {
+                $("#auth_dialog").modal("hide");
+            });
+
+            var $validator = $("#migrate_form").validate({
+                ignore: ''
+            });
+
+            $("#migrate_dialog .select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+
+            $("#cancel_migrate").click(function(){
+                $("#migrate_dialog").modal("hide");
+            });
+
+            $("#confirm_migrate").click(function(){
+                var isvalid = $("#migrate_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                $("#migrate_dialog").modal("hide");
+                $.ajax({
+                    url:"{{ url_for('vmotion.migrate_desktop') }}",
+                    type: "POST",
+                    data:$("#migrate_form").serialize(),
+                    success: on_migrate_desktop_success,
+                    error:on_migrate_desktop_error
+                });
+
+                function on_migrate_desktop_success(responseJson){
+                    if (responseJson.status == "success") {
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "创建桌面迁移任务成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }
+                    else {
+                        var content = "创建桌面迁移任务失败: "
+                        if (responseJson.error_info == "")
+                            content = "创建桌面迁移任务失败"
+                        else
+                            content += responseJson.error_info
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                }
+
+                function on_migrate_desktop_error(request, msg, e) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: '创建桌面迁移任务过程中出现错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            $("#confirm_reset").click(function(){
+                $("#reset_dialog").modal("hide");
+                desktop_name = $("#reset_desktop_name").val()
+                desktop_vm_ref = $("#reset_desktop_vm_ref").val()
+                $.ajax({
+                    url:"{{ url_for('vmotion.reset_desktop_status') }}",
+                    type: "POST",
+                    data:{"desktop_name":desktop_name,
+                    "desktop_vm_ref":desktop_vm_ref},
+                    success: on_reset_desktop_success,
+                    error:on_reset_desktop_error
+                });
+
+                function on_reset_desktop_success(responseJson){
+                    if (responseJson.status == "success") {
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重置桌面状态成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }
+                    else {
+                        var content = "重置桌面状态失败: "
+                        if (responseJson.error_info == "")
+                            content = "重置桌面状态失败"
+                        else
+                            content += responseJson.error_info
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                }
+
+                function on_reset_desktop_error(request, msg, e) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: '创建桌面迁移任务过程中出现错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            $('#migrate_selected_desktops').click(function() {
+                var all_vms = $('#table_migration_desktop_list tbody tr td label input').toArray();
+                var selected_vms = [];
+                var src_hosts = [];
+                var needed_mem = 0;
+                for(var i = 0; i < all_vms.length; ++i) {
+                    if(all_vms[i].checked == true) {
+                        // WARN: Changing table format will cause this function getting error data of hosts.
+                        var vm_host = $('#table_migration_desktop_list tbody tr').get(i).children[4].innerHTML;
+                        src_hosts.push(vm_host);
+                        var vm_mem = parseInt($('#table_migration_desktop_list tbody tr').get(0).children[3].innerHTML.split(' | ')[1].split(' ')[0]);
+                        needed_mem += vm_mem;
+                        selected_vms.push(all_vms[i].id);
+                    }
+                }
+                $('#selected_vm_list').val(selected_vms.join(','));
+                if(selected_vms.length == 0) {
+                    $('#no_vm_selected_dialog').modal('show');
+                } else {
+                    var all_hosts = $('#host_infos input').toArray();
+                    var dest_hosts = [];
+                    for(var i = 0; i < all_hosts.length; ++i) {
+                        var host_name = all_hosts[i].getAttribute('host_name');
+                        if(src_hosts.indexOf(host_name) == -1) {
+                            dest_hosts.push({
+                                'host_name': host_name,
+                                'free_mem': all_hosts[i].getAttribute('free_mem'),
+                                'running_vms': all_hosts[i].getAttribute('running_vms'),
+                                'vms': all_hosts[i].getAttribute('vms')
+                            });
+                        }
+                    }
+                    var dest_host_names = [];
+                    for(var i = 0; i < dest_hosts.length; ++i) {
+                        dest_host_names.push(dest_hosts[i]['host_name']);
+                    }
+                    if(dest_hosts.length == 0) {
+                        $('#no_available_host_dialog').modal('show');
+                        return;
+                    }
+                    $('#host_brief_info_table tbody').empty();
+                    for(var i = 0; i < dest_hosts.length;i++) {
+                        var tr='<tr>'
+                        +'<td class="center"><label class="pos-rel"><input type="checkbox" onclick= "select_host(' +"'" + dest_hosts[i]['host_name'] +"'"+')" id="host_'+ dest_hosts[i]['host_name'] +'" class="ace"><span class="lbl"></span></label></td>'
+                        +'<td>' + dest_hosts[i]['host_name'] + '</td>'
+                        +'<td>' + dest_hosts[i]['free_mem'] +'</td>'
+                        +'<td>' + dest_hosts[i]['running_vms'] + '/' + dest_hosts[i]['vms'] +'</td>'
+                        +'</tr>';
+
+                        $('#host_brief_info_table tbody').append(tr);
+                    }
+                    $('#memory_needed').html('<h4>需要内存(MB):' + needed_mem + '</h4>')
+                    $('#memory_selected').html('<h4>当前可用(MB):0</h4>')
+                    $('#batch_migrate_dialog').modal('show');
+                }
+
+            });
+
+            $('#reset_selected_desktops').click(function() {
+                var all_vms = $('#table_migration_desktop_list tbody tr td label input').toArray();
+                selected_vm_ids = [];
+                for(var i = 0; i < all_vms.length; ++i) {
+                    if(all_vms[i].checked == true) {
+                        selected_vm_ids.push(all_vms[i].id);
+                    }
+                }
+                if(selected_vm_ids.length == 0) {
+                    $('#no_vm_selected_dialog').modal('show');
+                } else {
+                    $('#batch_reset_confirm_dialog').modal('show');
+                }
+                $('#selected_vm_list').val(selected_vm_ids.join(','));
+                console.log($('#selected_vm_list').val());
+            });
+
+            $('#confirm_batch_reset').click(function() {
+                var vm_list = $('#selected_vm_list').val().split(',');
+                $.ajax({
+                    url: "{{ url_for('vmotion.batch_reset_desktop_status') }}",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: $.toJSON({vm_list: vm_list}),
+                    success: on_reset_desktop_success,
+                    error: on_reset_desktop_error
+                });
+                function on_reset_desktop_success(responseJson){
+                    if (responseJson.status == "success") {
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "重置桌面状态成功",
+                            class_name: 'gritter-success'
+                        });
+                        location.reload()
+                    }
+                    else {
+                        var content = "重置桌面状态失败: "
+                        if (responseJson.error_info == "")
+                            content = "重置桌面状态失败"
+                        else
+                            content += responseJson.error_info
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+
+                }
+
+                function on_reset_desktop_error(request, msg, e) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: '创建桌面迁移任务过程中出现错误',
+                        class_name: 'gritter-error'
+                    });
+                }
+                $('#batch_reset_confirm_dialog').modal('hide');
+            });
+
+            $('#start_migrate').click(function() {
+                var vm_list = $('#selected_vm_list').val().split(',');
+                var dest_hosts = [];
+                var all_hosts=$('#host_brief_info_table tbody tr input').toArray();
+                for(var i = 0; i < all_hosts.length; ++i) {
+                    if(all_hosts[i].checked) {
+                        // get hostname from input.id
+                        id_str = all_hosts[i].id;
+                        dest_hosts.push(id_str.substr(5, id_str.length));
+                    }
+                }
+                $.ajax({
+                    url: "{{ url_for('vmotion.batch_migrate') }}",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: $.toJSON({vm_list: vm_list, dest_hosts: dest_hosts}),
+                    success: on_migrate_success,
+                    error: on_migrate_error
+                });
+            });
+
+            function on_migrate_success(responseJson) {
+                if (responseJson.status == "success") {
+                    var data = responseJson.data;
+                    console.log(responseJson);
+                    $('#success_tips').html('<h4>您已经成功创建迁移任务，可以到任务调度查看迁移进度。</h4>')
+                    $('#migrate_success_dialog').modal('show');
+                } else {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: "创建桌面迁移任务失败",
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            function on_migrate_error(request, msg, e) {
+                 $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: "创建桌面迁移任务失败",
+                    class_name: 'gritter-error'
+                 });
+            }
+
+            $('#check_migrate_tasks').click(function() {
+                location.href = "{{ url_for('schedule.tasks') }}"
+            });
+        });
+
+        function authDialog(url, userid){
+            $("#auth_dialog").modal("show");
+            $("#console_url").val(url);
+            $("#user_id").val(userid);
+        }
+
+        function migrateDesktopById(desktop_name,desktop_vmid,desktop_size,desktop_host){
+            $("#migrate_form").resetForm(); //重置表单
+            if($("#selected_host").attr('name') != "")
+            {
+                $("#desktop_desthost").append('<option id="option_' +$("#selected_host").attr('name') +'" value="'+$("#selected_host").attr('name')+'" >' + $("#selected_host").val() + '</option>')
+            }
+            $("#selected_host").attr('name', desktop_host)
+            $("#selected_host").val($('#option_'+desktop_host).text())
+            $("#desktop_desthost option[value=" + desktop_host+"]").remove()
+            //$("#desktop_desthost").trigger("liszt:updated");
+            $("#desktop_desthost").val('').select2('val',"");
+            $("#desktop_vm_ref").val(desktop_vmid);
+            $("#desktop_name").val(desktop_name);
+            $("#desktop_flavor").val(desktop_size);
+            $("#desktop_srchost").val(desktop_host);
+            $("#migrate_dialog").modal("show");
+        }
+
+        function resetDesktopById(desktop_name,desktop_vmid)
+        {
+            $("#reset_desktop_name").val(desktop_name)
+            $("#reset_desktop_vm_ref").val(desktop_vmid)
+            $("#reset_dialog").modal("show");
+        }
+
+        function select_host(host_name)
+        {
+            if ($('#host_' + host_name).get(0).checked)
+            {
+                var current_memory = $('#memory_selected').text().split(':')[1];
+                var select_memory = $('#id_'+ host_name).attr('free_mem');
+                var total_memory = parseInt(current_memory) + parseInt(select_memory);
+                $('#memory_selected').html('<h4>当前可用(MB):' + total_memory.toString()+'</h4>')
+            }
+            else
+            {
+                var current_memory = $('#memory_selected').text().split(':')[1];
+                var select_memory = $('#id_'+ host_name).attr('free_mem');
+                var total_memory = parseInt(current_memory) - parseInt(select_memory);
+                $('#memory_selected').html('<h4>当前可用(MB):' + total_memory.toString()+'</h4>')
+            }
+
+        }
+    </script>
+
+{% endblock %}

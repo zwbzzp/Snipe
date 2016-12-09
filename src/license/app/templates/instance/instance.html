@@ -1,0 +1,858 @@
+{% extends 'layout.html' %}
+{% block title %}实例管理-云晫License管理系统{% endblock %}
+{% block inline_styles %}
+    <style type="text/css">
+        body .modal-instance {
+            width: 500px;
+        }
+
+        input[type=checkbox].ace.ace-switch.ace-switch-4 + .lbl::before {
+            text-indent: -4px !important;
+        }
+        input[type=checkbox].ace.ace-switch.ace-switch-4:checked + .lbl::before {
+            text-indent: 7px !important;
+        }
+
+        .disableCss{
+            pointer-events:none;
+            color:#afafaf;
+            cursor:default
+        }
+        .file_div{
+            width:70%;
+        }
+        .upload_form div{
+            display:inline-block !important;
+            line-height: 30px !important;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+    <div class="page-header"><h1>实例管理</h1></div>
+    {% for message in get_flashed_messages() %}
+        <div class="alert alert-warning">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ message }}
+        </div>
+    {% endfor %}
+    <div class="widget-box">
+        <div class="widget-header">
+            <h4 class="widget-title">实例列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+
+            <div class="widget-toolbox padding-10">
+                {% if current_user.is_administrator() %}
+                <div class="action-buttons">
+                    <a id="create_instance" href="#"><i class="ace-icon fa fa-plus-circle"></i> 创建实例 </a>&nbsp
+                    <a id="delete_instances" class="red" href="#"><i class="ace-icon fa fa-trash"></i> 删除所选实例 </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="widget-main no-padding">
+                {% if current_user.is_administrator() %}
+                    <table id="admin_instance_table"
+                           class="table table-striped table-bordered table-hover">
+                {% else %}
+                    <table id="user_instance_table"
+                           class="table table-striped table-bordered table-hover">
+                {% endif %}
+                    <thead>
+                    <tr>
+                        {% if current_user.is_administrator() %}
+                            <th class="center"><label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label></th>
+                        {% endif %}
+                        <th>实例序列号</th>
+                        {% if current_user.is_administrator() %}
+                        <th>所属用户</th>
+                        {% endif %}
+                        <th>MAC地址</th>
+                        <th>服务器序列号</th>
+                        <th>状态</th>
+                        <th {% if not current_user.is_administrator()%}style="width:300px;"{% endif %}>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for instance in instance_list %}
+                    <tr id="instance_tr_{{ instance.id }}">
+                        {% if current_user.is_administrator() %}
+                            {% if instance in forbidden_list%}
+                                <td class="center"><label class="pos-rel"><input type="checkbox" disabled id="instance_{{ instance.id }}" class="ace"><span class="lbl"></span></label></td>
+                            {% else %}
+                                <td class="center"><label class="pos-rel"><input type="checkbox" id="instance_{{ instance.id }}" class="ace"><span class="lbl"></span></label></td>
+                            {% endif %}
+                        {% endif %}
+                        <td id="instancename_{{instance.id}}" onclick="on_update_click('{{instance.id}}')"><a href="#">{{instance.instancename}}</a></td>
+                        {% if current_user.is_administrator() %}
+                        <td id="user_{{instance.id}}">{{instance.user.username}}-{{instance.user.organization}}</td>
+                        {% endif %}
+                        <td id="mac_{{instance.id}}">{{ instance.mac}}</td>
+                        <td id="sn_{{instance.id}}">{{ instance.serial_number}}</td>
+                        <td id="status_{{instance.id}}">{{ instance.get_status_str() }}</td>
+                        <td {% if not current_user.is_administrator()%}style="width:300px;"{% endif %}>
+                            {% if current_user.is_administrator() %}
+                                {% if instance in forbidden_list%}
+                                    <a class="disableCss" title="不能删除实例！已上传主机信息，且实例未过期！">
+                                            <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                    </a>
+                                {% else %}
+                                    <a class="red" onclick="on_delete_click('{{instance.id}}')" title="删除">
+                                            <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% if instance.status == InstanceStatus.TOUPLOAD %}
+                                    <form id="upload_form_{{instance.id}}" class="upload_form" enctype="multipart/form-data" method="" action="" style=" margin-bottom: 0px !important;width:100%;height:30px;">
+                                        <!--<div style="display:inline-block,overflow:hidden;">-->
+                                        <div class="file_div" style="floating:left;height:30px;vertical-align:middle;">
+                                            <input type="file" name="file" class="userfile" id="hostinfo_file_{{instance.id}}" />
+                                        </div>
+                                        <div class="instanceid_div" style="display:none !important;"><input type="text" name="instanceid" value="{{instance.id}}"/></div>
+                                        <div class="submit_div"  style="floating:right;height:30px;vertical-align:middle;">
+                                            <button type="button" class="btn btn-mini btn-info" id="upload1" onclick="uploadHostinfo('{{instance.id}}')" title="上传主机信息"><i class='ace-icon fa fa-cloud-upload'></i>确定上传</button>
+                                        </div>
+                                        <!--</div>-->
+                                    </form>
+                                {% endif %}
+
+                                {% if instance.status == InstanceStatus.INFOERROR %}
+                                    <form id="upload_form_{{instance.id}}" class="upload_form" enctype="multipart/form-data" method="" action="" style=" margin-bottom: 0px !important;width:100%;height:30px;">
+                                        <div class="file_div"  style="floating:left;height:30px;vertical-align:middle;">
+                                            <input type="file" name="file" class="userfile" id="hostinfo_file_{{instance.id}}"/>
+                                        </div>
+                                        <div class="instanceid_div" style="display:none !important;"><input type="text" name="instanceid" value="{{instance.id}}"></div>
+                                        <div class="submit_div" style="floating:right;height:30px;vertical-align:middle;">
+                                            <button type="button" class="btn btn-sm btn-info" id="upload2" onclick="uploadHostinfo('{{instance.id}}')" title="上传主机信息"><i class='ace-icon fa fa-cloud-upload'></i>确定上传</button>
+                                        </div>
+                                    </form>
+                                {% endif %}
+
+                                {% if instance.status == InstanceStatus.TODOWNLOAD %}
+                                    <a title="下载最新License" onclick="downloadById('{{ instance.instancename }}')">
+                                        <i class="ace-icon fa fa-download"></i>
+                                    </a>
+                                {% endif %}
+
+                                {% if instance.status == InstanceStatus.DOWNLOADERROR %}
+                                    请10分钟后再刷新，操作
+                                {% endif %}
+
+                                {% if instance.status == InstanceStatus.EXPIRED %}
+                                    该实例许可已过期
+                                {% endif %}
+
+                            {% endif %}
+                        </td>
+                         <div style="display:none;" id="instance_info_{{ instance.id }}">{{instance.max_vm}}#{{ instance.max_user }}#{{instance.max_image}}#{{ instance.max_vcpu }}#{{ instance.max_vmem }}#{{ instance.max_vdisk }}#{{ instance.expired_time.strftime("%Y-%m-%d") }}#{{instance.status}}#{{instance.user_id}}</div>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="instance_dialog" class="modal fade">
+        <div class="modal-dialog modal-instance">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="instance_dialog_title">创建实例</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="instance_form" role="form" action="{{ url_for('instance.add_instance') }}" method="post">
+                        {{ form.csrf_token }}
+                        <div class="form-group">
+                            <label for="form-field-8">实例序列号</label>
+                            <div class="">
+                                {{ form.instancename(id='instancename', class_='form-control', type='text', placeholder='实例序列号') }}
+                            </div>
+                        </div>
+
+                        <div class="form-group"
+                             {% if not current_user.is_administrator() %}
+                                style="display:none"
+                             {% endif %}>
+                            <label for="form-field-8">所属用户</label>
+                            <div class="">
+                                  <select id="user"
+                                    name="user"
+                                    class="select2"
+                                    style="width:100%"
+                                    data-placeholder="请选择">
+                                <option value=""></option>
+                                {% for user in user_list %}
+                                    <option value="{{ user.id }}">{{user.username}}-{{user.organization}}</option>
+                                {% endfor %}
+                            </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">许可到期时间</label>
+                            <div class="input-group">
+                                <span style="position:relative;z-index:9999;">
+                                    {% if current_user.is_administrator()%}
+                                         {{ form.expired_time(id='expired_time', class_='form-control date-picker', type='text', placeholder='许可到期时间') }}
+                                    {% else %}
+                                         {{ form.expired_time(id='expired_time', class_='form-control date-picker', type='text', disabled='disabled',placeholder='许可到期时间') }}
+                                    {% endif %}
+                                    <!--<input type="text" id="expired_time"-->
+                                           <!--name="expited_time"-->
+                                           <!--class="date-picker form-control"/>-->
+                                </span>
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">最大并发桌面数(个)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_vm(id='max_vm', class_='form-control', type='text', placeholder='最大并发桌面数量',value='999999') }}
+                                {% else %}
+                                    {{ form.max_vm(id='max_vm', class_='form-control', type='text', disabled='disabled',placeholder='最大并发桌面数量') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">最大并发用户数(个)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_user(id='max_user', class_='form-control', type='text', placeholder='最大并发用户数',value='999999') }}
+                                {% else %}
+                                    {{ form.max_user(id='max_user', class_='form-control', type='text', disabled='disabled',placeholder='最大并发用户数') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">最大可用镜像数(个)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_image(id='max_image', class_='form-control', type='text', placeholder='最大可用镜像数',value='999999') }}
+                                {% else %}
+                                    {{ form.max_image(id='max_image', class_='form-control', type='text', disabled='disabled',placeholder='最大可用镜像数') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                         <div class="form-group">
+                            <label for="form-field-8">最大虚拟CPU数(个)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_vcpu(id='max_vcpu', class_='form-control', type='text', placeholder='最大虚拟CPU数(个)',value='999999') }}
+                                {% else %}
+                                    {{ form.max_vcpu(id='max_vcpu', class_='form-control', type='text', disabled='disabled', placeholder='最大虚拟CPU数(个)') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">最大虚拟内存容量(MB)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_vmem(id='max_vmem', class_='form-control', type='text', placeholder='最大虚拟内存容量',value='99999999') }}
+                                {% else %}
+                                    {{ form.max_vmem(id='max_vmem', class_='form-control', type='text', disabled='disabled', placeholder='最大虚拟内存容量') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-field-8">最大虚拟硬盘容量(GB)</label>
+                            <div class="">
+                                {% if current_user.is_administrator()%}
+                                    {{ form.max_vdisk(id='max_vdisk', class_='form-control', type='text', placeholder='最大虚拟硬盘容量',value='999999') }}
+                                {% else %}
+                                    {{ form.max_vdisk(id='max_vdisk', class_='form-control', type='text', disabled='disabled',placeholder='最大虚拟硬盘容量') }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="confirm_action" type="button" class="btn btn-success"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 取消 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- delete user confirmation dialog -->
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除实例</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的实例?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
+    <script>
+        active_sidebar("#instances", null);
+
+        $('.userfile').ace_file_input({
+            no_file: '选择文件...',
+            btn_choose: '浏览',
+            btn_change: '更改',
+            droppable: false,
+            onchange: null,
+            thumbnail: false
+        });
+
+        $('.ace-file-container').css("width","200px");
+
+        var selected_instance = [];
+
+        // dialog mode switch
+        var instance_dialog_mode = "create";
+
+        $(function() {
+            $(document).ajaxStart(function(){
+                $.blockUI({
+                    message: "<h3>请等待...</h3>",
+                    css: {
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+            });
+            $(document).ajaxStop($.unblockUI);
+
+            $(".date-picker" ).datepicker({
+                language: "zh-CN",
+                format: "yyyy-mm-dd",
+                autoclose: true,
+                todayHighlight: true});
+
+            <!--$('.userfile').ace_file_input({-->
+                <!--no_file:'选择文件...',-->
+                <!--btn_choose:'浏览',-->
+                <!--btn_change:'更改',-->
+                <!--droppable:false,-->
+                <!--onchange:null,-->
+                <!--thumbnail:false-->
+            <!--});-->
+
+            // convert table to jquery dataTable
+            // dataTable will return a jQuery object, while DataTable returns a DataTables API instance.
+            var admin_instance_table = $("#admin_instance_table").DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    { "bSortable": false },
+                    null, null, null,null,null,
+                    { "bSortable": false }
+                ],
+                "aaSorting": []
+            });
+
+             var user_instance_table = $("#user_instance_table").DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [
+                    { "bSortable": false },
+                    null, null, null,
+                    { "bSortable": false }
+                ],
+                "aaSorting": []
+            });
+
+            $("#instance_dialog .select2").select2({
+                language:"zh-CN",
+                allowClear: true
+            });
+
+            /**
+             * Below are create and update instance related code
+             */
+
+            // create instance button click
+            $("#create_instance").click(function () {
+                // reset form from update instance mode
+                instance_dialog_mode = "create";
+                $("#instancename").prop("readonly", false);
+                $("#instance_dialog_title").text("创建实例");
+                $("#instance_form").validate().resetForm();
+                $("#instance_dialog").modal("show");
+            });
+
+            // instance form validation
+            var $validator = $("#instance_form").validate({
+                ignore:[],
+                rules:{
+                    instancename: {
+                        required: true,
+                        maxlength: 64
+                    },
+                    user: {
+                        required: true,
+                    },
+                    max_vm: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    max_user: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    max_image: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    max_vcpu: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    max_vmem: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    max_vdisk: {
+                        required: true,
+                        positiveinteger:true
+                    },
+                    expired_time: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    instancename: {
+                        required: "请输入实例序列号",
+                        maxLength: "长度不超过64个字符"
+                    },
+                    user: {
+                        required: "请选择所属用户",
+                    },
+                    max_vm: {
+                        required: "请输入最大并发桌面数",
+                        positiveinteger:"请输入正整数"
+                    },
+                    max_user: {
+                        required: "请输入最大并发用户数",
+                        positiveinteger:"请输入正整数"
+                    },
+                    max_image: {
+                        required: "请输入最大可用镜像数",
+                        positiveinteger:"请输入正整数"
+                    },
+                    max_vcpu: {
+                        required: "请输入最大虚拟CPU数",
+                        positiveinteger:"请输入正整数"
+                    },
+                    max_vmem: {
+                        required: "请输入最大虚拟内存容量",
+                        positiveinteger:"请输入正整数"
+                    },
+                    max_vdisk: {
+                        required: "请输入最大虚拟硬盘容量",
+                        positiveinteger:"请输入正整数"
+                    },
+                    expired_time: {
+                        required: "请输入许可到期时间",
+                    },
+                }
+            });
+
+             // create/update instance
+            $("#confirm_action").click(function () {
+                var isvalid = $("#instance_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                if (instance_dialog_mode == "create") {
+                    $.ajax({
+                        url: "{{ url_for('instance.add_instance') }}",
+                        type: "POST",
+                        data: $("#instance_form").serialize(),
+                        success: on_create_instance_success,
+                        error: on_create_instance_error
+                    });
+                } else {
+                    $("#user").attr("disabled", false);
+                    $.ajax({
+                        url: "{{ url_for('instance.update_instance') }}",
+                        type: "PUT",
+                        data: $("#instance_form").serialize(),
+                        success: on_update_instance_success,
+                        error: on_update_instance_error
+                    });
+                }
+            });
+
+            function on_create_instance_success(request, msg, e) {
+                var json_result = $.parseJSON(e.responseText);
+                if (json_result) {
+                    var status = json_result.status;
+                    var data = json_result.data;
+                    switch (status) {
+                        case "success":
+                            $("#instance_dialog").modal("hide");
+                            // 更新admin_instance_table
+                            var tr =  "<tr id='instance_tr_"+data.id+"'>"+
+                                        "<td class='center'><label class='pos-rel'><input type='checkbox' id='instance_"+data.id+"' class='ace'><span class='lbl'></span></label></td>"+
+                                        "<td id='instancename_"+data.id+"'"+'onclick="'+"on_update_click('"+data.id+"')>"+'<a href="#">'+data.instancename+"</a></td>"+
+                                        "<td id='user_"+data.id+"'>"+data.username+"-"+data.organization+"</td>"+
+                                        "<td id='mac_"+data.id+"'>"+data.mac+"</td>"+
+                                        "<td id='sn_"+data.id+"'>"+data.sn+"</td>"+
+                                        "<td id='status_"+data.id+"'>"+data.status_chs+"</td>"+
+                                        "<td>"+'<a class="red" title="删除实例" onclick="on_delete_click('+data.id+')"><i class="acxse-icon fa fa-trash-o bigger-130"></i></a>'+
+                                        "</td>"+
+                                        '<div style="display:none;" id=' + '"instance_info_'+data.id+'">' + data.max_vm+"#"+data.max_user+"#"+data.max_image+"#"+data.max_vcpu+"#"+data.max_vmem+"#"+data.max_vdisk+"#"+data.expired_time+"#"+data.status+"#"+data.user_id+'</div>'
+                                    "</tr>";
+                            $("#admin_instance_table tbody ").append(tr);
+                            var new_row = $("#instance_tr_"+data.id);
+                            admin_instance_table.row.add(new_row);
+                            // 显示提示信息
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '实例&nbsp;'+data.instancename+'&nbsp;创建成功',
+                                class_name: 'gritter-success'
+                            });
+                            break;
+                        case "fail":
+                            // display server side form error messages
+                            var form_errors = data['form_errors'];
+                            var errors = null;
+                            if (form_errors['instancename']
+                                    && form_errors['instancename'] == '实例名已经存在') {
+                                errors = { instancename: "实例名已经存在" };
+                                $validator.showErrors(errors);
+                            }
+                            break;
+                        default:
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '服务器异常',
+                                class_name: 'gritter-error'
+                            });
+                    }
+                }
+            }
+
+            function on_create_instance_error(response) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '实例创建过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            function on_update_instance_success(request, msg, e) {
+                $("#user").attr("disabled", true);
+                var json_result = $.parseJSON(e.responseText);
+                if (json_result) {
+                    var status = json_result.status;
+                    var data = json_result.data;
+                    switch (status) {
+                        case "success":
+                            $("#instance_dialog").modal("hide");
+                            // 修改instance_table
+
+                            var str = data.max_vm + "#" + data.max_user + "#" + data.max_image + "#" + data.max_vcpu + "#" + data.max_vmem + "#" + data.max_vdisk + "#" + data.expired_time + "#" + data.status + "#" + data.user_id
+
+                            $("#instance_info_"+data.id).text(str)
+
+                            // 显示提示信息
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '实例&nbsp;'+data.instancename+'&nbsp;信息修改成功',
+                                class_name: 'gritter-success'
+                            });
+                            break;
+                        case "fail":
+                            // display server side form error messages
+                            var form_errors = data['form_errors']
+                            var errors = null;
+                            if (form_errors['instancename']
+                                    && form_errors['instancename'] == '该实例不能被编辑') {
+                                $("#instance_dialog").modal("hide");
+                                //errors = {instancename: "该实例不能被编辑" };
+                                //$validator.showErrors(errors);
+                                $.gritter.add({
+                                    // (string | mandatory) the text inside the notification
+                                    text: '该实例不能被编辑',
+                                    class_name: 'gritter-error'
+                                });
+                            }
+                            break;
+                        default:
+                            $.gritter.add({
+                                // (string | mandatory) the text inside the notification
+                                text: '服务器异常',
+                                class_name: 'gritter-error'
+                            });
+                    }
+                }
+            }
+
+            function on_update_instance_error(response) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '修改过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            /**
+             * Below are delete instance related code
+             */
+
+            // checkbox
+            $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+            // select all
+            $("#admin_instance_table thead th input[type=checkbox]").eq(0).click
+            (function () {
+                var checked = this.checked;
+                $(this).closest('table').find("tbody td input[type=checkbox]").each(function () {
+                    if($(this).prop("disabled")==false)
+                    {
+                        this.checked = checked;
+                    }
+                })
+            });
+
+            // delete instances
+            $("#delete_instances").click(function () {
+                selected_instance = [];
+                $("#admin_instance_table td input[type=checkbox]").each(function () {
+                    if (this.checked) {
+                        var instance_id = this.id.split("_")[1];
+                        selected_instance.push(instance_id);
+                    }
+                });
+                if (selected_instance.length > 0) {
+                    $("#delete_confirm_dialog").modal("show");
+                }
+            });
+
+            function on_delete_instances_success(responseJson) {
+                var success_text = "";
+                var fail_text = "";
+                var success_list = responseJson.data.success_list;
+                var fail_list = responseJson.data.fail_list;
+
+                // 更新instance_table
+                for (var i in success_list) {
+                    admin_instance_table.row($("#instance_tr_"+success_list[i].id)).remove();
+                }
+                admin_instance_table.draw(false);
+
+                // 显示提示信息
+                for (var i in success_list) {
+                    success_text += "实例&nbsp;"+success_list[i].instancename+"&nbsp;删除成功</br>";
+                }
+                for (var i in fail_list) {
+                    fail_text += "实例&nbsp;"+(success_list[i].id)+"&nbsp;删除失败</br>";
+                }
+                if (success_list.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: success_text,
+                        class_name: 'gritter-success'
+                    });
+                }
+                if (fail_list.length) {
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: fail_text,
+                        class_name: 'gritter-error'
+                    });
+                }
+            }
+
+            function on_delete_instances_error(request, msg, e) {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '删除过程中出现错误',
+                    class_name: 'gritter-error'
+                });
+            }
+
+            // confirm delete
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                $.ajax({
+                    url: "{{ url_for('instance.delete_instances') }}",
+                    type: "DELETE",
+                    contentType: "application/json",
+                    data: $.toJSON(selected_instance),
+                    success: on_delete_instances_success,
+                    error: on_delete_instances_error
+                });
+            });
+        });
+
+        /**
+        * Below code for specific instance operation
+        */
+
+        function on_delete_click(instance_id) {
+            selected_instance = [];
+            selected_instance.push(instance_id);
+            if (selected_instance.length > 0) {
+                $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+
+        function on_update_click(instance_id) {
+            selected_instance = [];
+            selected_instance.push(instance_id);
+            if (selected_instance.length > 0) {
+                // reset form from create instance mode
+                instance_dialog_mode = "update";
+                $("#instance_form").validate().resetForm();
+                $("#instance_dialog, .password").hide();
+                $("#instance_dialog_title").text("更新实例");
+                $("#instancename").val($("#instancename_" + instance_id).text()).prop("readonly", true);
+
+                var str = $("#instance_info_"+instance_id).html().split('#');
+                var max_vm = str[0];
+                var max_user = str[1];
+                var max_image = str[2];
+                var max_vcpu = str[3];
+                var max_vmem = str[4];
+                var max_vdisk = str[5];
+                var expired_time = str[6];
+                var user_id = str[8];
+
+                $("#expired_time").val(expired_time);
+                $("#max_vm").val(max_vm);
+                $("#max_user").val(max_user);
+                $("#max_image").val(max_image);
+                $("#max_vcpu").val(max_vcpu);
+                $("#max_vmem").val(max_vmem);
+                $("#max_vdisk").val(max_vdisk);
+                $("#user").select2("val",user_id);
+                $("#user").attr("disabled", true);
+
+                $("#instance_dialog").modal("show");
+            }
+        }
+
+        function uploadHostinfo(instanceid){
+            if(!checkUploadFile("#hostinfo_file_"+instanceid)){
+                return;
+            }
+
+            var options = {
+                beforeSubmit: beforeSubmit,  //提交前的回调函数
+                success: callback,      //提交后的回调函数
+                url: "{{ url_for('instance.upload_hostinfo') }}",
+                type:'post',
+                dataType: "json"        //html(默认), xml, script, json...接受服务端返回的类型
+                //resetForm: true,         //成功提交后，重置所有表单元素的值
+            };
+
+            function beforeSubmit(formData, jqForm, options){
+
+                return true;
+            };
+
+            function callback(responseJson, statusText){
+                if(responseJson.status == "success"){
+                    //成功，刷新页面
+                    location.reload()
+                }else{
+                    //操作失败
+                    var content = "导入失败！"
+                    if (responseJson.error_msg == "danger"){
+                        content += "数据被篡改！"
+                    }else if (responseJson.error_msg == "not_exist"){
+                        content += "实例ID不存在！"
+                    }else if(responseJson.error_msg == "instanceid_error"){
+                        content += "实例序列号不相符！"
+                    }else if(responseJson.error_msg == "too_large"){
+                        content += "文件大小不能超过1M！"
+                    }else{
+                        content += "导入过程中发生异常！"
+                    }
+                    $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                    });
+                }
+             };
+            $("#upload_form_"+instanceid).ajaxSubmit(options);
+        }
+
+        function checkUploadFile(fileId){
+            var filepath = $(fileId).val();
+            var tmp = filepath.split(".");
+            if (tmp.length != 1){
+               var content = "文件类型错误！"
+               $.gritter.add({
+                   // (string | mandatory) the text inside the notification
+                   text: content,
+                   class_name: 'gritter-error'
+                });
+                return false;
+            }else{
+                return true;
+            }
+        }
+
+        function downloadById(instanceid){
+        $.ajax({
+            url: "{{ url_for('instance.download_license') }}",
+            type: 'post',
+            data:{
+              instanceid: instanceid,
+            },
+            success: function(responseJson, statusText){
+                if(responseJson.status == "success"){
+                    location.href = "/static/license/"+instanceid.toUpperCase()
+                    +"_LICENSE";
+                }else if(responseJson.error_msg == "download_error"){
+                    var content = "短时间内多次下载！"
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                    //reloadPage();
+                }else{
+                    var content = "服务器故障！"
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: content,
+                        class_name: 'gritter-error'
+                    });
+                }
+            },
+        })
+
+     }
+
+    </script>
+{% endblock %}

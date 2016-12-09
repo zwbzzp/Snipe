@@ -1,0 +1,121 @@
+{% extends "bootstrap/base.html" %}
+
+{% block html_attribs %} lang="zh-CN"{% endblock %}
+
+{%- block head %}
+    <title>{% block title %}Base Template{% endblock %}</title>
+
+    {%- block metas %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {%- endblock %}
+
+    {%- block favicon %}
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    {%- endblock %}
+
+    {%- block styles %}
+    {%- block template_styles %}
+    <!-- bootstrap and font-awesome -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='font-awesome/4.2.0/css/font-awesome.min.css') }}" rel="stylesheet">
+    <!-- text fonts -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.googleapis.com.css') }}" />
+    <!-- ace settings handler -->
+    <script src="{{ url_for('static', filename='js/ace-extra.min.js') }}"></script>
+    {%- endblock %}
+
+    {%- block plugin_styles %}
+    <!-- page specific plugin styles -->
+    {%- endblock %}
+
+    {%- block inline_styles %}
+    <!-- inline styles related to this page -->
+    {%- endblock %}
+    {%- endblock %}
+    <!-- ace styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ace.min.css') }}" class="ace-main-stylesheet" id="main-ace-style" />
+    <!--[if lte IE 9]>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/ace-part2.min.css') }}" class="ace-main-stylesheet" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/ace-ie.min.css') }}" />
+      <![endif]-->
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+        <script src="{{ url_for('static', filename='js/html5shiv.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
+        <![endif]-->
+{%- endblock %}
+
+{% block content -%}
+<div id="main-container" class="main-container">
+    <script type="text/javascript">
+        try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+    </script>
+    {%- block sidebar %}{%- endblock %}
+    {%- block main %}{%- endblock %}
+    {%- block footer %}{%- endblock %}
+    {%- block extra %}{%- endblock %}
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse display">
+        <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
+    </a>
+</div>
+{%- endblock content %}
+
+{%- block scripts %}
+    {%- block template_scripts %}
+    <!--[if !IE]> -->
+    <script src="{{ url_for('static', filename='js/jquery.2.1.1.min.js') }}"></script>
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script src="{{ url_for('static', filename='js/jquery.1.11.1.min.js') }}"></script>
+    <![endif]-->
+    <!--[if !IE]> -->
+    <script type="text/javascript">
+        window.jQuery || document.write("<script src='{{ url_for('static', filename='js/jquery.min.js') }}'>"+"<"+"/script>");
+    </script>
+    <!--<![endif]-->
+    <!--[if IE]>
+    <script type="text/javascript">
+     window.jQuery || document.write("<script src='{{ url_for('static', filename='js/jquery1x.min.js') }}'>"+"<"+"/script>");
+    </script>
+    <![endif]-->
+    <script type="text/javascript">
+        if('ontouchstart' in document.documentElement) document.write("<script src='{{ url_for('static', filename='js/jquery.mobile.custom.min.js') }}'>"+"<"+"/script>");
+    </script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <!--[if lte IE 8]>
+    <script src="{{ url_for('static', filename='js/excanvas.min.js') }}"></script>
+    <![endif]-->
+    <!-- ace scripts -->
+    <script src="{{ url_for('static', filename='js/ace-elements.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ace.min.js') }}"></script>
+    <!-- ajax with csrf token -->
+    <script>
+        function active_sidebar(menu, submenu){
+            $("#sidebar li").removeClass('active');
+            if (menu != null) {
+                $("#sidebar " + menu).addClass('active');
+            }
+            if (submenu != null) {
+                $("#sidebar "+ menu + " " + submenu).addClass('active')
+            }
+        }
+
+        // csrf protect
+        var csrftoken = $('meta[name=csrf-token]').attr('content');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+        });
+
+    </script>
+    {%- endblock  %}
+    {%- block plugin_scripts %}{%- endblock  %}
+    {%- block inline_scripts %}{%- endblock %}
+{%- endblock scripts %}

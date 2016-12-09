@@ -1,0 +1,736 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block title %}存储管理{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}"
+          xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}"/>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>个人文件夹账号管理</h1></div>
+
+    <div class="widget-box">
+    <div class="widget-header ">
+        <h4 class="widget-title">个人文件夹账号列表</h4>
+    </div>
+
+    <div class="widget-body no-padding">
+        <div class="widget-toolbox padding-10 ">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="action-buttons">
+                        <a id="add_personal_account" href="javascript:void(0)" title="创建"><i
+                                class="ace-icon fa fa-plus-circle"></i>
+                            创建 </a>
+                        <a id="delete_personal_account" class="red" href="javascript:void(0)"
+                           title="删除"><i
+                                class="ace-icon fa fa-trash"></i>
+                            删除
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="text-align: right;">
+                        <div class="btn-group">
+                            <button data-toggle="dropdown"
+                                    class="btn btn-info btn-xs dropdown-toggle"
+                                    aria-expanded="false">
+                                导入/下载模板
+                                <span class="ace-icon fa fa-caret-down icon-on-right"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-info dropdown-menu-right">
+                                <li>
+                                    <a href="javascript:void(0)"
+                                       title="导入帐号"
+                                       id="upload_account_dialog_pop">导入</a>
+                                </li>
+                                <li>
+                                    <a id="download_template"
+                                       href="{{ url_for('static', filename='personal_storage_account.xls') }}"
+                                       title="下载模板">模板</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="widget-main no-padding">
+    <table id="table_list" class="table table-striped table-bordered table-hover">
+        <thead>
+        <tr>
+            <th class="center">
+                <label class="pos-rel"><input type="checkbox" class="ace"><span class="lbl"></span></label>
+            </th>
+            <th>个人文件服务器</th>
+            <th>用户ID</th>
+            <th>空间大小</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for account in account_list %}
+            <tr>
+                <td class='center'>
+                    <label><input type='checkbox' id="{{ account.id }}" class="ace"/><span class="lbl"></span></label>
+                </td>
+                <td>
+                    <input type="hidden" id="samba_{{ account.id }}" value="{{ account.samba.id }}"/>
+                    <span id="samba_account_name_{{ account.id }}">{{ account.samba.name }}</span>
+                </td>
+                <td>
+                        <span>
+                            <input type="hidden" id="username_{{ account.id }}" value="{{ account.user.id }}"/>
+                            {{ account.user.username }} - {{ account.user.username }}
+                        </span>
+                </td>
+                <td id="quota_{{ account.id }}">{{ account.quota }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="javascript:void(0)" title="编辑" onclick="editById({{ account.id }})"><i
+                                class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                        <a class="red" title="删除" onclick="deleteById({{ account.id }})"><i
+                                class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">创建</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="new_form" action="{{ url_for('storage.add_personal_account') }}" method="post">
+                        <div class="form-group samba">
+                            <label for="form-field-8">服务器</label>
+
+                            <div class="">
+                                <select id="add_samba" class="select2" name="samba" data-placeholder="请选择"
+                                        style="width: 100%;" data-rule-required="true" data-msg-required='请选择samba服务器'>
+                                    <option value=""></option>
+                                    {% for samba in samba_list %}
+                                        <option value="{{ samba.id }}">{{ samba.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group userID">
+                            <label for="form-field-8">用户ID</label>
+
+                            <div class="">
+                                <select id="add_username" class="select2" name="user" data-placeholder="请选择"
+                                        style="width: 100%;" data-rule-required="true" data-msg-required='请选择用户ID'
+                                        data-rule-maxlength="30" data-msg-maxlength='长度不能超过30个字符'>
+                                    <option value=""></option>
+                                    {% for user in user_list %}
+                                        <option value="{{ user.id }}">{{ user.username }}-{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group GB">
+                            <label for="form-field-8">空间(GB)</label>
+
+                            <div class="">
+                                <input type="text" id="add_quota" name="quota" value="" placeholder="空间(GB)"
+                                       style="width:100%" data-rule-required="true" data-msg-required='请填写存储空间大小'
+                                       data-rule-isInteger="true" data-rule-max="30" data-msg-max='空间范围为[1, 30]'
+                                       data-rule-min="1" data-msg-min='空间范围为[1, 30]'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="add_create" class="btn btn-success btn-sm add_user_create" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok">创建</i>
+                    </button>
+                    <button id="add_close" class="btn btn-danger btn-sm add_user_close" type="button">
+                        <i class="ace-icon fa fa-undo">取消</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_dialog_title">修改</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="edit_form" action="{{ url_for('storage.update_personal_account') }}" method="post">
+                        <input type="hidden" id="edit_id" name="account" value=""/>
+
+                        <div class="form-group samba">
+                            <label for="form-field-8">服务器</label>
+
+                            <div class="">
+                                <select id="edit_samba" class="select2" name="samba_select" data-placeholder="请选择"
+                                        disabled="disabled" style="width:100%" data-rule-required="true"
+                                        data-msg-required='请选择samba服务器'>
+                                    <option value=""></option>
+                                    {% for samba in samba_list %}
+                                        <option value="{{ samba.id }}">{{ samba.name }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <input type="hidden" id="samba_input" name="samba" />
+                            </div>
+                        </div>
+                        <div class="form-group userID">
+                            <label for="form-field-8">用户ID</label>
+
+                            <div class="">
+                                <select id="edit_username" class="select2" name="username_select" data-placeholder="请选择"
+                                        disabled="disabled" style="width:100%" data-rule-required="true"
+                                        data-msg-required='请选择用户ID' data-rule-maxlength="20"
+                                        data-msg-maxlength='长度不能超过20个字符'>
+                                    <option value=""></option>
+                                    {% for user in user_list %}
+                                        <option value="{{ user.id }}">
+                                            {{ user.username }}-{{ user.username }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+
+                                <input type="hidden" id="username_input" name="user" />
+                            </div>
+                        </div>
+                        <div class="form-group GB">
+                            <label for="form-field-8">空间(GB)</label>
+
+                            <div class="">
+                                <input type="text" id="edit_quota" class="chzn-input" name="quota" value=""
+                                       placeholder="空间(GB)" style="width:100%" data-rule-required="true"
+                                       data-msg-required='请填写存储空间大小' data-rule-isInteger="true" data-rule-max="30"
+                                       data-msg-max='空间范围为[1, 30]' data-rule-min="1" data-msg-min='空间范围为[1, 30]'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="edit_save" class="btn btn-success btn-sm" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i> 保存
+                    </button>
+                    <button id="edit_close" class="btn btn-danger btn-sm" type="button">
+                        <i class="ace-icon fa fa-undo"></i> 取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除个人存储账户</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的个人存储账户?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="upload_account_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">导入个人文件夹账号</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="upload_form" enctype="multipart/form-data">
+                        <input type="file" name="file" id="accountfile"/>
+                    </form>
+                </div>
+                <div class="modal-footer" style="text-align: right">
+                    <button id="upload_accounts" type="button" class="btn btn-success"> 导入</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fail_list_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">导入失败列表</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="fail_list_table" class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal"> 确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+    <script>
+        active_sidebar("#storages", "#personal_accounts");
+
+        function downloadfile() {
+            location.href = "{{ url_for('static', filename='personal_storage_account.xls') }}";
+        }
+        var UPLOAD_ACCOUNT_INSERT_COUNT = 0;
+        $(function () {
+            $('#download_template').click(function () {
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: '名单模板下载成功',
+                    class_name: 'gritter-success'
+                });
+            });
+
+            $('#accountfile').ace_file_input({
+                no_file: '选择文件 ...',
+                btn_choose: '浏览',
+                btn_change: '更改',
+                droppable: false,
+                onchange: null,
+                thumbnail: false //| true | large
+            });
+
+            //init JQuery's data table
+            var dTable = $('#table_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{"bSortable": false, "bSearchable": false},
+                    null, null, null,
+                    {"bSortable": false, "bSearchable": false}],
+                "aaSorting": []
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    this.checked = that.checked;
+                    $(this).closest('tr').toggleClass('selected');
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+
+            $("#upload_account_dialog_pop").click(function () {
+                $('#accountfile').ace_file_input('reset_input');
+                $("#upload_account_dialog").modal("show");
+            });
+
+            fail_list_table = $("#fail_list_table").dataTable({
+                'language': {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                //'aaData':eval(fail_list),
+                'aoColumns': [{'sTitle': '个人文件服务器', 'mData': 'sambaip'},
+                    {'sTitle': '用户ID', 'mData': 'userid'},
+                    {'sTitle': '错误信息', 'mData': 'info'}],
+                "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+                "iDisplayLength": 5
+            });
+
+            $('#upload_accounts').click(function () {
+                $("#upload_account_dialog").modal("hide");
+                uploadAccount()
+            });
+
+            /*******************validate the form***********************/
+            var $new_validator = $("#new_form").validate({
+                ignore: ''
+            });
+
+            var $edit_validator = $("#edit_form").validate({
+                ignore: ''
+            });
+            /***************** end validate ******************/
+
+            /*************add dialog initial**********************/
+            $("#add_personal_account").click(function () {
+                $("#new_form").validate().resetForm();
+                $("#add_samba").trigger("change");
+                $("#add_username").trigger("change");
+                $('#add_samba').select2('val', "");
+                $('#add_username').select2('val', "");
+                $("#add_dialog").modal("show");
+            });
+
+            $("#add_samba").change(function () {
+                $new_validator.showErrors({samba: ""});
+            });
+
+            $("#add_username").change(function () {
+                $new_validator.showErrors({user: ""});
+            });
+
+            $("#add_create").click(function () {
+                var isvalid = $("#new_form").valid()
+                if (!isvalid) {
+                    return;
+                }
+                ;
+                addPersonalAccount();
+            });
+
+            $("#add_close").click(function () {
+                $("#add_dialog").modal("hide");
+            });
+
+            function addPersonalAccount() {
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    url: "{{ url_for('storage.add_personal_account') }}",
+                    type: "post",
+                    dataType: "json",        //html(默认), xml, script, json...接受服务端返回的类型
+                    //resetForm: true,         //成功提交后，重置所有表单元素的值
+                    timeout: 60000           //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                function beforeSubmit(formData, jqForm, options) {
+                    return
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText["status"] == "success") {
+                        //成功，刷新页面
+                        $("#add_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "添加个人账户成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () {
+                            location.reload()
+                        }, 1000);
+                    } else {
+                        //操作失败
+                        //恢复页面
+                        $("#add_dialog").modal("hide");
+                        var content = "创建用户失败";
+                        if (responseText["status"] == "unexisted") {
+                            content = "用户不存在";
+                        } else if (responseText["status"] == "existed") {
+                            content = "文件夹账号已存在";
+                        } else if (responseText["status"] == "connect_fail") {
+                            content = "个人文件服务器连接失败";
+                        } else if (responseText["status"] == "post_fail") {
+                            content = "磁盘配额超过物理硬盘的总容量";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+                $("#new_form").ajaxSubmit(options);
+            }
+
+            /***************end initial***********************/
+
+            /******* init edit dialog******/
+            function updateAccount() {
+                function beforeSubmit(formData, jqForm, options) {
+                    return;
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText['status'] == "success") {
+                        //成功，刷新页面
+                        $("#edit_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "更新账号成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () {
+                            location.reload()
+                        }, 1000);
+                    } else {
+                        //操作失败
+                        //恢复页面
+                        $("#edit_dialog").modal("hide");
+                        var content = "更新失败，请联系管理员";
+                        if (responseText['status'] == "unexisted") {
+                            content = "用户不存在";
+                        } else if (responseText['status'] == "existed") {
+                            content = "文件夹账号已存在";
+                        } else if (responseText['status'] == "connect_fail") {
+                            content = "个人文件服务器连接失败";
+                        } else if (responseText['status'] == "post_fail") {
+                            content = "磁盘配额超过物理硬盘的总容量";
+                        } else {
+                            content = responseText['status'];
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    url: "{{ url_for('storage.update_personal_account') }}",
+                    type: "post"
+                }
+
+                $("#edit_form").ajaxSubmit(options);
+            }
+
+            $("#edit_save").click(function () {
+                // copy value to input
+                var samba_value = $("#edit_samba option:selected").val();
+                var username_value = $("#edit_username option:selected").val();
+
+                $("#samba_input").val(samba_value);
+                $("#username_input").val(username_value);
+
+                var isvalid = $("#edit_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                updateAccount();
+            });
+
+            $("#edit_close").click(function () {
+                $("#edit_dialog").modal("hide");
+            });
+            /*************end dialog initial**********************/
+
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                deleteAccount(selected_account)
+            });
+
+            $("#delete_personal_account").click(function () {
+                selected_account = [];
+                $("#table_list td input[type=checkbox]").each(function () {
+                    if (this.checked) {
+                        selected_account.push(this.id);
+                    }
+                });
+                if (selected_account.length > 0) {
+                    $("#delete_confirm_dialog").modal("show");
+                } else {
+                   var content = "请选择一个或多个要删除的个人存储账户";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+
+            /********* end initial *********/
+            $("#add_dialog .select2").select2({
+                language: "zh-CN",
+                allowClear: true
+            });
+
+            $("#edit_dialog .select2").select2({
+                language: "zh-CN",
+                allowClear: true
+            });
+
+            // 当错误列表对话框关闭时, 如果批量导入账号有部分成功的, 那么刷新页面
+            $('#fail_list_dialog').on('hidden.bs.modal', function () {
+                if (typeof UPLOAD_ACCOUNT_INSERT_COUNT == "number" && UPLOAD_ACCOUNT_INSERT_COUNT > 0)
+                    location.reload();
+            });
+        });
+
+        function editById(id) {
+            var samba = $("#samba_" + id).val();
+            var username = $("#username_" + id).val();
+            var quota = $("#quota_" + id).text();
+            quota = quota.substr(0, quota.length - 2)
+            $("#edit_samba").select2("val", samba);
+            $("#edit_username").select2("val", username);
+            $("#edit_quota").val(quota);
+            $("#edit_id").val(id);
+            $("#edit_form label.error").remove();
+            $("#edit_dialog").modal("show");
+        }
+
+        function deleteById(id) {
+            selected_account = [];
+            selected_account.push(id);
+            if (selected_account.length > 0) {
+                $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+        function deleteAccount(ids) {
+            $.ajax({
+                url: "{{ url_for('storage.delete_personal_account') }}",
+                type: "post",
+                async: false,
+                data: {ids: ids},
+                success: function (responseText, status) {
+                    if (responseText['status'] == "success") {
+                        $("#delete_confirm_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除账号成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function () {
+                            location.reload()
+                        }, 1000);
+                    } else {
+                        content = "删除失败"
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+
+                    }
+                }
+            });
+        }
+
+        function uploadAccount() {
+            var isvalid = checkUploadFile()
+            if (!isvalid) {
+                return;
+            }
+
+            function beforeSubmit(formData, jqForm, options) {
+            }
+
+            function callback(responseText, statusText) {
+
+                if (responseText['status'] == "success") {
+                    //成功，刷新页面
+                    $.gritter.add({
+                        // (string | mandatory) the text inside the notification
+                        text: "上传个人账户成功",
+                        class_name: 'gritter-success'
+                    });
+                    setTimeout(function () {
+                        location.reload()
+                    }, 1000);
+                } else {
+
+                    if (responseText['status'] == "part fail") {
+                        //部分字段无效的采用datatable显示
+                        if (responseText) {
+
+                            var fail_list = eval(responseText['fail_list']);
+                            UPLOAD_ACCOUNT_INSERT_COUNT = responseText["insert"];
+                            fail_list_table.fnClearTable(this);
+                            fail_list_table.fnAddData(eval(fail_list), true);
+                            $("#fail_list_dialog").modal("show");
+
+                            //修改并定制滚动条
+                            $("#fail_list_wrapper").find('.dataTables_scrollBody').css("overflow", "");
+                            $("#fail_list_wrapper").find('.dataTables_scroll').css("overflow", "auto");
+                            //由于设置sScrollY，弹出框加载的样式会变化，以下代码防止样式出错
+                            $("#fail_list_wrapper").find(".dataTables_scrollHeadInner").css("width", "");
+                            $("#fail_list_wrapper").find(".table").css("width", "");
+
+                        }
+                    } else {
+                        //操作失败
+                        var content = "导入失败！"
+                        if (responseText['status'] == "too large") {
+                            content += "文件大小不能超过5M！"
+                        } else if (responseText['status'] == "type error") {
+                            content += "文件类型不支持，必须为.xls或者.xlsx文件"
+                        } else if (responseText['status'] == "format error") {
+                            content += "文件格式不正确，注意用户的字段顺序！"
+                        } else {
+                            content += "导入过程中发生异常！"
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+
+                    }
+                }
+            }
+
+            var options = {
+                beforeSubmit: beforeSubmit,  //提交前的回调函数
+                success: callback,      //提交后的回调函数
+                url: "{{ url_for('storage.upload_personal_account') }}",
+                type: 'post',
+                dataType: "json"        //html(默认), xml, script, json...接受服务端返回的类型
+            };
+
+            $("#upload_form").ajaxSubmit(options);
+        }
+
+        function checkUploadFile() {
+            var filepath = $("#accountfile").val();
+            var extStart = filepath.lastIndexOf(".");
+            var ext = filepath.substring(extStart, filepath.length).toUpperCase();
+            if (ext != ".XLS" && ext != ".XLSX") {
+                content = "文件类型不支持，必须为.xls或者.xlsx文件";
+                $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                });
+                return false;
+            } else {
+                return true;
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,538 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {% if operation == "edit" %}
+        云课室 - 编辑课程
+    {% else %}
+        云课室 - 添加课程
+    {% endif %}
+{% endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}">
+{% endblock %}
+
+
+{% block page_content %}
+    {% if operation == "edit" %}
+        <div class="page-header">
+            <h1>编辑上课时间 - <a href="{{ url_for('edu.course_detail', id=course.id) }}">{{ course.name }}</a></h1>
+        </div>
+    {% else %}
+        <div class="page-header">
+            <h1>{% if course %}{{ course.name }}{% else %}添加课程{% endif %}</h1>
+        </div>
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped" style="width: 33%;background-color: #AACCFF">
+                第一步：填写课程基本信息（完成）
+            </div>
+            <div class="progress-bar progress-bar-striped" style="width: 33%;">第二步：添加上课时间</div>
+            <div class="progress-bar progress-bar-striped" style="width: 34%;background-color: #DADADA;">第三步：添加学生名单
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="widget-box">
+                <div class="widget-header">
+                    <h4 class="widget-title">添加上课时间</h4>
+                </div>
+                <div class="widget-body">
+                    <div class="widget-main padding-10">
+                        <form id="lesson_form" action="#" method="post">
+                            {{ lesson_form.hidden_tag() }}
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    {{ lesson_form.frequency.label }}
+                                    <br>
+
+                                    <div class="btn-group" data-toggle="buttons">
+                                        {% for choice in lesson_form.frequency.choices -%}
+                                            <label class="btn btn-info {% if loop.first %}active{% endif %}">
+                                                <input type="radio" name="frequency" value="{{ choice[0] }}"
+                                                       {% if loop.first %}checked{% endif %}>{{ choice[1] }}
+                                            </label>
+                                        {%- endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6" id="start_date_div">
+                                    <label>开始日期</label>
+                                    {{ lesson_form.start_weekday(id='weekly_start_weekday_select', class_="form-control", required=True) }}
+                                    <div id="start_date_control" class="input-group" style="display: none">
+                                        {{ lesson_form.start_date(id='once_start_date_datepicker', class_="form-control date-picker", type='text') }}
+                                        <span class="input-group-addon"><i class="fa fa-calendar bigger-110"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6" id="start_time_div">
+                                    <label>开始时间</label>
+
+                                    <div class="btn-group" data-toggle="buttons">
+                                        {% for choice in lesson_form.start_time_type.choices -%}
+                                            <label class="btn btn-minier btn-info {% if loop.first %}active{% endif %}">
+                                                <input type="radio" name="{{ lesson_form.start_time_type.name }}"
+                                                       value="{{ choice[0] }}"
+                                                       {% if loop.first %}checked{% endif %}>{{ choice[1] }}
+                                            </label>
+                                        {%- endfor %}
+                                    </div>
+                                    {{ lesson_form.start_period_id(id='start_period_id_select', class_="form-control", required=True) }}
+                                    <div id="start_time_control" class="input-group" style="display: none;">
+                                        {{ lesson_form.start_time(id='start_time_datetime_control', class_="form-control time-picker", type='text') }}
+                                        <span class="input-group-addon"><i class="fa fa-clock-o bigger-110"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row">
+                                <div class="col-sm-6" id="end_date_div">
+                                    <label>结束日期</label>
+                                    <select name="end_weekday" class="form-control" data-rule-end_weekday="true"
+                                            required>
+                                        {% for i in lesson_form.end_weekday.choices -%}
+                                            <option value="{{ i[0] }}">{{ i[1] }}</option>
+                                        {%- endfor %}
+                                    </select>
+
+                                    <div id="end_date_control" class="input-group" style="display: none">
+                                        <input name="end_date" type="text" class="form-control date-picker"
+                                               data-rule-end_data="true">
+                                        <span class="input-group-addon"><i class="fa fa-calendar bigger-110"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6" id="end_time_div">
+                                    <label>结束时间</label>
+
+                                    <div class="btn-group" data-toggle="buttons">
+                                        {% for choice in lesson_form.end_time_type.choices -%}
+                                            <label class="btn btn-minier btn-info {% if loop.first %}active{% endif %}">
+                                                <input type="radio" name="{{ lesson_form.end_time_type.name }}"
+                                                       value="{{ choice[0] }}"
+                                                       {% if loop.first %}checked{% endif %}>{{ choice[1] }}
+                                            </label>
+                                        {%- endfor %}
+                                    </div>
+                                    <select name="end_period_id" class="form-control" data-rule-end_period required>
+                                        {% for i in lesson_form.end_period_id.choices -%}
+                                            <option value="{{ i[0] }}">{{ i[1] }}</option>
+                                        {%- endfor %}
+                                    </select>
+
+                                    <div id="end_time_control" class="input-group" style="display: none">
+                                        <input name="end_time" type="text" class="form-control time-picker"
+                                               data-rule-end_time="true">
+                                        <span class="input-group-addon"><i class="fa fa-clock-o"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-6"></div>
+                            <div class="row text-right">
+                                <div class="col-sm-12">
+                                    <button id="addLesson" class="btn btn-info">添加</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-6"></div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabbable">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active"><a data-toggle="tab" href="#week_lessons">本周课表</a></li>
+                    <li><a data-toggle="tab" href="#all_lessons">全部课表</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="week_lessons" class="tab-pane fade in active ui-sortable">
+                        <div class="widget-box">
+                            <!--课程表格-->
+                            <div class="widget-header">
+                                <h4 class="widget-title">（{{ week_date[0]|date_format('yyyy年MM月dd日') }}
+                                    ~ {{ week_date[1]|date_format('yyyy年MM月dd日') }}）</h4>
+                            </div>
+                            <div class="widget-body no-padding">
+                                <div class="widget-main no-padding">
+                                    <table class="table table-striped table-bordered schedule_table text-center">
+                                        <tbody>
+                                        <tr>
+                                            <th></th>
+                                            <th>星期一</th>
+                                            <th>星期二</th>
+                                            <th>星期三</th>
+                                            <th>星期四</th>
+                                            <th>星期五</th>
+                                            <th>星期六</th>
+                                            <th>星期天</th>
+                                        </tr>
+                                        {% for item in timetable -%}
+                                            <tr class="{{ loop.cycle('schedule_tr_even', 'schedule_tr_odd') }}">
+                                                <td id='period_{{ item[0].id }}'>
+                                                    第{{ item[0].name }}节&nbsp;{{ item[0].start_time|datetime_format('HH:mm') }}-{{ item[0].end_time|datetime_format('HH:mm') }}</td>
+                                                {% for j in range(0, 7) -%}
+                                                    {% if item[1][j] %}
+                                                        <td style="background-color: rgb(34, 131, 197);"
+                                                            class="schedule_item {{ loop.cycle('schedule_item_even', 'schedule_item_odd') }}"></td>
+                                                    {% else %}
+                                                        <td class="schedule_item {{ loop.cycle('schedule_item_even', 'schedule_item_odd') }}"></td>
+                                                    {% endif %}
+                                                {%- endfor %}
+                                            </tr>
+                                        {%- endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="all_lessons" class="tab-pane fade ui-sortable">
+                        <div class="widget-box">
+                            <!--课程表格-->
+                            <div class="widget-header">
+                                <div class="widget-toolbar">
+                                    <div class="action-buttons">
+                                        <a id="delete_lessons" class="red" href="javascript:void(0)" title="删除选中时间段"><i
+                                                class="ace-icon fa fa-trash-o bigger-130"></i>删除选中时间段</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="widget-body no-padding">
+                                <div class="widget-main no-padding">
+                                    <table id="lessons_table" class="table table-striped table-bordered table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th class="center"><label class="pos-rel"><input type="checkbox"
+                                                                                             class="ace"><span
+                                                    class="lbl"></span></label></th>
+                                            <th>开始时间</th>
+                                            <th>结束时间</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% if course %}
+                                            {% for lesson in lessons -%}
+                                                <tr>
+                                                    <td class="center"><label class="pos-rel"><input type="checkbox"
+                                                                                                     id="lesson_{{ lesson.id }}"
+                                                                                                     class="ace"><span
+                                                            class="lbl"></span></label></td>
+                                                    <td>{{ lesson.start_datetime | datetime_format }}
+                                                            {% if lesson.start_period %}&nbsp;(第
+                                                                {{ lesson.start_period.name }}节){% endif %}</td>
+                                                    <td>{{ lesson.end_datetime | datetime_format }}
+                                                            {% if lesson.end_period %}&nbsp;(第
+                                                                {{ lesson.end_period.name }}节){% endif %}</td>
+                                                </tr>
+                                            {%- endfor %}
+                                        {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="space-6"></div>
+    <div class="row text-center">
+        <div class="col-sm-12">
+            {% if operation == "edit" %}
+                <a href="{{ url_for('edu.course_detail', id=course.id) }}" class="btn btn-success">完成</a>
+            {% else %}
+                <a href="{{ url_for('edu.upload_students', id=course.id) }}" class="btn btn-success">下一步</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- delete lessons confirm dialog -->
+    <div id="delete_lesson_confirm_dialog" class="modal">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">确认删除</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning bigger-130 icon-animated-bell"></i> 确认把所选择的上课时间段从列表中移除?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete_lesson" type="button" class="btn btn-danger"> 确认</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#courses");
+
+        var course_start_date = "{{ course.start_date | date_format }}";
+        var course_end_date = "{{ course.end_date | date_format }}";
+
+        // 获取节数时间
+        function getPeriodTime(period) {
+            // FIXME: we use the front-end data to get the period's time.
+            // When other administrators change the timetable, may lead a bug
+            // The bug:the end time of a lesson whose time span is not more than 1 days may be less than the begin time
+            var ret = {start: "", end: ""};
+            var time = $("#period_" + period).html();
+            if (time != null && time != undefined) {
+                time = time.split("&nbsp;");
+                time = time[time.length - 1];
+                time = time.split("-");
+                if (time.length == 2) {
+                    ret.start = time[0];
+                    ret.end = time[1];
+                }
+            }
+            return ret;
+        }
+
+        // 获取开始日期或开始星期几
+        function getStartdate() {
+            switch ($("input[name=frequency]:checked").val()) {
+                case "weekly":
+                    return $("select[name=start_weekday]").val();
+                case "daily":
+                    return 0;
+                default:
+                    return $("input[name=start_date]").val();
+            }
+        }
+
+        // 获取结束日期或结束星期几
+        function getEnddate() {
+            switch ($("input[name=frequency]:checked").val()) {
+                case "weekly":
+                    return parseInt($("select[name=end_weekday]").val());
+                case "daily":
+                    return 0;
+                default:
+                    return $("input[name=end_date]").val();
+            }
+        }
+
+        // 获取开始时间或开始节数的开始时间
+        function getStarttime() {
+            var starttime = null;
+            if ($("input[name=start_time_type]:checked").val() == "period") {
+                starttime = getPeriodTime($("select[name=start_period_id]").val()).start;
+            } else {
+                starttime = $("input[name=start_time]").val();
+            }
+            return starttime;
+        }
+
+        // 获取结束时间或结束节数的结束时间
+        function getEndtime() {
+            var endtime = null;
+            if ($("input[name=end_time_type]:checked").val() == "period") {
+                endtime = getPeriodTime($("select[name=end_period_id]").val()).end;
+            } else {
+                endtime = $("input[name=end_time]").val();
+            }
+            return endtime;
+        }
+
+        // 检查课时结束是否合法
+        function checkEnd() {
+            var startdate = getStartdate();
+            var enddate = getEnddate();
+            var starttime = getStarttime();
+            starttime = parseInt(starttime.replace(":", ""));
+            var endtime = getEndtime();
+            endtime = parseInt(endtime.replace(":", ""));
+            return enddate > startdate || ( enddate == startdate && endtime > starttime)
+        }
+
+        $(document).ready(function () {
+
+            $(".time-picker").timepicker({
+                minuteStep: 1,
+                showSeconds: false,
+                showMeridian: false
+            }).on(ace.click_event, function () {
+                $(".bootstrap-timepicker-widget").css("z-index", "9999");
+            }).next().on(ace.click_event, function () {
+                $(this).prev().focus();
+            });
+
+            $(".date-picker").datepicker({
+                language: "zh-CN",
+                format: "yyyy-mm-dd",
+                autoclose: true,
+                todayHighlight: true
+            }).attr("data-date-format", "yyyy-mm-dd").on('changeDate', function (ev) {
+                // 限制开始时间和结束时间范围
+                if ($("input[name=start_date]").val() != null) {
+                    $("input[name=end_date]").datepicker("setStartDate", $("input[name=start_date]").val());
+                }
+                if ($("input[name=end_date]").val() != null) {
+                    $("input[name=start_date]").datepicker("setEndDate", $("input[name=end_date]").val());
+                }
+            });
+
+            // 限制开始和结束日期不超过课程日期范围
+            $("input[name=start_date]").datepicker("setStartDate", course_start_date);
+            $("input[name=end_date]").datepicker("setEndDate", course_end_date);
+
+            // 频率为每周时, 修改开始日期时自动调整结束日期, 确保结束日期>=开始日期
+            $("select[name=start_weekday]").change(function () {
+                var day = $(this).val();
+                $("select[name=end_weekday]").val('').select2('val', "");
+                $("select[name=end_weekday]").find('option').each(function (index) {
+                    if ($(this).val() < day) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    }
+                    if ($(this).val() == day) {
+                        $("select[name=end_weekday]").val($(this).val());
+                    }
+                });
+            });
+
+            // 数据校验规则
+            // 结束 weekday 大于等于开始 weekday
+            $.validator.addMethod("end_weekday", function (value, element) {
+                return this.optional(element) || value >= $("select[name=start_weekday]").val()
+            }, "结束日期必须大于等于开始日期");
+            // 结束日期大于等于开始日期
+            $.validator.addMethod("end_date", function (value, element) {
+                return this.optional(element) || value >= $("input[name=start_date]").val()
+            }, "结束日期必须大于等于开始日期");
+            // 结束节数时间大于等于开始时间
+            $.validator.addMethod("end_period", function (value, element) {
+                return this.optional(element) || checkEnd();
+            }, "结束日期和时间必须大于开始日期和时间");
+            // 结束时间大于开始时间
+            $.validator.addMethod("end_time", function (value, element) {
+                return this.optional(element) || checkEnd();
+            }, "结束日期和时间必须大于开始日期和时间");
+
+
+            // 界面处理 frequency
+            $("input[name=frequency]").change(function () {
+                switch ($(this).val()) {
+                    case "weekly":
+                        $("select[name$=weekday]").attr("required", true).show();
+                        $("select[name$=weekday]").parent().show();
+                        $("input[name$=date]").removeAttr("required");
+                        $("input[name$=date]").parent().hide();
+                        break;
+                    case "daily":
+                        $("select[name$=weekday]").removeAttr("required");
+                        $("select[name$=weekday]").parent().hide();
+                        $("input[name$=date]").removeAttr("required");
+                        break;
+                    default:
+                        $("select[name$=weekday]").removeAttr("required").hide();
+                        $("select[name$=weekday]").parent().show();
+                        $("input[name$=date]").attr("required", true).parent().show();
+                        break;
+                }
+            });
+            // 界面处理 start_time_type
+            $("input[name=start_time_type]").change(function () {
+                if ($(this).val() == "period") {
+                    $("select[name=start_period_id]").attr("required", true).show();
+                    $("input[name=start_time]").removeAttr("required").parent().hide();
+                } else {
+                    $("select[name=start_period_id]").removeAttr("required").hide();
+                    $("input[name=start_time]").attr("required", true).parent().show();
+                }
+            });
+            // 界面处理 end_time_type
+            $("input[name=end_time_type]").change(function () {
+                if ($(this).val() == "period") {
+                    $("select[name=end_period_id]").attr("required", true).show();
+                    $("input[name=end_time]").removeAttr("required").parent().hide();
+                } else {
+                    $("select[name=end_period_id]").removeAttr("required").hide();
+                    $("input[name=end_time]").attr("required", true).parent().show();
+                }
+            });
+
+            // 提交 Lesson
+            $("button[id=addLesson]").click(function () {
+                $("form[id=lesson_form]").validate({
+                    errorPlacement: function (error, element) {
+                        if ($(element).hasClass('date-picker') || $(element).hasClass('time-picker')) {
+                            error.insertAfter($(element).parent());
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    }
+                });
+                if ($("form[id=lesson_form]").valid()) {
+                    $("form[id=lesson_form]").submit();
+                }
+            });
+        });
+
+        $("table th input[type=checkbox]").change(function () {
+            var checked = this.checked;
+            $(this).closest("table").find("td input[type=checkbox]").each(function () {
+                this.checked = checked;
+            });
+        });
+        $("#lessons_table").dataTable({
+            "language": {
+                "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+            },
+            "aoColumns": [
+                {"bSortable": false},
+                null, null
+            ],
+            "aaSorting": []
+        });
+
+        var selected_lessons = [];
+        $("#delete_lessons").click(function () {
+            selected_lessons = [];
+            $("#lessons_table td input[type=checkbox]").each(function () {
+                var checked = this.checked;
+                if (checked) {
+                    var lesson_id = this.id.split("_")[1];
+                    selected_lessons.push(lesson_id)
+                }
+            });
+            if (selected_lessons.length > 0) {
+                $("#delete_lesson_confirm_dialog").modal("show");
+            }
+        });
+
+        $("#confirm_delete_lesson").click(function () {
+            $.ajax({
+                url: "{{ url_for('edu.delete_lessons', id=course.id) }}",
+                type: "DELETE",
+                contentType: "application/json",
+                data: $.toJSON(selected_lessons),
+                success: function (data) {
+                    // Do what???
+                    location.reload();
+                }
+            });
+        });
+
+    </script>
+{% endblock %}

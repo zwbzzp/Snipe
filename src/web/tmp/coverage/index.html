@@ -1,0 +1,272 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">12%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        
+        <span class="key">b</span>
+        <span class="key">p</span>
+        
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+
+<div id="index">
+    <table class="index">
+        <thead>
+            
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                
+                <th class="shortkey_b">branches</th>
+                <th class="shortkey_p">partial</th>
+                
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>1825</td>
+                <td>1618</td>
+                <td>0</td>
+                
+                <td>398</td>
+                <td>21</td>
+                
+                <td class="right" data-ratio="262 2223">12%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            
+            <tr class="file">
+                <td class="name left"><a href="app___init___py.html">app/__init__.py</a></td>
+                <td>116</td>
+                <td>112</td>
+                <td>0</td>
+                
+                <td>12</td>
+                <td>2</td>
+                
+                <td class="right" data-ratio="6 128">5%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_auth_views_py.html">app/auth/views.py</a></td>
+                <td>166</td>
+                <td>133</td>
+                <td>0</td>
+                
+                <td>60</td>
+                <td>6</td>
+                
+                <td class="right" data-ratio="49 226">22%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_common_timeutils_py.html">app/common/timeutils.py</a></td>
+                <td>23</td>
+                <td>20</td>
+                <td>0</td>
+                
+                <td>4</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="3 27">11%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_jinja_filters_py.html">app/jinja_filters.py</a></td>
+                <td>39</td>
+                <td>33</td>
+                <td>0</td>
+                
+                <td>16</td>
+                <td>2</td>
+                
+                <td class="right" data-ratio="8 55">15%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_license_utils_py.html">app/license/utils.py</a></td>
+                <td>339</td>
+                <td>319</td>
+                <td>0</td>
+                
+                <td>90</td>
+                <td>1</td>
+                
+                <td class="right" data-ratio="21 429">5%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_log_utils_py.html">app/log/utils.py</a></td>
+                <td>64</td>
+                <td>33</td>
+                <td>0</td>
+                
+                <td>10</td>
+                <td>5</td>
+                
+                <td class="right" data-ratio="36 74">49%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_log_views_py.html">app/log/views.py</a></td>
+                <td>79</td>
+                <td>20</td>
+                <td>0</td>
+                
+                <td>16</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="75 95">79%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_main___init___py.html">app/main/__init__.py</a></td>
+                <td>6</td>
+                <td>5</td>
+                <td>0</td>
+                
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 6">17%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_main_errors_py.html">app/main/errors.py</a></td>
+                <td>27</td>
+                <td>26</td>
+                <td>0</td>
+                
+                <td>6</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 33">3%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_main_utils_py.html">app/main/utils.py</a></td>
+                <td>64</td>
+                <td>35</td>
+                <td>0</td>
+                
+                <td>34</td>
+                <td>3</td>
+                
+                <td class="right" data-ratio="40 98">41%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_main_views_py.html">app/main/views.py</a></td>
+                <td>53</td>
+                <td>40</td>
+                <td>0</td>
+                
+                <td>10</td>
+                <td>2</td>
+                
+                <td class="right" data-ratio="15 63">24%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_models_py.html">app/models.py</a></td>
+                <td>832</td>
+                <td>827</td>
+                <td>0</td>
+                
+                <td>138</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="5 970">1%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_network___init___py.html">app/network/__init__.py</a></td>
+                <td>11</td>
+                <td>10</td>
+                <td>0</td>
+                
+                <td>2</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 13">8%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="app_setting___init___py.html">app/setting/__init__.py</a></td>
+                <td>6</td>
+                <td>5</td>
+                <td>0</td>
+                
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 6">17%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.io">coverage.py v4.1</a>,
+            created at 2016-08-31 16:45
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

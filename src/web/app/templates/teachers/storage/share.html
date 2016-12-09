@@ -1,0 +1,459 @@
+{% extends 'teachers/layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}存储管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+     <style type="text/css">
+        .share_server_operation{
+            margin: 0 0px 10px 0;
+        }
+
+        .add_pool{
+            height: 70px ;
+        }
+
+        #add_dialog{
+            overflow-y: hidden;
+        }
+
+        #edit_dialog{
+            overflow-y: hidden;
+        }
+
+        .edit_top{
+            height: 200px;
+        }
+  </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>共享文件服务器管理</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">共享文件服务器列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a href="javascript:void(0)" id="add_btn" title="关联"><i class='ace-icon fa fa-plus-circle'></i>关联</a>
+                    <a class="red" id="delete_btn" title="删除"><i class='ace-icon fa fa-trash'></i>删除</a>
+                </div>
+            </div>
+        </div>
+        <table id="table_share_server_list"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="center"><label class="pos-rel"><input id="select_all"
+                                                                 type="checkbox"
+                                                                 class="ace"><span
+                        class="lbl"></span></label></th>
+                <th>服务器IP</th>
+                <th>服务器端口</th>
+                <th>服务器名称</th>
+                <th>所有者</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for ftp in ftp_list %}
+                <tr>
+                    <td class='center'>
+                        {% if not ftp.user.is_administrator or user.is_administrator %}
+                            <label><input type='checkbox' id="{{ ftp.id }}"
+                                          class="ace" {% if ftp.id in using_ftp or not current_user.is_administrator() %}disabled{% endif %}/><span class="lbl"></span></label>
+                        {% endif %}
+                        <input class="ace" type="hidden" id="ip_{{ ftp.id }}"
+                               value="{{ ftp.ip }}"/>
+                        <input class="ace" type="hidden" id="port_{{ ftp.id }}"
+                               value="{{ ftp.port }}"/>
+                        <input class="ace" type="hidden" id="name_{{ ftp.id }}"
+                               value="{{ ftp.name }}"/>
+                    </td>
+                    <td>{{ftp.ip}}</td>
+                    <td>{{ftp.port}}</td>
+                    <td>{{ftp.name}}</td>
+                    <td id="type_1">{{ftp.user.username}}</td>
+                    <td>
+                        {% if not ftp.user.is_administrator or user.is_administrator %}
+                            <div class="action-buttons">
+                                <a href="javascript:void(0)" title="修改" onclick="editftpById({{ ftp.id }})"><i class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                                <a class="red" title="删除" onclick="deleteFtpById({{ ftp.id }})"  {% if ftp.id in using_ftp %}style="display: none" {% endif %} ><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">创建</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="new_share_server_form" action="{{ url_for('teachers_storage.add_share') }}"
+                          method="post">
+                        <div class="form-group ftp_name">
+                            <label for="form-field-8">名称</label>
+                            <div class="">
+                                <input type="text" id="add_name" name="name" value="" placeholder="名称" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请设置服务器名称' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group ftp_IP">
+                            <label for="form-field-8">服务器IP</label>
+                            <div class="">
+                                <input type="text" id="add_ip" name="ip" value="" placeholder="服务器IP" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请填写服务器IP' data-rule-checkip="true"/>
+                            </div>
+                        </div>
+                        <div class="form-group ftp_port">
+                            <label for="form-field-8">端口</label>
+                            <div class="">
+                                <input type="text" id="add_port" name="port" value="" placeholder="端口" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请填写端口号' data-rule-isInteger="true" data-rule-range="1,65535" data-msg-range='端口号必须在1-65535之间'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="add_create" class="btn btn-success btn-sm add_user_create" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>关联
+                    </button>
+                    <button id="add_close" class="btn btn-danger btn-sm add_user_close" type="button">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_dialog_title">修改</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="edit_form" action="{{ url_for('teachers_storage.update_share') }}"
+                          method="post">
+                        <input type="hidden" id="edit_id" name="ftp_id" value="" />
+                        <div class="form-group ftp_name">
+                            <label for="form-field-8">名称</label>
+                            <div class="">
+                                <input type="text" id="edit_name" name="name" value="" placeholder="名称" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请设置服务器名称' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group ftp_IP">
+                            <label for="form-field-8">服务器IP</label>
+                            <div class="">
+                                <input type="text" id="edit_ip" name="ip" value="" placeholder="服务器IP" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请填写服务器IP' data-rule-checkip="true"/>
+                            </div>
+                        </div>
+                        <div class="form-group ftp_port">
+                            <label for="form-field-8">端口</label>
+                            <div class="">
+                                <input type="text" id="edit_port" name="port" value="" placeholder="端口" style="width:100%"
+                                    data-rule-required="true" data-msg-required='请填写端口号' data-rule-isInteger="true" data-rule-range="1,65535" data-msg-range='端口号必须在1-65535之间'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="edit_save" class="btn btn-success btn-small" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok">保存</i>
+                    </button>
+                    <button id="edit_close" class="btn btn-danger btn-small" type="button">
+                        <i class="ace-icon fa fa-undo">取消</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除共享存储服务器</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的共享存储服务器?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_null_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除共享服务器</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning
+                    icon-animated-bell bigger-130"></i> 请选择一个或多个共享服务器!</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"> 确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+    <script>
+        active_sidebar("#storages", "#share_servers");
+
+        $(function() {
+            //init JQuery's data table
+            var dTable = $('#table_share_server_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                 "aoColumns": [{ "bSortable": false,"bSearchable": false},
+                    null, null, null, null, { "bSortable": false,"bSearchable": false}],
+                "aaSorting": []
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click' , function(){
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function(){
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+            $("#add_create").click(function(){
+                var isvalid = $("#new_share_server_form").valid()
+                if(!isvalid)
+                {
+                    return;
+                }
+                addShare();
+            });
+
+            $("#add_close").click(function(){
+                $("#add_dialog").modal("hide");
+            });
+
+            function addShare(){
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    error: callback,
+                    url: "{{ url_for('teachers_storage.add_share') }}",
+                    type: "post",
+                    dataType: "json",        //html(默认), xml, script, json...接受服务端返回的类型
+                    //resetForm: true,         //成功提交后，重置所有表单元素的值
+                    timeout: 10000           //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                function beforeSubmit(formData, jqForm, options){
+                    return;
+                };
+
+                function callback(responseText, statusText){
+                    if(responseText['status'] == "success"){
+                        //成功，刷新页面
+                        $("#add_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '添加共享服务器成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    }else{
+                        //操作失败
+                        //恢复页面
+                        $("#add_dialog").modal("hide");
+                        var content = "操作失败";
+                        //提示重复信息
+                        if(responseText['status'] == "existed"){
+                            content = "服务器已存在";
+                        }else{
+                            content = "创建服务器失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                $("#new_share_server_form").ajaxSubmit(options);
+            }
+
+            $("#add_btn").click(function() {
+                $("#new_share_server_form").validate().resetForm();
+                $("#add_dialog").modal("show");
+            });
+            /***************end initial***********************/
+
+            /******* init pool edit dialog******/
+            function updateFtp(){
+                function beforeSubmit(formData, jqForm, options){
+                    return;
+                };
+
+                function callback(responseText, statusText){
+                    if(responseText['status'] == "success"){
+                        //成功
+                        //刷新页面
+                        $("#edit_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '更新共享服务器成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    }else{
+                        $("#edit_dialog").modal("hide");
+                        var content = "保存失败"
+                        if(responseText['status'] == "existed"){
+                            //数据重复
+                           content="服务器已存在";
+                        }else{
+                            //操作失败
+                            content="保存失败";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    url: "{{ url_for('teachers_storage.update_share') }}",
+                    type: "post",
+                }
+
+                $("#edit_form").ajaxSubmit(options);
+            }
+
+            $("#edit_save").click(function(){
+                var isvalid = $("#edit_form").valid();
+                if(!isvalid){
+                    return;
+                }
+                updateFtp();
+            });
+
+            $("#edit_close").click(function(){
+                $("#edit_dialog").modal("hide");
+            });
+
+
+             $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                deleteFtp(selected_server)
+            });
+
+            $("#delete_btn").click(function(){
+                selected_server = [];
+                $("#table_share_server_list td input[type=checkbox]").each(function(){
+                    if(this.checked  && !this.disabled){
+                        selected_server.push(this.id);
+                    }
+                });
+                if (selected_server.length > 0){
+                    $("#delete_confirm_dialog").modal("show");
+                }
+                else {
+                    $("#delete_null_dialog").modal("show");
+                }
+            });
+            /********* end initial *********/
+        });
+
+        function editftpById(ftpid){
+            var name = $("#name_"+ftpid).val();
+            var ip = $("#ip_"+ftpid).val();
+            var port = $("#port_"+ftpid).val();
+            var type = $("#type_"+ftpid).val();
+            $("#edit_ip").val(ip);
+            $("#edit_name").val(name);
+            $("#edit_type").val(type);
+            $("#edit_port").val(port);
+            $("#edit_id").val(ftpid);
+            $("#edit_form label.error").remove();
+            $("#edit_dialog").modal("show");
+        }
+
+        function deleteFtpById(ftpId){
+            selected_server = [];
+            selected_server.push(ftpId);
+            if(selected_server.length > 0){
+                 $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+        function deleteFtp(ids){
+            $.ajax({
+                url:"{{ url_for('teachers_storage.delete_share')}}",
+                type:"post",
+                async:false,
+                data:{ids:ids},
+                success:function(responseText,status){
+                    if (responseText['status'] == "success"){
+                        $("#delete_confirm_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: '删除共享服务器成功',
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},1000);
+                    }else{
+                        content = "删除失败"
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+{% endblock %}

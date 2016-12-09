@@ -1,0 +1,123 @@
+{% extends 'layout.html' %}
+
+{% block title %}任务详情{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>任务详情</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header">
+            <h4 class="widget-title">阶段结果列表</h4>
+        </div>
+        <div class="widget-body no-padding">
+            <div class="widget-main no-padding">
+                <table id="stage_table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>创建时间</th>
+                            <th>阶段名称</th>
+                            <th>执行结果</th>
+                            <th>context</th>
+                            <th>阶段详情</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for stage_result in stage_results %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ stage_result.created_at }}</td>
+                            <td>{{ stage_result.stage }}</td>
+                            <td><font {% if not stage_result.success %}color = "red"{% endif %}>{{ stage_result.success }}</font></td>
+                            <td>
+                                <a href="#stage_context_modal" id="show_context_btn_{{ stage_result.id }}" class = "show_context_btn">context</a>
+                                <input id="stage_context_{{ stage_result.id }}" type="hidden" value="{{ stage_result.context }}"/>
+                            </td>
+                            <td>
+                                <a href="#stage_detail_modal" id="show_detail_btn_{{ stage_result.id }}" class = "show_detail_btn">详情</a>
+                                <input id="stage_detail_{{ stage_result.id }}" type="hidden" value="{{ stage_result.detail }}"/>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- stage context modal -->
+    <div id="stage_context_modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 class="smaller lighter blue no-margin">Stage Context</h3>
+                </div>
+
+                <div class="modal-body">
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-danger pull-right" data-dismiss="modal">
+                        <i class="ace-icon fa fa-times"></i>
+                        关闭
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <!-- stage cdetail modal -->
+    <div id="stage_detail_modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 class="smaller lighter blue no-margin">阶段详情</h3>
+                </div>
+
+                <div class="modal-body">
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-danger pull-right" data-dismiss="modal">
+                        <i class="ace-icon fa fa-times"></i>
+                        关闭
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        active_sidebar("#vmotion", "#migrate_task");
+
+        $('.show_context_btn').click(function (e) {
+            var stage_id = $(e.target).attr('id').split('_')[3];
+            var context_json = JSON.parse($('#stage_context_'+stage_id).attr('value'));
+            var context_html = '<ul>';
+            for (var key in context_json) {
+                var value = context_json[key];
+                context_html += '<li>' + key + ': ' + value + '</li>';
+            }
+            context_html += '</ul>';
+            $('#stage_context_modal .modal-body').html(context_html);
+            $('#stage_context_modal').modal('show');
+        });
+
+        $('.show_detail_btn').click(function (e) {
+            var stage_id = $(e.target).attr('id').split('_')[3];
+            var detail = $('#stage_detail_'+stage_id).attr('value');
+            $('#stage_detail_modal .modal-body').html(detail);
+            $('#stage_detail_modal').modal('show');
+        })
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,1112 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}网络拓扑{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+    <style type="text/css">
+    body canvas {
+      #background-color: #efefef;
+      display: block;
+    }
+
+    #contextmenu {
+        border: 1px solid #aaa;
+        border-bottom: 0;
+        background: #eee;
+        position: absolute;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: none;
+    }
+    
+    #contextmenu li a {
+        display: block;
+        padding: 10px;
+        border-bottom: 1px solid #aaa;
+        cursor: pointer;
+    }
+    #contextmenu li span {
+        display: block;
+        padding: 10px;
+        border-bottom: 1px solid #aaa;
+        cursor: pointer;
+        font-weight:bold;
+    }
+    
+    #contextmenu li a:hover {
+        background: #fff;
+    }
+ 
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>网络拓扑</h1></div>
+    
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">网络拓扑</h4>
+            <div class="widget-toolbar">
+                <a href="javascript:void(0)" data-action="fullscreen" title="全屏" >
+                    <i class="ace-icon fa fa-expand"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10 ">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="action-buttons">
+                            <a id="zoomOut" href="javascript:void(0)" title="放大"><i
+                                    class="ace-icon fa fa-plus-circle"></i>
+                                放大 </a>
+                            <a id="zoomIn" href="javascript:void(0)"
+                               title="缩小"><i
+                                    class="ace-icon fa fa-minus-circle"></i>
+                                缩小
+                            </a>
+                            <a id="centerAndZoom" href="javascript:void(0)"
+                               title="居中显示"><i
+                                    class="ace-icon fa fa-dot-circle-o"></i>
+                                居中显示
+                            </a>
+                            <input id="searchTxt" class="">
+                            <a id="searchBtn" href="javascript:void(0)"
+                               title="查询"><i
+                                    class="ace-icon fa fa-search"></i>
+                                查询
+                            </a>
+                            <a id="demoBtn" href="javascript:void(0)"
+                               title="演示"><i
+                                    class="ace-icon fa fa-eye"></i>
+                                演示
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="test" style="position:relative" >
+                <canvas id="canvas" height="800" width="100%"></canvas>
+                <div id="detail_dialog" class="modal fade">
+                    <div class="modal-dialog ">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="entity_name"></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="entity_detail" >
+                                    <div class="tabbable">
+                                        <ul class="nav nav-tabs" id="myTab">
+                                            <li class="active">
+                                                <a data-toggle="tab" href="#subnet_info">子网信息</a>
+                                            </li>
+                                            <li>
+                                                <a data-toggle="tab" href="#course_list">关联课程</a>
+                                            </li>
+                                            <li>
+                                                <a data-toggle="tab" href="#desktop_list">虚拟桌面</a>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content">
+                                            <div  id="subnet_info" class="tab-pane fade in active ui-sortable" style="width:100%;">
+                                            </div>
+                                            <div  id="course_list" class="tab-pane fade in ui-sortable" style="width:100%;">
+                                            </div>
+                                            <div  id="desktop_list" class="tab-pane fade in ui-sortable" style="width:100%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/jtopo-0.4.8-min.js') }}"></script>
+    <script>
+
+        active_sidebar("#networks");
+        resizeCanvas();
+ 
+        $(function() {
+            function getElementPosition(element_num) {
+                var position = new Array();
+                var current_column = LONGEST_LINE_ELEMENT_NUM + 1 - element_num; // the first element's column
+                for (var i=0; i < element_num; i++) {
+                    position.push(current_column);
+                    current_column += 2;
+                }
+                return position;
+            }
+            
+            
+            function findPrinetNodeLine(prinet_node) {
+                for (var i = 0; i < prinet_line_array.length; i++) {
+                    var line_set = prinet_line_array[i];
+                    for (var j = 0; j < line_set.length; j++) {
+                        var dict = line_set[j];
+                        if (dict.net_node === prinet_node)
+                            return i;
+                    }
+                }
+                return null;
+            }
+            
+            function setPrinetLineAlpha(prinet_node, alpha) {
+                if (!(prinet_node.link && Object.keys(prinet_node.link).length))
+                    return;
+                var line = findPrinetNodeLine(prinet_node);
+                if (line && line > 0) {
+                    for (var i = 0; i < line; i++) {
+                        var line_set = prinet_line_array[i];
+                        for (var j = 0; j < line_set.length; j++) {
+                            var dict = line_set[j];
+                            var net_node = dict.net_node, server_node = dict.server_node, link = dict.link;
+                            if (net_node) {
+                                net_node.alpha = alpha;
+                                for (var link_id in net_node.link) {
+                                    net_node.link[link_id].alpha = alpha;
+                                }
+                            }
+                            if (server_node)
+                                server_node.alpha = alpha;
+                            if (link)
+                                link.alpha = alpha;
+                        }
+                    }
+                }
+            }
+            
+            function justShowSelf(prinet_node_array, alpha) {
+                function is_node_in(node) {
+                    var ret = false;
+                    for (var index = 0; index < prinet_node_array.length; index++) {
+                        if (node === prinet_node_array[index]) {
+                            ret = true;
+                            break;
+                        }
+                    }
+                    
+                    return ret;
+                }
+                
+                for (var i = 0; i < prinet_line_array.length; i++) {
+                    var line_set = prinet_line_array[i];
+                    for (var j = 0; j < line_set.length; j++) {
+                        var dict = line_set[j];
+                        var net_node = dict.net_node, server_node = dict.server_node, link = dict.link;
+                        if (!is_node_in(net_node)) {
+                            net_node.alpha = alpha;
+                            for (var link_id in net_node.link) {
+                                net_node.link[link_id].alpha = alpha;
+                            }
+                            if (server_node)
+                                server_node.alpha = alpha;
+                            if (link)
+                                link.alpha = alpha;
+                        }
+                    }
+                }
+            }
+            
+            function getMousePos(canvas, evt) {
+                var rect = canvas.getBoundingClientRect();
+                
+                return {
+                    x: (evt.clientX - rect.left) * (canvas.width / rect.width),
+                    y: (evt.clientY - rect.top) * (canvas.height / rect.height)
+                };
+            }
+            
+            function Link(nodeA, nodeB, common_color, hover_color, text, dashedPattern) {
+                var link = new JTopo.Link(nodeA, nodeB, text);
+                link.strokeColor = common_color;
+                link.bundleGap = 20;
+                link.dashedPattern = dashedPattern;
+                link['common_color'] = common_color;
+                link['hover_color'] = hover_color;
+                link['common_width'] = 1;
+                link['hover_width'] = 1;
+                link.lineWidth = link.common_width;
+                scene.add(link);
+                
+                link.mouseover(function() {
+                    this.strokeColor = this.hover_color;
+                    this.lineWidth = this.hover_width;
+                });
+                link.mouseout(function() {
+                    this.strokeColor = this.common_color;
+                    this.lineWidth = this.common_width;
+                });
+                return link;
+            }
+            
+            function FlexionalLink(nodeA, nodeB, common_color, hover_color, direction, text, dashedPattern){
+                var link = new JTopo.FlexionalLink(nodeA, nodeB, text);
+                link.direction = direction || 'horizontal';
+                link.offsetGap = 20;
+                link.bundleGap = 20; // 线条之间的间隔
+                link.textOffsetY = 10; // 文本偏移量（向下15个像素）
+                link.strokeColor = common_color;
+                link.dashedPattern = dashedPattern;
+                link['common_color'] = common_color;
+                link['hover_color'] = hover_color;
+                link['common_width'] = 0.5;
+                link['hover_width'] = 2;
+                link.lineWidth = link.common_width; // 线宽
+                link.paintSelected = function (a){};
+                scene.add(link);
+                
+                link.mouseover(function() {
+                    this.strokeColor = this.hover_color;
+                    this.lineWidth = this.hover_width;
+                });
+                link.mouseout(function() {
+                    this.strokeColor = this.common_color;
+                    this.lineWidth = this.common_width;
+                });
+                
+                return link;
+            }
+            
+            function FoldLink(nodeA, nodeB, common_color,  hover_color, direction, text, dashedPattern) {
+                var link = new JTopo.FoldLink(nodeA, nodeB, text);
+                link.direction = direction || 'horizontal';
+                link.bundleOffset = 60; // 折线拐角处的长度
+                link.bundleGap = 20; // 线条之间的间隔
+                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+                link.strokeColor = common_color;
+                link.dashedPattern = dashedPattern;
+                link['common_color'] = common_color;
+                link['hover_color'] = hover_color;
+                link['common_width'] = 0.5;
+                link['hover_width'] = 2;
+                link.lineWidth = link.common_width; // 线宽
+                link.paintSelected = function (a){};
+                scene.add(link);
+                
+                link.mouseover(function() {
+                    this.strokeColor = this.hover_color;
+                    this.lineWidth = this.hover_width;
+                });
+                link.mouseout(function() {
+                    this.strokeColor = this.common_color;
+                    this.lineWidth = this.common_width;
+                });
+                
+                return link;
+            }
+        
+            var canvas = document.getElementById('canvas'); 
+            var stage = new JTopo.Stage(canvas);
+            stage.eagleEye.visible = true;
+            var scene = new JTopo.Scene(stage);
+            //scene.background = "{{ url_for('static', filename='images/bg.jpg') }}";
+            
+            current_node = null; //用于右键菜单标注当前节点
+            router_detail_url = '{{url_for("network.router_detail", id=0)}}';
+            network_detail_url = '{{url_for("network.network_detail", id=0)}}';
+            course_detail_url = '{{url_for("edu.course_detail", id=0)}}';
+            
+            pubnet_node_dict = {};
+            prinet_node_dict = {};
+            router_node_dict = {};
+            server_node_dict = {};
+            prinet_line_array = [];
+            
+            CANVAS_WIDTH = $("#canvas").attr("width");
+            CANVAS_HEIGHT = $("#canvas").attr("height");
+            NETWORK_NODE_COLOR = ["31,119,180", "255,127,14", "44, 160,44", "214,39,40", "148,103,189",
+                                  "140,86,75", "227,119,194", "127,127,127", "188,189,34", "23,190,207"];
+                                  
+            MAX_INTERNAL_NET_NODE_PERLINE = 8; //内部网络每行最多放置8个
+            
+            var public_networks = new Array();
+            var private_networks = new Array();
+            {% for network in networks %}
+                var network = {id: '{{network.id}}', name: '{{network.name}}'};
+                {% if network.get('server_num') %}
+                    network["server_num"] = {{network.server_num}};
+                {% endif %}
+                {% if network.get('can_access') %}
+                    network['can_access'] = true;
+                {% endif %}
+                {% if network.get('courses') %}
+                    network['courses'] = [];
+                    {% for course in network['courses'] %}
+                        network['courses'].push({id: '{{course.id}}', name: '{{course.name}}', desktop_count: '{{course.desktop_count}}'});
+                    {% endfor %}
+                {% endif %}
+                {% if network.get('subnets') %}
+                    network['subnets'] = [];
+                    {% for subnet in network['subnets'] %}
+                        network['subnets'].push({id: '{{subnet.id}}', name: '{{subnet.name}}', enable_dhcp: '{{ subnet.enable_dhcp }}', ip_version: '{{subnet.ip_version}}', gateway_ip: '{{subnet.gateway_ip}}',allocation_pools: '{{subnet.allocation_pools}}', cidr: '{{subnet.cidr}}', enable_dhcp: '{{subnet.enable_dhcp}}'});
+                    {% endfor %}
+                {% endif %}
+                {%- if network["router:external"] %}
+                    public_networks.push(network);
+                {% else %}
+                    private_networks.push(network);
+                {%- endif -%}
+            {% endfor %}
+            
+            GRID_SIDE = 64; //按照网格来进行布局
+            LONGEST_LINE_ELEMENT_NUM = Math.max.apply(null, [public_networks.length, MAX_INTERNAL_NET_NODE_PERLINE, {{routers|length}}]);
+            
+            /*
+             第一部分:外部网络
+            */
+            function PubnetNode(x, y, text) {
+                var node = new JTopo.Node(text);
+                node.textPosition = "Middle_Center";
+                node["common_fontColor"] = "153, 153, 153";
+                node["hover_fontColor"] = "51, 51, 51";
+                node["common_image"] = "{{ url_for('static', filename='images/public_net_common.png') }}";
+                node["hover_image"] = "{{ url_for('static', filename='images/public_net_hover.png') }}";
+                node.fontColor = node["common_fontColor"];
+                node.font = "13px Arial";
+                node.showSelected = false;
+                node.text = "外部网络";
+                node.setImage(node["common_image"], true);
+                node.setCenterLocation(x, y);
+                node.dragable = false;
+                scene.add(node);
+                
+                node.mouseover(function() {
+                    this.fontColor = this.hover_fontColor;
+                    this.setImage(this.hover_image, true);
+                    var link_node = [];
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.hover_color;
+                        link.lineWidth = link.hover_width;
+
+                        var nodeA = link.nodeA;
+                        nodeA.setImage(nodeA.hover_image, true);
+                        nodeA.fontColor = nodeA.hover_fontColor;
+                        link_node.push(nodeA);
+                        for (var link_id in nodeA.link) {
+                            var link = nodeA.link[link_id];
+                            var nodeZ = link.nodeZ;
+                            if (nodeZ.type != "public_network") {
+                                link.strokeColor = link.hover_color;
+                                link.lineWidth = link.hover_width;
+                                nodeZ.setImage(nodeZ.hover_image, true);
+                                nodeZ.fontColor = nodeZ.hover_fontColor;
+                                link_node.push(nodeZ);
+                            }
+                        }
+                    }
+{##}
+{#                    justShowSelf(link_node, 0.2);#}
+                    justShowSelf(link_node, 0.5);
+                });
+                node.mouseout(function() {
+                    this.fontColor = this.common_fontColor;
+                    this.setImage(this.common_image, true);
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.common_color;
+                        link.lineWidth = link.common_width;
+
+                        var nodeA = link.nodeA;
+                        nodeA.setImage(nodeA.common_image, true);
+                        nodeA.fontColor = nodeA.common_fontColor;
+                        for (var link_id in nodeA.link) {
+                            var link = nodeA.link[link_id];
+                            var nodeZ = link.nodeZ;
+                            if (nodeZ.type != "public_network") {
+                                link.strokeColor = link.common_color;
+                                link.lineWidth = link.common_width;
+                                nodeZ.setImage(nodeZ.common_image, true);
+                                nodeZ.fontColor = nodeZ.common_fontColor;
+                            }
+                        }
+                    }
+                    justShowSelf([this], 1);
+                });
+                return node;
+            }
+            
+            var CURRENT_LINE = 1;
+            var pubnet_position = getElementPosition(public_networks.length);
+            for (var index = 0; index < public_networks.length; index++) {
+                publicnet = public_networks[index];
+                var node_x = GRID_SIDE * (pubnet_position[index] - 1 + 0.5) - 10;
+                var node_y = GRID_SIDE * (CURRENT_LINE - 1 + 0.5);
+                var node = PubnetNode(node_x, node_y, publicnet.name);
+                
+                node["type"] = "public_network";
+                node['id'] = publicnet.id;
+                node['name'] = publicnet.name;
+                node["can_access"] = publicnet.can_access || false;
+                node['server_num'] = publicnet.server_num || 0;
+                node["courses"] = publicnet.courses;
+                node["link"] = {};
+                pubnet_node_dict[publicnet.id] = node;
+            }
+            
+            /*
+             第二部分:路由
+            */
+            function RouterNode(x, y, text) {
+                var node = new JTopo.Node(text);
+                node.textPosition = "Top_Center";
+                node["common_fontColor"] = "153, 153, 153";
+                node["hover_fontColor"] = "51, 51, 51";
+                node["common_image"] = "{{ url_for('static', filename='images/router_common.png') }}";
+                node["hover_image"] = "{{ url_for('static', filename='images/router_hover.png') }}";
+                node.fontColor = node["common_fontColor"];
+                node.font = "13px Arial";
+                node.showSelected = false;
+                node.setImage(node["common_image"], true);
+                node.setCenterLocation(x, y);
+                node.dragable = false;
+                scene.add(node);
+                
+                node.mouseover(function() {
+                    this.fontColor = this.hover_fontColor;
+                    this.setImage(this.hover_image, true);
+                    var link_node = [];
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.hover_color;
+                        link.lineWidth = link.hover_width;
+                        var link_end = link.nodeZ;
+                        link_end.setImage(link_end.hover_image, true);
+                        link_end.fontColor = link_end.hover_fontColor;
+                        // 当与路由关联的实体有其他关系时, 那么就隐藏
+                        // 已知前提: 路由与网络实体之间最多只能有1个关联
+                        for (var id in link_end.link) {
+                            var _link = link_end.link[id];
+                            if (_link != link) {
+                                _link.alpha = 0;
+                            }
+                        }
+                        link_node.push(link_end);
+                    }
+
+{#                    justShowSelf(link_node, 0.2);#}
+                    justShowSelf(link_node, 0.5);
+                });
+                node.mouseout(function() {
+                    this.fontColor = this.common_fontColor;
+                    this.setImage(this.common_image, true);
+                    var link_node = [];
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.common_color;
+                        link.lineWidth = link.common_width;
+
+                        var link_end = link.nodeZ;
+                        link_end.setImage(link_end.common_image, true);
+                        link_end.fontColor = link_end.common_fontColor;
+                        for (var id in link_end.link) {
+                            var _link = link_end.link[id];
+                            if (_link != link) {
+                                _link.alpha = 1;
+                            }
+                        }
+                        link_node.push(link_end);
+                    }
+                    justShowSelf(link_node, 1);
+                });
+                return node;
+            }
+            
+            CURRENT_LINE = 3;
+            var router_position = getElementPosition({{routers|length}});
+            {% for router in routers %}
+                var node_x = GRID_SIDE * (router_position[{{loop.index}} - 1] - 1 + 0.5);
+                var node_y = GRID_SIDE * (CURRENT_LINE - 1 + 0.5);
+                var node = RouterNode(node_x, node_y, '{{router.name}}');
+                
+                node["type"] = 'router';
+                node["name"] = '{{router.name}}';
+                node["id"] = '{{router.id}}';
+                node['link'] = {};
+                router_node_dict['{{router.id}}'] = node;
+            {% endfor %}
+            
+            /*
+             第三部分:内部网络和云主机
+            */
+            function getPrinetNodePosition(element_num) {
+                var position = [];
+                var line_num = Math.ceil(element_num / MAX_INTERNAL_NET_NODE_PERLINE);
+                var element_num_perline = [];
+                for (var i = 0; i < line_num; i++)
+                    element_num_perline.push(Math.floor(element_num / line_num));
+                for (var i = 0; i < element_num%line_num; i++)
+                    element_num_perline[i] += 1;
+                    
+                for (var i = 0; i < line_num; i++) {
+                    position.push(getElementPosition(element_num_perline[i]));
+                }
+                
+                return position;
+            }
+            
+            function PrinetNode(x, y, text, server_num) {
+                var net_node = new JTopo.Node(text);
+                net_node.textPosition = "Top_Center";
+                net_node["common_fontColor"] = "153, 153, 153";
+                net_node["hover_fontColor"] = "51, 51, 51";
+                net_node["common_image"] = "{{ url_for('static', filename='images/private_net_common.png') }}";
+                net_node["hover_image"] = "{{ url_for('static', filename='images/private_net_hover.png') }}";
+                net_node.fontColor = net_node["common_fontColor"];
+                net_node.font = "13px Arial";
+                net_node.showSelected = false;
+                net_node.setImage(net_node["common_image"], true);
+                net_node.setCenterLocation(x, y);
+                net_node.dragable = false;
+                scene.add(net_node);
+                
+                net_node.mouseover(function() {
+                    this.fontColor = this.hover_fontColor;
+                    this.setImage(this.hover_image, true);
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.hover_color;
+                        link.lineWidth = link.hover_width;
+                        
+                        var nodeA = link.nodeA;
+                        nodeA.setImage(nodeA.hover_image, true);
+                        nodeA.fontColor = nodeA.hover_fontColor;
+                        for (var link_id in nodeA.link) {
+                            var link = nodeA.link[link_id];
+                            var nodeZ = link.nodeZ;
+                            if (nodeZ.type != "private_network") {
+                                link.strokeColor = link.hover_color;
+                                link.lineWidth = link.hover_width;
+                                nodeZ.setImage(nodeZ.hover_image, true);
+                                nodeZ.fontColor = nodeZ.hover_fontColor;
+                            }
+                        }
+                    }
+                    //setPrinetLineAlpha(this, 0);
+{#                    justShowSelf([this], 0.2);#}
+                    justShowSelf([this], 0.5);
+                });
+                net_node.mouseout(function() {
+                    this.fontColor = this.common_fontColor;
+                    this.setImage(this.common_image, true);
+                    for (var link_id in this.link) {
+                        var link = this.link[link_id];
+                        link.strokeColor = link.common_color;
+                        link.lineWidth = link.common_width;
+                        
+                        var nodeA = link.nodeA;
+                        nodeA.setImage(nodeA.common_image, true);
+                        nodeA.fontColor = nodeA.common_fontColor;
+                        for (var link_id in nodeA.link) {
+                            var link = nodeA.link[link_id];
+                            var nodeZ = link.nodeZ;
+                            if (nodeZ.type != "private_network") {
+                                link.strokeColor = link.common_color;
+                                link.lineWidth = link.common_width;
+                                nodeZ.setImage(nodeZ.common_image, true);
+                                nodeZ.fontColor = nodeZ.common_fontColor;
+                            }
+                        }
+                    }
+                    //setPrinetLineAlpha(this, 1);
+                    justShowSelf([this], 1);
+                });
+                
+                if (server_num) {
+                    var server_node = new JTopo.Node();
+                    server_node.showSelected = false;
+                    server_node.setImage("{{ url_for('static', filename='images/desktop_common.png') }}", true);
+                    server_node.setCenterLocation(x, y);
+                    server_node.mouseover(function() {
+                        this.setImage("{{ url_for('static', filename='images/desktop_hover.png') }}", true);
+                    });
+                    server_node.mouseout(function() {
+                        this.setImage("{{ url_for('static', filename='images/desktop_common.png') }}", true);
+                    });
+                    server_node.dragable = false;
+                    scene.add(server_node);
+                    
+                    var link = Link(server_node, net_node, '0,0,0', '66,143,185');
+                    
+                    var effect = JTopo.Effect.spring({
+                        grivity: 5, // 引力 (可以为负值)
+                    })
+                    effect.addNode(server_node, net_node);
+                    effect.play();
+                }
+                return {net_node: net_node, server_node: server_node || null, link: link || null};
+            }
+            
+            CURRENT_LINE = 5;
+            var prinet_position = getPrinetNodePosition(private_networks.length);
+            
+            var net_index = 0;
+            for (var i = 0; i < prinet_position.length; i++) {
+                var row_position = prinet_position[i];
+                var current_line_set = [];
+                for (var j = 0; j < row_position.length; j++) {
+                    var privatenet = private_networks[net_index++];
+                    var node_x = GRID_SIDE * (row_position[j] - 1 + 0.5);
+                    var node_y = GRID_SIDE * (CURRENT_LINE - 1 + 0.5);
+                    var ret = PrinetNode(node_x, node_y, privatenet.name, privatenet.server_num);
+                    current_line_set.push(ret);
+                    
+                    var net_node = ret.net_node;
+                    net_node["type"] = "private_network"
+                    net_node["id"] = privatenet.id;
+                    net_node["name"] = privatenet.name;
+                    net_node["can_access"] = privatenet.can_access || false;
+                    net_node["courses"] = privatenet.courses;
+                    net_node["subnets"] = privatenet.subnets;
+                    net_node["server_num"] = privatenet.server_num || 0;
+                    net_node['link'] = {};
+                    prinet_node_dict[privatenet.id] = net_node;
+                    
+                    var server_node = ret.server_node;
+                    if (server_node) {
+                        server_node["type"] = "server";
+                        server_node["server_num"] = privatenet.server_num || 0;
+                        server_node_dict[privatenet.id] = server_node;
+                    }
+                }
+                prinet_line_array.push(current_line_set);
+                
+                CURRENT_LINE += 2;
+            }
+            
+            /*
+             第四部分:连线
+            */
+            {% for port in ports %}
+                {% if port.device_owner == "network:router_interface" %}
+                    var link = FlexionalLink(router_node_dict['{{port.device_id}}'], prinet_node_dict['{{port.network_id}}'], '153,153,153', '42,143,189', 'vertical', null, 2);
+                    prinet_node_dict['{{port.network_id}}']['link']['{{port.device_id}}'] = link;
+                    router_node_dict['{{port.device_id}}']['link']['{{port.network_id}}'] = link;
+                {% elif port.device_owner == "network:router_gateway" %}
+                    var link = FoldLink(router_node_dict['{{port.device_id}}'], pubnet_node_dict['{{port.network_id}}'], '153,153,153', '42,143,189', 'vertical', null, 3);
+                    pubnet_node_dict['{{port.network_id}}']['link']['{{port.device_id}}'] = link;
+                    router_node_dict['{{port.device_id}}']['link']['{{port.network_id}}'] = link;
+                {% endif %}
+            {% endfor %}
+
+            
+            /*
+                工具栏
+            */
+            $("#zoomOut").click(function() {
+                stage.zoomOut();
+            });
+            
+            $("#zoomIn").click(function(){
+                stage.zoomIn();
+            });
+            
+            $("#centerAndZoom").click(function() {
+                stage.centerAndZoom();
+            });
+            
+            $("#searchBtn").click(function() {
+                var text = $("#searchTxt").val().trim();
+                if (!text)
+                    return;
+                //var scene = stage.childs[0];
+                var nodes = scene.childs.filter(function(e) {
+                    return e instanceof JTopo.Node;
+                });
+                nodes = nodes.filter(function(e) {
+                    return (e.name && e.name.indexOf(text) != -1) || (e.id && e.id.indexOf(text) != -1) ||
+                            (e.text && e.text.indexOf(text) != -1);
+                });
+                if (nodes.length > 0) {
+                    //var location = node.getCenterLocation();
+                    // 查询到的节点居中显示
+                    //stage.setCenter(location.x, location.y);
+                    function nodeFlash(node, n){
+                        if(n == 0) {
+                            node.showSelected = false;
+                            node.selected = false;
+                            return;
+                        };
+                        node.showSelected = true;
+                        node.selected = !node.selected;
+                        setTimeout(function(){
+                            nodeFlash(node, n-1);
+                        }, 300);
+                    }
+                    for (var index = 0; index < nodes.length; index++) {
+                        var node = nodes[index];
+                        node.selected = true;
+                        // 闪烁几下
+                        nodeFlash(node, 7);
+                    }
+                }
+            });
+            
+            function CursorNode() {
+                var node = new JTopo.Node();
+                node.textPosition = "Middle_Right";
+                node.fontColor = "42,143,189";
+                node.font = "15px Arial";
+                node.showSelected = false;
+                node.setImage("{{ url_for('static', filename='images/cursor.png') }}", true);
+                node.setLocation(10, 20);
+                node.dragable = false;
+                scene.add(node);
+                
+                return node;
+            }
+            
+            $('#demoBtn').click(function() {
+                var demo_node = null;
+                // first choose demo node from private network nodes, second from router nodes;
+                // if not find demo node, we won't show the demo.
+                for (var id in prinet_node_dict) {
+                    var prinet_node = prinet_node_dict[id];
+                    if (prinet_node.link && Object.keys(prinet_node.link).length) {
+                        demo_node = prinet_node;
+                        break;
+                    }
+                }
+                
+                if (!demo_node) {
+                    for (var id in prinet_node_dict) {
+                        demo_node = prinet_node_dict[id];
+                        break;
+                    }
+                }
+                
+                if (!demo_node) {
+                    for (var id in router_node_dict) {
+                        var router_node = router_node_dict[id];
+                        if (router_node.link && Object.keys(router_node.link).length) {
+                            demo_node = router_node;
+                            break;
+                        }
+                    }
+                }
+                
+                if (demo_node) {
+                    var cursor = CursorNode();
+                    scene.mode = 'drag'; //when show demo, lock the topology.
+                    var pos = demo_node.getCenterLocation();
+                    JTopo.Animate.stepByStep(cursor, pos, 1500, false).start().onStop(function() {
+                        demo_node.mouseover();
+                        cursor.text = "选中目标观察更清晰,双击可查看详情";
+                        stage.eagleEye.update();
+                        setTimeout(function() {
+                            JTopo.Animate.stepByStep(cursor, {alpha: 0.01}, 1000, false).start().onStop(function() {
+                                demo_node.mouseout();
+                                scene.remove(cursor);
+                                scene.mode = "normal";
+                                stage.eagleEye.update();
+                            });
+                        }, 2000);
+                    });
+                }
+            });
+            
+            /*
+                右键菜单
+            */
+{#            for (var router_id in router_node_dict) {#}
+{#                router_node_dict[router_id].addEventListener("dbclick", function(event){#}
+{#                    current_node = this;#}
+{#                    if (event.button == 2) {#}
+{#                    $("#contextmenu").html($("#backup").html());#}
+{#                    $("#entity_name").text("路由 [" + (this.name || "(" + this.id + ")") + "]");#}
+{#                    $("#entity_detail").text("查看路由详情");#}
+{#                    $("#entity_detail").attr('href', router_detail_url.replace('0', this.id));#}
+{#                    var position = getMousePos(canvas, event);#}
+{#                    $("#contextmenu").css({#}
+{#                        top: position.y,#}
+{#                        left: position.x#}
+{#                    }).show();#}
+{#                    $("#detail_dialog").modal("show");#}
+{#                });#}
+{#            }#}
+
+            function add_event_listener_for_network_node (network_dict) {
+                for (var network_id in network_dict) {
+                    network_dict[network_id].addEventListener("dbclick", function(event) {
+                        current_node = this;
+{#                        if (event.button == 2) {#}
+                        $("#contextmenu").html($("#backup").html());
+                        if (this.type == "public_network")
+                            type_name = "外部网络";
+                        else if (this.type == "private_network")
+                            type_name = "内部网络";
+                        else
+                            type_name = "未知";
+                        $("#entity_name").text(type_name + " [" + (this.name || "(" + this.id + ")") + "]");
+
+                        var subnet_template = '';
+                        var course_template = '';
+                        var desktop_template = '';
+                        var course_desktop_num = 0;
+
+                        if (this.can_access) {
+                            if (this.subnets){
+                                subnet_template += '<div class="profile-user-info profile-user-info-striped no-margin">'
+                                subnet_template += '<div class="profile-info-row">' +
+                                    '<div class="profile-info-name" style="width: 150px;text-align: center"> 名称 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center"> 版本 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center"> DHCP </div>'+
+                                    '<div class="profile-info-value" style="text-align: center"> IP池 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center"> 网关IP </div>' +
+                                    '</div>';
+                                for (var index=0; index<this.subnets.length; index++){
+                                    subnet = this.subnets[index];
+                                    netscope_template = subnet.allocation_pools.replace(/&#39;/g,'');
+                                    netscope_template = netscope_template.split('[')[1].split(']')[0];
+                                    netscope_template_list = netscope_template.replace(/\{/g,'').replace(/}/g,'').split(",");
+                                    netscope_template = '';
+                                    for (var x=0; x<netscope_template_list.length/2; x++ )
+                                        netscope_template = netscope_template_list[x*2+1].split(":")[1] + ' - ' + netscope_template_list[x*2].split(":")[1] + '<br>';
+                                    var subnet_name = '';
+                                    if (subnet.name)
+                                        subnet_name = subnet.name;
+                                    else
+                                        subnet_name = subnet.id;
+                                    subnet_template += '<div class="profile-info-row">' +
+                                        '<div class="profile-info-name" style="width: 150px;text-align: center" id="subnet_name_' + this.id + '">' + subnet_name + '</div>' +
+                                        '<div class="profile-info-value" style="text-align: center" id="subnet_ipversion_' + this.id +  '"> IPv' +  subnet.ip_version + ' </div>' +
+                                        '<div class="profile-info-value" style="text-align: center" id="subnet_dhcp_' + this.id + '">' +  subnet.enable_dhcp + '</div>'+
+                                        '<div class="profile-info-value" style="text-align: center" id="subnet_netscope_' + this.id + '"> ' + netscope_template + '</div>' +
+                                        '<div class="profile-info-value" style="text-align: center" id="subnet_gateway_' + this.id +  ' value=' + subnet.gateway_ip + '">' + subnet.gateway_ip + '</div>' +
+                                        '</div>'
+                                }
+                                subnet_template += '</div>'
+                            }
+                            else{
+                                subnet_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;此内部网络中：<strong>未创建子网</strong></div>'
+                            }
+                            if (this.courses) {
+                                course_template += '<div class="profile-user-info profile-user-info-striped no-margin">';
+                                course_template += '<div class="profile-info-row">' +
+                                    '<div class="profile-info-name" style="width: 150px;text-align: center"> 名称 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center"> 课程桌面数量 </div>' +
+                                    '</div>';
+                                for (var l=0; l<this.courses.length; l++) {
+                                    course = this.courses[l];
+                                    course_desktop_num = parseInt(course_desktop_num) + parseInt(course.desktop_count);
+                                    course_template += '<div class="profile-info-row">' +
+                                        '<div class="profile-info-name" style="width: 150px;text-align: center" id="course_name_' + this.id + '" ><a title="查看课程详情" href="' + course_detail_url.replace('0', course.id) + '"><u>' + course.name + '</u></a></div>' +
+                                        '<div class="profile-info-value" style="text-align: center" id="desktop_count_' + this.id + '">' + course.desktop_count + ' </div>' +
+                                        '</div>'
+                                }
+                                course_template += '</div>'
+                            }
+                            else{
+                                course_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;此内部网络中：<strong>未关联课程</strong></div>'
+                            }
+                            if (this.server_num) {
+                                desktop_template += '<div class="profile-user-info profile-user-info-striped no-margin">';
+                                desktop_template += '<div class="profile-info-row">' +
+                                    '<div class="profile-info-name" style="width: 150px;text-align: center"> 桌面类型 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center"> 云桌面数量 </div>' +
+                                    '</div>';
+                                desktop_template += '<div class="profile-info-row">' +
+                                    '<div class="profile-info-name" style="width: 150px;text-align: center" id="cluster_name1_' + this.id + '"> 固定桌面 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center" id="desktop_num1_' + this.id + '">' + (this.server_num - course_desktop_num) + '</div>' +
+                                    '</div>';
+                                desktop_template += '<div class="profile-info-row">' +
+                                    '<div class="profile-info-name" style="width: 150px;text-align: center" id="cluster_name2_' + this.id + '"> 课程桌面 </div>' +
+                                    '<div class="profile-info-value" style="text-align: center" id="desktop_num2_' + this.id + '">' + course_desktop_num + '</div>' +
+                                    '</div>';
+                                desktop_template += '</div>'
+                            }
+                            else{
+                                desktop_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;此内部网络中：<strong>未创建云桌面</strong></div>'
+                            }
+                        }
+                        else {
+                            subnet_template = '<div class="alert alert-danger"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无权访问此网络</strong></div>';
+                            if (this.type == "public_network") {
+                                {% for externet in external_network_detail %}
+                                    var exter_net_id = '{{ externet.id }}';
+                                    if (exter_net_id == this.id) {
+                                        var exter_net = {id: '{{externet.id}}', name: '{{externet.name}}'};
+                                    }
+                                    exter_net['inter_network'] = [];
+                                    {% for internet in externet.inter_network %}
+                                        network_courses = [];
+                                        {% for course in internet['courses'] %}
+                                            network_courses.push({
+                                                id: '{{course.id}}',
+                                                name: '{{course.name}}',
+                                                desktop_count: '{{course.desktop_count}}'
+                                            });
+                                        {% endfor %}
+                                        exter_net['inter_network'].push({
+                                            'id': '{{ internet.id }}',
+                                            'name': '{{ internet.name }}',
+                                            'server_num': {{ internet.server_num }},
+                                            'courses': network_courses
+                                        });
+                                    {% endfor %}
+                                {% endfor %}
+
+
+                                if (exter_net['inter_network'].length != 0) {
+                                    var all_course_count = 0;
+                                    var all_server_count = 0;
+                                    course_template += '<div class="profile-user-info profile-user-info-striped no-margin">';
+                                    course_template += '<div class="profile-info-row">' +
+                                            '<div class="profile-info-name" style="width: 150px;text-align: center"> 访问此外网的内部网络 </div>' +
+                                            '<div class="profile-info-value" style="text-align: center"> 访问此外网的课程 </div>' +
+                                            '<div class="profile-info-value" style="text-align: center"> 课程桌面数量 </div>' +
+                                            '</div>';
+                                    desktop_template += '<div class="profile-user-info profile-user-info-striped no-margin">';
+                                    desktop_template += '<div class="profile-info-row">' +
+                                            '<div class="profile-info-name" style="width: 150px;text-align: center"> 访问此外网的内部网络 </div>' +
+                                            '<div class="profile-info-value" style="text-align: center"> 课程桌面数量 </div>' +
+                                            '<div class="profile-info-value" style="text-align: center"> 固定桌面数量 </div>' +
+                                            '</div>';
+                                    for (var l = 0; l < exter_net['inter_network'].length; l++) {
+                                        inter_network = exter_net['inter_network'][l];
+                                        var all_course_desktops_count = 0;
+                                        all_course_count = parseInt(all_course_count) + parseInt(inter_network['courses'].length);
+                                        all_server_count = parseInt(all_server_count) + parseInt(inter_network['server_num']);
+                                        if (inter_network['courses'].length != 0) {
+                                            var all_course = '';
+                                            var all_desktop = '';
+                                            for (var i = 0; i < inter_network['courses'].length; i++) {
+                                                var course = inter_network['courses'][i];
+                                                all_course = all_course + '<div style="border-bottom:1px dashed #D5E4F1" ><a href="' + course_detail_url.replace('0', course.id) + '" title="查看课程详情"><u>' + course.name + '</u></a></div>';
+                                                all_desktop += '<div style="border-bottom:1px dashed #D5E4F1">' + course.desktop_count + '</div>';
+                                                all_course_desktops_count = parseInt(all_course_desktops_count) + parseInt(course.desktop_count);
+                                            }
+                                            course_template += '<div class="profile-info-row">' +
+                                                    '<div class="profile-info-name" style="width: 150px;text-align: center" id="internet_name_' + this.id + '">' + inter_network['name'] + '</div>' +
+                                                    '<div class="profile-info-value" style="text-align: center" id="internet_course_' + this.id + '">' + all_course + ' </div>' +
+                                                    '<div class="profile-info-value" style="text-align: center" id="internet_desktop_count_' + this.id + '">' + all_desktop + ' </div>' +
+                                                    '</div>'
+                                        }
+                                        else {
+                                            course_template += '<div class="profile-info-row">' +
+                                                    '<div class="profile-info-name" style="width: 150px;text-align: center" id="internet_name_' + this.id + '">' + inter_network['name'] + '</div>' +
+                                                    '<div class="profile-info-value" style="text-align: center" id="internet_course_' + this.id + '">' + '-' + ' </div>' +
+                                                    '<div class="profile-info-value" style="text-align: center" id="internet_desktop_count_' + this.id + '">' + '-' + ' </div>' +
+                                                    '</div>'
+                                        }
+                                        desktop_template += '<div class="profile-info-row">' +
+                                                '<div class="profile-info-name" style="width: 150px;text-align: center" id="internet_name_' + this.id + '">' + inter_network['name'] + '</div>' +
+                                                '<div class="profile-info-value" style="text-align: center" id="internet_course_deskop_' + this.id + '">' + all_course_desktops_count + ' </div>' +
+                                                '<div class="profile-info-value" style="text-align: center" id="internet_static_deskop_' + this.id + '">' + (inter_network['server_num'] - all_course_desktops_count) + ' </div>' +
+                                                '</div>'
+                                    }
+                                    desktop_template += '</div>';
+                                    course_template += '</div>';
+                                    if(all_course_count == 0){
+                                        course_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无课程可访问此外网</strong></div>';
+                                    }
+                                    if(all_server_count == 0){
+                                        desktop_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无桌面可访问此外网</strong></div>';
+                                    }
+                                }
+                                else {
+                                    course_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无课程可访问此外网</strong></div>';
+                                    desktop_template = '<div class="alert alert-info"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无桌面可访问此外网</strong></div>';
+                                }
+                            }
+                            else {
+                                course_template = '<div class="alert alert-danger"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无权访问此网络</strong></div>';
+                                desktop_template = '<div class="alert alert-danger"><i class="ace-icon fa fa-bullhorn"></i> &nbsp;&nbsp;<strong>无权访问此网络</strong></div>';
+                            }
+                        }
+                        $("#subnet_info").html(subnet_template);
+                        $("#course_list").html(course_template);
+                        $("#desktop_list").html(desktop_template);
+                        $("#detail_dialog").modal("show");
+                    });
+                }
+            }
+            add_event_listener_for_network_node(pubnet_node_dict);
+            add_event_listener_for_network_node(prinet_node_dict);
+            
+{#            for (var net_id in server_node_dict) {#}
+{#                server_node_dict[net_id].addEventListener("mouseup", function(event) {#}
+{#                    current_node = this;#}
+{#                    if (event.button == 2) {#}
+{#                        $("#contextmenu").html($("#backup").html());#}
+{#                        $("#entity_name").text("云桌面集群");#}
+{#                        $("#entity_detail").text("该集群共有" + this.server_num + "个云桌面");#}
+{#                        $("#entity_detail").attr('href', "javascript:void(0)");#}
+{#                        var position = getMousePos(canvas, event);#}
+{#                        $("#contextmenu").css({#}
+{#                            top: position.y,#}
+{#                            left: position.x#}
+{#                        }).show();#}
+{#                    }#}
+{#                });#}
+{#            }#}
+            
+            stage.click(function(event){
+                if (event.button == 0) {
+                    $("#contextmenu").hide();
+                }
+            });
+            
+            $(window).resize(resizeCanvas);
+            $("#test").resize(resizeCanvas);
+
+            //init JQuery's data table
+             subnet_table = $('#subnet_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [ null, null,
+                    {"bSortable": false}, null, {"bSortable": false, "bSearchable": false}]
+            });
+
+            port_table = $('#port_list').DataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aaSorting": [],
+                "aoColumns": [{"bSortable": false, "bSearchable": false}, null, null,
+                    null, {"bSortable": false}, {"bSortable": false}, {"bSortable": false, "bSearchable": false}]
+            });
+
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+        });
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentNode.clientWidth;  
+            canvas.height = canvas.parentNode.clientHeight; 
+        }
+
+    </script>
+
+{% endblock %}

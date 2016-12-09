@@ -1,0 +1,14 @@
+# deploy
+export DEST_DIR="/srv/www/vinzor"
+export SOURCE_TYPE="local"
+
+# mysql
+export MYSQL_USER=root
+export MYSQL_PASS=admin123
+
+# flask
+export FLASK_CONFIG=testing
+export SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:admin123@127.0.0.1:3306/license?charset=utf8
+
+
+

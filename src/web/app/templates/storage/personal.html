@@ -1,0 +1,519 @@
+{% extends 'layout.html' %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{%  block title %}存储管理{%  endblock %}
+
+{% block inline_styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-timepicker.min.css') }}" xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" />
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header"><h1>个人文件服务器管理</h1></div>
+
+    <div class="widget-box">
+        <div class="widget-header ">
+            <h4 class="widget-title">个人文件服务器列表</h4>
+        </div>
+
+        <div class="widget-body no-padding">
+            <div class="widget-toolbox padding-10">
+                <div class="action-buttons">
+                    <a href="javascript:void(0)" id="add_personal" title="创建"><i
+                            class='ace-icon fa fa-plus-circle'></i>创建</a>
+                    <a id="delete_servers" class="red" href="javascript:void(0)"
+                           title="删除"><i
+                                class="ace-icon fa fa-trash"></i>
+                            删除
+                        </a>
+                </div>
+            </div>
+        </div>
+        <table id="table_list"
+               class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="center"><label class="pos-rel"><input id="select_all"
+                                                                 type="checkbox"
+                                                                 class="ace" ><span
+                        class="lbl"></span></label></th>
+                <th>名称</th>
+                <th>IP</th>
+                <th>管理员</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for server in server_list %}
+                <tr>
+                    <td class='center'>
+                        <label class="pos-rel"><input type='checkbox'
+                                                      id="{{ server.id }}"
+                                                      class="ace" {% if server.id in using_samba or not current_user.is_administrator() %}disabled{% endif %}/><span
+                                class="lbl"></span></label>
+                    </td>
+                    <td id="name_{{ server.id }}">{{ server.name }}</td>
+                    <td id="ip_{{ server.id }}">{{ server.ip }}</td>
+                    <td id="admin_{{ server.id }}">{{ server.administrator }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="javascript:void(0)" title="修改"
+                               onclick="editPersonalById({{ server.id }})"><i
+                                    class="ace-icon glyphicon glyphicon-edit bigger-130"></i></a>
+                            <a class="red" title="删除" {% if server.id in using_samba %}style="display: none" {% endif %}
+                               onclick="deletePersonalById({{ server.id }})"><i
+                                    class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog  modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="add_dialog_title">创建</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="newpersonal_form" action="{{ url_for('storage.add_personal_storage') }}" method="post">
+                       <div class="form-group name">
+                            <label for="form-field-8">名称</label>
+                            <div class="">
+                                <input type="text" id="add_personal_name" name="name" value="" placeholder="名称" style="width:100%" data-rule-required="true" data-msg-required='请填服务器名称' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group ip">
+                            <label for="form-field-8">IP</label>
+                            <div class="">
+                                <input type="text" id="add_personal_ip" name="ip" value="" placeholder="IP" style="width:100%" data-rule-required="true" data-msg-required='请填写IP' data-rule-checkip="true"/>
+                            </div>
+                        </div>
+                        <div class="form-group name">
+                            <label for="form-field-8">管理员</label>
+                            <div class="">
+                                <input type="text" id="add_personal_admin" name="administrator" value="" placeholder="管理员" style="width:100%" data-rule-required="true" data-msg-required='请填写管理员' data-rule-maxlength="25" data-msg-maxlength='最大长度不能超过25个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group passwd">
+                            <label for="form-field-8">密码</label>
+                            <div class="">
+                                <input type="password" id="add_admin_password" name="password" value="" placeholder="密码" style="width:100%" data-rule-required="true" data-msg-required='请填写密码' data-rule-maxlength="40" data-msg-maxlength='最大长度不能超过40个字符'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="add_personal_create" class="btn btn-success btn-sm add_user_create" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>创建
+                    </button>
+                    <button id="add_personal_close" class="btn btn-danger btn-sm add_user_close" type="button">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit_dialog" class="modal fade">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_dialog_title">编辑</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning"><span><i class="fa fa-bullhorn"></i></span><strong> Warning ! </strong><br>如果需要添加新的服务器，请通过新增/删除的方式处理，直接修改IP会导致原创建在此服务器上的个人存储无法继续使用</div>
+                    <form id="edit_form" action="{{ url_for('storage.update_personal_storage') }}" method="post">
+                    <input type="hidden" id="edit_id" name="samba_id" value="" />
+                       <div class="form-group name">
+                            <label for="form-field-8">名称</label>
+                            <div class="">
+                                <input type="text" id="edit_name" name="name" value="" placeholder="名称" style="width:100%"
+                                data-rule-required="true" data-msg-required='请填写服务器名称' data-rule-maxlength="64" data-msg-maxlength='长度不能超过64个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group ip">
+                            <label for="form-field-8">IP</label>
+                            <div class="">
+                                <input type="text" id="edit_ip" name="ip" value="" placeholder="IP" style="width:100%"
+                                data-rule-required="true" data-msg-required='请填写ip' data-rule-checkip="true" data-rule-ipusable="true"/>
+                            </div>
+                        </div>
+                        <div class="form-group name">
+                            <label for="form-field-8">管理员</label>
+                            <div class="">
+                                <input type="text" id="edit_admin" name="administrator" value="" placeholder="管理员" style="width:100%" data-rule-required="true" data-msg-required='请填写管理员' data-rule-maxlength="25" data-msg-maxlength='最大长度不能超过25个字符'/>
+                            </div>
+                        </div>
+                        <div class="form-group passwd">
+                            <label for="form-field-8">密码</label>
+                            <div class="">
+                                <input type="password" id="edit_password" name="password" value="" placeholder="密码" style="width:100%" data-rule-required="true" data-msg-required='请填写密码' data-rule-maxlength="40" data-msg-maxlength='最大长度不能超过40个字符'/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="edit_save" class="btn btn-success btn-sm" type="button">
+                        <i class="ace-icon glyphicon glyphicon-ok"></i>保存
+                    </button>
+                    <button id="edit_close" class="btn btn-danger btn-sm" type="button">
+                        <i class="ace-icon fa fa-undo"></i>取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_confirm_dialog" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">删除个人存储服务器</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 确认删除所选择的个人存储服务器?</span>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm_delete" type="button" class="btn btn-danger"> 确定 </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭 </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+
+    <script>
+        active_sidebar("#storages", "#personal_servers");
+
+        $(function() {
+            //init JQuery's data table
+            var dTable = $('#table_list').dataTable({
+                "language": {
+                    "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+                },
+                "aoColumns": [{
+                    "bSortable": false,
+                    "bSearchable": false
+                }, null, null, null,
+                    {"bSortable": false, "bSearchable": false}],
+                "aaSorting": []
+            });
+
+            //init checkbox for mutiple selection
+            $('table th input:checkbox').on('click', function () {
+                var that = this;
+                $(this).closest('table').find('tr > td:first-child input:checkbox').each(function () {
+                    if (!this.disabled) {
+                        this.checked = that.checked;
+                        $(this).closest('tr').toggleClass('selected');
+                    }
+                });
+            });
+
+            $('[data-rel=tooltip]').tooltip();
+
+
+            // var $new_validator = $("#newpersonal_form").validate({
+            //     rules: {
+            //         name: {
+            //             required: true,
+            //             maxlength: 64
+            //         },
+            //         ip: {
+            //             required: true,
+            //             checkip: true
+            //         },
+            //         administrator: {
+            //             required: true,
+            //             maxlength: 25
+            //         },
+            //         password: {
+            //             required: true,
+            //             maxlength: 40
+            //         }
+            //     },
+            //     messages: {
+            //         name: {
+            //             required: '请填服务器名称',
+            //             maxlength: '长度不能超过64个字符'
+            //         },
+            //         ip: {
+            //             required: '请填写IP',
+            //             checkip: 'IP地址格式错误'
+            //         },
+            //         administrator: {
+            //             required: "请填写管理员",
+            //             maxlength: "最大长度不能超过25个字符"
+            //         },
+            //         password: {
+            //             required: "请填写密码",
+            //             maxlength: "最大长度不能超过40个字符"
+            //         }
+            //     }
+            // });
+            /*******************end validate*****************************************/
+
+            /*************add initial**********************/
+            $("#add_personal_create").click(function () {
+                var isvalid = $("#newpersonal_form").valid();
+                if (!isvalid) {
+                    return;
+                };
+                addPersonal();
+            });
+
+            $("#add_personal_close").click(function () {
+                $("#add_dialog").modal("hide");
+            });
+
+            function addPersonal() {
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    error: callback,
+                    url: "{{ url_for('storage.add_personal_storage') }}",
+                    type: "post",
+                    dataType: "json",        //html(默认), xml, script, json...接受服务端返回的类型
+                    timeout: 60000           //限制请求的时间，当请求大于10秒后，跳出请求
+                }
+
+                function beforeSubmit(formData, jqForm, options) {
+                    return;
+                };
+
+                function callback(responseText, statusText) {
+                    if (responseText['status'] == "success") {
+                        //成功，刷新页面
+                        $("#add_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "添加个人服务器成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},500);
+                    } else {
+                        //操作失败
+                        //恢复页面
+                        $("#add_dialog").modal("hide");
+                        var content = "创建个人文件夹服务器失败"
+                        if (responseText['status'] == "existed") {
+                            content = "存在同名或相同地址的文件服务器"
+                        }
+                        else if (responseText['status'] == "connect_fail") {
+                            content ="该服务器不可用"
+                        }
+                        else if (responseText['status'] == "pswd_error") {
+                            content = "管理员密码不正确"
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+                $("#newpersonal_form").ajaxSubmit(options);
+            }
+
+            /***************end initial***********************/
+
+            $("#add_personal").click(function () {
+                $("#newpersonal_form").validate().resetForm();
+                $("#add_dialog").modal("show");
+            });
+
+            /******* init edit dialog******/
+            // var $edit_validator = $("#edit_form").validate({
+            //     rules: {
+            //         name: {
+            //             required: true,
+            //             maxlength:64
+            //         },
+            //         ip: {
+            //             required: true,
+            //             checkip: true,
+            //             ipusable:true
+            //         },
+            //         administrator:{
+            //             required: true,
+            //             maxlength: 25
+            //         },
+            //         password: {
+            //             required: true,
+            //             maxlength: 40
+            //         }
+            //     },
+            //     messages: {
+            //         name: {
+            //             required: '请填写服务器名称',
+            //             maxlength: '长度不能超过64个字符'
+            //         },
+            //         ip:{
+            //             required:'请填写ip',
+            //             checkip: 'IP地址格式错误',
+            //             ipusable:'该Ip地址不可用'
+            //         },
+            //         administrator:{
+            //             required: "请填写管理员",
+            //             maxlength: "最大长度不能超过25个字符"
+            //         },
+            //         password: {
+            //             required:'请填写密码',
+            //             maxlength: "最大长度不能超过40个字符"
+            //         }
+            //     }
+            // });
+
+            function updatePersonal(){
+                function beforeSubmit(formData, jqForm, options){
+                    return;
+                 };
+
+                function callback(responseText, statusText){
+                    if(responseText['status'] == "success"){
+                        //成功，刷新页面
+                        $("#edit_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "更新个人服务器成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},500);
+                    }else{
+                        //操作失败
+                        $("#edit_dialog").modal("hide");
+                        if(responseText['status'] == "existed"){
+                            content="文件服务器已存在";
+                        }else if(responseText['status'] == "pswd_error"){
+             	            content = "管理员密码不正确";
+                        }else {
+                            content = "该服务器不可用";
+                        }
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                };
+
+                var options = {
+                    beforeSubmit: beforeSubmit,  //提交前的回调函数
+                    success: callback,      //提交后的回调函数
+                    url: "{{ url_for('storage.update_personal_storage') }}",
+                    type: "post"
+                }
+
+                $("#edit_form").ajaxSubmit(options);
+            }
+
+            $("#edit_save").click(function(){
+                var isvalid = $("#edit_form").valid();
+                if (!isvalid) {
+                    return;
+                }
+                updatePersonal();
+            });
+
+            $("#edit_close").click(function(){
+                $("#edit_dialog").modal("hide");
+            });
+
+
+            $("#confirm_delete").click(function () {
+                $("#delete_confirm_dialog").modal("hide");
+                deletePersonal(selected_server)
+            });
+
+            $("#delete_servers").click(function(){
+                selected_server = [];
+                $("#table_list td input[type=checkbox]").each(function(){
+                    if(this.checked  && !this.disabled){
+                        selected_server.push(this.id);
+                    }
+                });
+                if (selected_server.length > 0){
+                    $("#delete_confirm_dialog").modal("show");
+                }
+                 else {
+                   var content = "请选择一个或多个要删除的个人存储服务器";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+            });
+        });
+
+        function editPersonalById(id){
+            var name = $("#name_"+id).text();
+            var ip = $("#ip_"+id).text();
+            var admin = $("#admin_"+id).text();
+
+            $("#edit_form").resetForm();
+            $("#edit_id").val(id);
+            $("#edit_ip").val(ip);
+            $("#edit_admin").val(admin);
+            $("#edit_name").val(name);
+            $("label.error").remove();
+
+            $("#edit_dialog").modal("show");
+        }
+
+        function deletePersonalById(id){
+            selected_server = [];
+            selected_server.push(id);
+            if(selected_server.length > 0){
+                 $("#delete_confirm_dialog").modal("show");
+            }
+        }
+
+        function deletePersonal(ids){
+            $.ajax({
+                url:"{{ url_for('storage.delete_personal_storage') }}",
+                type:"post",
+                async:false,
+                data:{ids:ids},
+                success:function(responseText,status){
+                    if (responseText['status'] == "success"){
+                        $("#delete_confirm_dialog").modal("hide");
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: "删除个人服务器成功",
+                            class_name: 'gritter-success'
+                        });
+                        setTimeout(function(){location.reload()},500);
+                    }else{
+                        content = "删除失败";
+                        $.gritter.add({
+                            // (string | mandatory) the text inside the notification
+                            text: content,
+                            class_name: 'gritter-error'
+                        });
+                    }
+                }
+            });
+        }
+
+    </script>
+{% endblock %}

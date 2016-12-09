@@ -1,0 +1,571 @@
+{% extends 'layout.html' %}
+{% block title %}课室管理{% endblock %}
+
+{% block page_content %}
+<div class="page-header"><h1>终端注册</h1></div>
+
+<div class="tabbable">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#approved">已注册</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#waiting">注册申请
+                {% if terminal_list["waiting"] %}
+                <span class="badge badge-important">{{ terminal_list["waiting"] | length }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#rejected">已拒绝</a>
+        </li>
+    </ul>
+
+    <div class="tab-content no-padding">
+        <!-- lessons -->
+        <div id="approved" class="tab-pane fade in active ui-sortable">
+            <div id="approved-list">
+            <div class="widget-box no-margin">
+                <div class="widget-body">
+                    <div class="widget-toolbox padding-10">
+                        <div class="action-buttons">
+                            <a id="create-terminal" href="javascript:void(0)" data-toggle="modal" data-target="#add-dialog">
+                                <i class="ace-icon fa fa-plus-circle"></i> 创建终端 </a>
+                            <a id="delete-multi" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 删除选中终端 </a>
+                        </div>
+                    </div>
+                    <div class="widget-main no-padding">
+                        <table id="approved-terminal-table" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </th>
+                                    <th>终端描述</th>
+                                    <th>课室名称</th>
+                                    <th>座位号</th>
+                                    <th>MAC地址</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for terminal in terminal_list["approved"] %}
+                                <tr>
+                                    <td class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" id="terminal-{{ terminal.id }}" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </td>
+                                    <td>{{ terminal.description }}</td>
+                                    <td>{{ terminal.place.name }}</td>
+                                    <td>{{ terminal.seat_number }}</td>
+                                    <td>{{ terminal.mac_address }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <!--<a class="update-single" href="#" title="修改终端信息" id="update-{{ terminal.id }}"><i class="ace-icon fa fa-pencil-square-o bigger-130"></i></a>-->
+                                            <a class="red delete-single" href="javascript:void(0)" title="删除终端" id="delete-{{ terminal.id }}"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div id="waiting" class="tab-pane fade ui-sortable">
+            <div id="waiting-list">
+            <div class="widget-box no-margin">
+                <div class="widget-body">
+                    <div class="widget-toolbox padding-10">
+                        <div class="action-buttons">
+                            <a id="approve-multi" class="green" href="javascript:void(0)">
+                                <i class="ace-icon fa fa-check-circle"></i> 通过选中终端审批 </a>
+                            <a id="reject-multi" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 拒绝选中终端审批 </a>
+                        </div>
+                    </div>
+                    <div class="widget-main no-padding">
+                        <table id="waiting-terminal-table" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </th>
+                                    <th>终端描述</th>
+                                    <th>课室名称</th>
+                                    <th>座位号</th>
+                                    <th>MAC地址</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for terminal in terminal_list["waiting"] %}
+                                <tr>
+                                    <td class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" id="terminal-{{ terminal.id }}" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </td>
+                                    <td>{{ terminal.description }}</td>
+                                    <td>{{ terminal.place.name }}</td>
+                                    <td>{{ terminal.seat_number }}</td>
+                                    <td>{{ terminal.mac_address }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a class="green approve-single" href="javascript:void(0)" title="通过审批" id="approve-{{ terminal.id }}"><i class="ace-icon fa fa-check-circle bigger-130"></i></a>
+                                            <a class="red reject-single" href="javascript:void(0)" title="拒绝审批" id="reject-{{ terminal.id }}"><i class="ace-icon fa fa-minus-circle bigger-130"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div id="rejected" class="tab-pane fade ui-sortable">
+            <div id="rejected-list">
+            <div class="widget-box no-margin">
+                <div class="widget-body">
+                    <div class="widget-toolbox padding-10">
+                        <div class="action-buttons">
+                            <a id="re-approve-multi" class="green" href="javascript:void(0)">
+                                <i class="ace-icon fa fa-check-circle"></i> 通过选中终端审批 </a>
+                            <a id="delete-rejected-multi" class="red" href="javascript:void(0)"><i class="ace-icon fa fa-trash"></i> 删除选中终端 </a>
+                        </div>
+                    </div>
+                    <div class="widget-main no-padding">
+                        <table id="rejected-terminal-table" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </th>
+                                    <th>终端描述</th>
+                                    <th>课室名称</th>
+                                    <th>座位号</th>
+                                    <th>MAC地址</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for terminal in terminal_list["rejected"] %}
+                                <tr>
+                                    <td class="center">
+                                        <label class="pos-rel">
+                                            <input type="checkbox" id="terminal-{{ terminal.id }}" class="ace">
+                                            <span class="lbl"></span>
+                                        </label>
+                                    </td>
+                                    <td>{{ terminal.description }}</td>
+                                    <td>{{ terminal.place.name }}</td>
+                                    <td>{{ terminal.seat_number }}</td>
+                                    <td>{{ terminal.mac_address }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a class="green approve-single" href="javascript:void(0)" title="重新通过审批" id="approve-{{ terminal.id }}"><i class="ace-icon fa fa-check-circle bigger-130"></i></a>
+                                            <a class="red delete-single" href="javascript:void(0)" title="删除终端" id="delete-{{ terminal.id }}"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="add-dialog" class="modal fade">
+    <div class="modal-dialog">
+        <form method="POST">
+            {{ form.csrf_token }}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建终端</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-user-info profile-user-info-striped" style="width:auto;">
+                            <div class="profile-info-row control-group ui-spinner">
+                                <div class="profile-info-name" style="text-align: center;">终端描述</div>
+                                <div class="profile-info-value bootstrap-timepicker" style="width: 50%">
+                                {{ form.description }}
+                                </div>
+                            </div>
+                            <div  class="profile-info-row control-group ui-spinner">
+                                <div class="profile-info-name" style="text-align: center;">所在课室</div>
+                                <div class="profile-info-value bootstrap-timepicker" style="width: 50%">
+                                {{ form.place_id }}
+                                </div>
+                            </div>
+                            <div  class="profile-info-row control-group ui-spinner">
+                                <div class="profile-info-name" style="text-align: center;">座位号</div>
+                                <div class="profile-info-value bootstrap-timepicker" style="width: 50%">
+                                {{ form.seat_number }}
+                                </div>
+                            </div>
+                            <div  class="profile-info-row control-group ui-spinner">
+                                <div class="profile-info-name" style="text-align: center;">MAC地址</div>
+                                <div class="profile-info-value bootstrap-timepicker" style="width: 50%">
+                                {{ form.mac_address }}
+                                </div>
+                            </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> 关闭</button>
+                    <button id="confirm-add" type="submit" class="btn btn-success"> 添加</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="approve-terminal-dialog" class="modal fade">
+    <div class="modal-dialog  modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">通过选中终端审批</h4>
+            </div>
+            <div class="modal-body">
+                是否确定通过选中终端审批？
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                <button id="confirm-approve" type="button" class="btn btn-success"> 确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="delete-terminal-dialog" class="modal fade">
+    <div class="modal-dialog  modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">删除选中终端</h4>
+            </div>
+            <div class="modal-body">
+                <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 是否删除选中终端？</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                <button id="confirm-delete" type="button" class="btn btn-danger"> 删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reject-dialog" class="modal fade">
+    <div class="modal-dialog  modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">拒绝通过选中终端审批</h4>
+            </div>
+            <div class="modal-body">
+                <span class="red"><i class="ace-icon fa fa-warning icon-animated-bell bigger-130"></i> 是否拒绝通过选中的终端审批？</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"> 取消</button>
+                <button id="confirm-reject" type="button" class="btn btn-danger"> 确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block inline_scripts %}
+    {{ super() }}
+    <script>
+        $(document).ajaxStart(function(){
+            $.blockUI({
+                message: "<h3>请等待...</h3>",
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: .5,
+                    color: '#fff'
+                }
+            });
+        });
+        $(document).ajaxStop($.unblockUI);
+
+        active_sidebar("#terminal", "#terminal-registration");
+
+        // checkbox
+        $("th input[type=checkbox], td input[type=checkbox]").prop('checked', false);
+
+        // select all
+        $("table thead th input[type=checkbox]").click(function () {
+            var checked = this.checked;
+            $(this).closest('table').find('tbody td input[type=checkbox]').each(function () {
+                this.checked = checked;
+            })
+        });
+
+        $("#approved-terminal-table, #waiting-terminal-table, #rejected-terminal-table").dataTable({
+            "language": {
+                "url": "{{ url_for('static', filename='i18n/jquery.dataTables.json') }}"
+            },
+            "aoColumns": [
+                { "bSortable": false },
+                null, null, null, null,
+                { "bSortable": false }
+            ],
+            "aaSorting": []
+        });
+
+        function approve_terminal(selected_list) {
+            var json = $.toJSON(selected_list);
+            $.ajax({
+                url: "{{ url_for('terminal.approve_registration') }}",
+                type: "PUT",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success:function(data, status){
+                    if (data['result'] == "success"){
+                        location.reload();
+                    }else{
+                        $.gritter.add({
+                            text: '通过审批失败',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    $.gritter.add({
+                        text: '通过审批失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        function reject_terminal(selected_list) {
+            var json = $.toJSON(selected_list);
+            $.ajax({
+                url: "{{ url_for('terminal.reject_registration') }}",
+                type: "PUT",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success: function(data, status){
+                    if (data['result'] == "success"){
+                        location.reload();
+                    }else{
+                        $.gritter.add({
+                            text: '拒绝审批失败',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    $.gritter.add({
+                        text: '拒绝审批失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        function delete_terminal(selected_list) {
+            var json = $.toJSON(selected_list);
+            $.ajax({
+                url: "{{ url_for('terminal.delete_registration') }}",
+                type: "DELETE",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success:function(data, status){
+                    if (data['result'] == "success"){
+                        location.reload();
+                    }else{
+                        $.gritter.add({
+                            text: '删除终端失败',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    $.gritter.add({
+                        text: '删除终端失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        function update_terminal(selected_list) {
+            var json = $.toJSON(selected_list);
+            $.ajax({
+                url: "{{ url_for('terminal.update_registration') }}",
+                type: "PUT",
+                data: json,
+                contentType: "application/json",
+                async: false,
+                global: true,
+                success:function(data, status){
+                    if (data['result'] == "success"){
+                        location.reload();
+                    }else{
+                        $.gritter.add({
+                            text: '更新终端信息失败',
+                            class_name: 'gritter-error'
+                        });
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    $.gritter.add({
+                        text: '更新终端信息失败',
+                        class_name: 'gritter-error'
+                    });
+                }
+            });
+        }
+
+        $(".approve-single").click(function() {
+            var terminal_id = this.id.split("-")[1];
+            approve_terminal([terminal_id]);
+        });
+
+        $(".reject-single").click(function() {
+            var terminal_id = this.id.split("-")[1];
+            reject_terminal([terminal_id]);
+        });
+
+        var selected_list = [];
+        $("#delete-multi, #delete-rejected-multi").click(function() {
+            selected_list = [];
+            var table_id;
+            if (this.id == "delete-multi") {
+                table_id = "#approved-terminal-table";
+            } else if (this.id == "delete-rejected-multi") {
+                table_id = "#rejected-terminal-table";
+            }
+            $(table_id + " td input[type=checkbox]").each(function () {
+                if (this.checked) {
+                    var id = this.id.split("-")[1];
+                    selected_list.push(id);
+                }
+            });
+            // console.log(selected_list);
+            if (selected_list.length > 0) {
+                $("#delete-terminal-dialog").modal("show");
+            } else {
+                   var content = "请选择一个或多个要删除的终端";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+        });
+
+        $(".delete-single").click(function() {
+            var terminal_id = this.id.split("-")[1];
+            selected_list = [terminal_id];
+            $("#delete-terminal-dialog").modal("show");
+        });
+
+        $("#confirm-delete").click(function() {
+            delete_terminal(selected_list);
+            $("#delete-terminal-dialog").modal("hide");
+        });
+
+        $("#approve-multi, #re-approve-multi").click(function() {
+            selected_list = [];
+            var table_id;
+            if (this.id == "approve-multi") {
+                table_id = "#waiting-terminal-table";
+            } else if (this.id == "re-approve-multi") {
+                table_id = "#rejected-terminal-table";
+            }
+            $(table_id + " td input[type=checkbox]").each(function () {
+                if (this.checked) {
+                    var id = this.id.split("-")[1];
+                    selected_list.push(id);
+                }
+            });
+            // console.log(selected_list);
+            if (selected_list.length > 0) {
+                $("#approve-terminal-dialog").modal("show");
+            } else {
+                   var content = "请选择一个或多个终端";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+        });
+
+        $("#confirm-approve").click(function() {
+            approve_terminal(selected_list);
+            $("#approve-terminal-dialog").modal("hide");
+        });
+
+        $("#reject-multi").click(function() {
+            selected_list = [];
+            var table_id;
+            $("#waiting-terminal-table td input[type=checkbox]").each(function () {
+                if (this.checked) {
+                    var id = this.id.split("-")[1];
+                    selected_list.push(id);
+                }
+            });
+            if (selected_list.length > 0) {
+                $("#reject-dialog").modal("show");
+            } else {
+                   var content = "请选择一个或多个终端";
+                   $.gritter.add({
+                    // (string | mandatory) the text inside the notification
+                    text: content,
+                    class_name: 'gritter-error'
+                    });
+                }
+        });
+
+        $("#confirm-reject").click(function() {
+            reject_terminal(selected_list);
+            $("#reject-dialog").modal("hide");
+        });
+
+    </script>
+{% endblock %}
